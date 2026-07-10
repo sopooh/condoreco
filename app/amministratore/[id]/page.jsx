@@ -82,7 +82,7 @@ export default async function AdminPage({ params }) {
 
       <div className="wrap" style={{ padding: '24px 40px' }}>
         <AdminActions admin={admin} />
-        <AdminReviewList reviews={reviews} />
+        <AdminReviewList reviews={reviews} admin={admin} />
       </div>
     </>
   )

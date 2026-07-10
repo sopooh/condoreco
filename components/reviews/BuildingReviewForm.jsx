@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
@@ -10,6 +10,7 @@ import PhotoUploader from '@/components/photos/PhotoUploader'
 import { uploadPhoto } from '@/lib/photos'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
+import { useMyReview } from '@/hooks/useMyReview'
 
 function DotRating({ value, onChange, size = 28 }) {
   return (
@@ -38,25 +39,7 @@ export default function BuildingReviewForm({ open, onClose, building }) {
   const session = useSession()
   const router = useRouter()
 
-  // Recensione dell'utente corrente per questo edificio, qualunque sia lo stato
-  // di pubblicazione (RLS consente "read own unpublished"). Dato per forza
-  // per-visitatore: fetchata client-side, non può far parte di una pagina statica
-  // condivisa (vedi lib/supabase/static.ts).
-  const [existingReview, setExistingReview] = useState(null)
-
-  const fetchMyReview = useCallback(async () => {
-    if (!session?.user?.id) { setExistingReview(null); return }
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('reviews')
-      .select('*, profiles(display_name, avatar_url, role)')
-      .eq('building_id', building.id)
-      .eq('user_id', session.user.id)
-      .maybeSingle()
-    setExistingReview(data || null)
-  }, [session?.user?.id, building.id])
-
-  useEffect(() => { fetchMyReview() }, [fetchMyReview])
+  const [existingReview, fetchMyReview] = useMyReview('reviews', 'building_id', building.id)
 
   const [type, setType] = useState('resident')
   const [score, setScore] = useState(0)
@@ -72,6 +55,27 @@ export default function BuildingReviewForm({ open, onClose, building }) {
 
   function setCat(k, v) { setCats((c) => ({ ...c, [k]: v })) }
 
+  // Prefill in modalità modifica: existingReview arriva async (useMyReview),
+  // quindi i campi non possono essere inizializzati direttamente da useState.
+  // Rieseguito anche alla riapertura (dipendenza su open) per scartare eventuali
+  // modifiche non salvate di un'apertura precedente.
+  useEffect(() => {
+    if (!existingReview) return
+    setType(existingReview.resident_type || 'resident')
+    setScore(existingReview.score || 0)
+    setCats({
+      admin: existingReview.score_admin || 0,
+      maintenance: existingReview.score_maintenance || 0,
+      costs: existingReview.score_costs || 0,
+      quality: existingReview.score_quality || 0,
+      noise: existingReview.score_noise || 0,
+      safety: existingReview.score_safety || 0,
+    })
+    setIssue(existingReview.main_issue || 'none')
+    setBody(existingReview.body || '')
+    setSince(existingReview.resident_since || '')
+  }, [existingReview, open])
+
   async function submit() {
     if (!session) { setErr('Devi accedere per pubblicare una recensione.'); return }
     if (!score) { setErr('Assegna una valutazione generale.'); return }
@@ -82,21 +86,32 @@ export default function BuildingReviewForm({ open, onClose, building }) {
     setBusy(true); setErr('')
     try {
       const supabase = createClient()
-      const payload = {
-        resident_type: type, resident_since: since, score,
-        score_admin: cats.admin || null, score_maintenance: cats.maintenance || null,
-        score_costs: cats.costs || null, score_quality: cats.quality || null,
-        score_noise: cats.noise || null, score_safety: cats.safety || null,
-        main_issue: issue, body,
-        user_id: session.user.id, building_id: building.id, is_published: true,
-      }
 
       let reviewId
       if (existingReview?.id) {
-        const { error } = await supabase.from('reviews').update(payload).eq('id', existingReview.id)
+        // Modifica: aggiorna solo corpo/punteggi. Il resto (tipo residente, da
+        // quando, problema ricorrente) resta quello dell'invio originale. Il
+        // trigger DB rimette la recensione in verifica (moderation_status/is_published),
+        // qui non li forziamo.
+        const updatePayload = {
+          score,
+          score_admin: cats.admin || null, score_maintenance: cats.maintenance || null,
+          score_costs: cats.costs || null, score_quality: cats.quality || null,
+          score_noise: cats.noise || null, score_safety: cats.safety || null,
+          body,
+        }
+        const { error } = await supabase.from('reviews').update(updatePayload).eq('id', existingReview.id)
         if (error) throw error
         reviewId = existingReview.id
       } else {
+        const payload = {
+          resident_type: type, resident_since: since, score,
+          score_admin: cats.admin || null, score_maintenance: cats.maintenance || null,
+          score_costs: cats.costs || null, score_quality: cats.quality || null,
+          score_noise: cats.noise || null, score_safety: cats.safety || null,
+          main_issue: issue, body,
+          user_id: session.user.id, building_id: building.id, is_published: true,
+        }
         const { data, error } = await supabase.from('reviews').insert(payload).select('id').single()
         if (error) throw error
         reviewId = data.id
@@ -116,6 +131,12 @@ export default function BuildingReviewForm({ open, onClose, building }) {
     <Modal open={open} onClose={onClose}
            title={existingReview ? 'Aggiorna la tua recensione' : 'Scrivi una recensione'}
            subtitle={`${building.address}${building.street_number ? ', ' + building.street_number : ''} — ${building.city}`}>
+      {existingReview && (
+        <p style={{ fontSize: 12, color: 'var(--amber-tx)', background: 'var(--amber-bg)', borderRadius: 6, padding: '8px 12px', marginBottom: 16 }}>
+          Salvando le modifiche la recensione tornerà in verifica.
+        </p>
+      )}
+
       <div style={GROUP}>
         <label style={LABEL}>Chi sei rispetto a questo edificio?</label>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>

@@ -1,6 +1,13 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { scoreColor } from '@/lib/score'
 import { defaultAvatarFor, avatarById, ROLES } from '@/lib/avatars'
 import { ADMIN_RESIDENT_TYPES } from '@/lib/reviewOptions'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import { createClient } from '@/lib/supabase/client'
+import { useSession } from '@/components/providers/SessionProvider'
 
 function ReviewerAvatar({ profile, userId, size = 36 }) {
   const avatarUrl = profile?.avatar_url
@@ -36,7 +43,29 @@ function Cat({ label, val }) {
   )
 }
 
-export default function AdminReviewItem({ review: r }) {
+export default function AdminReviewItem({ review: r, onEdit }) {
+  const session = useSession()
+  const router = useRouter()
+  const isOwn = !!(session?.user?.id && r.user_id === session.user.id)
+  const updatedAt = r.updated_at && r.updated_at !== r.created_at ? r.updated_at : null
+
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [deleteErr, setDeleteErr] = useState('')
+
+  async function handleDelete() {
+    setBusy(true); setDeleteErr('')
+    const supabase = createClient()
+    const { data, error } = await supabase.from('admin_reviews').delete().eq('id', r.id).eq('user_id', session.user.id).select()
+    setBusy(false)
+    if (error || !data || data.length === 0) {
+      setDeleteErr('Non è stato possibile eliminare la recensione. Riprova più tardi.')
+      return
+    }
+    setConfirmOpen(false)
+    router.refresh()
+  }
+
   const profile = r.profiles || null
   const displayName = profile?.display_name || 'Anonimo'
   const residentLabel = ADMIN_RESIDENT_TYPES.find((t) => t.value === r.resident_type)?.label || r.resident_type
@@ -67,6 +96,7 @@ export default function AdminReviewItem({ review: r }) {
 
             <div style={{ fontSize: 12, color: 'var(--text-4)', fontWeight: 500 }}>
               {new Date(r.created_at).toLocaleDateString('it-IT')}
+              {updatedAt && <span> · Aggiornata il {new Date(updatedAt).toLocaleDateString('it-IT')}</span>}
             </div>
           </div>
         </div>
@@ -89,6 +119,27 @@ export default function AdminReviewItem({ review: r }) {
         <Cat label="Assemblee" val={r.score_assemblies} />
         <Cat label="Qualità/prezzo" val={r.score_value} />
       </div>
+
+      {isOwn && (
+        <div style={{ display: 'flex', gap: 16, marginTop: 14 }}>
+          <button onClick={onEdit} style={{ background: 'none', border: 'none', color: 'var(--teal)', fontWeight: 700, fontSize: 12, cursor: 'pointer', padding: 0 }}>
+            Modifica
+          </button>
+          <button onClick={() => setConfirmOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontWeight: 700, fontSize: 12, cursor: 'pointer', padding: 0 }}>
+            Elimina
+          </button>
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => { setConfirmOpen(false); setDeleteErr('') }}
+        title="Eliminare la recensione?"
+        message="Vuoi eliminare la recensione? L'azione non è reversibile."
+        busy={busy}
+        error={deleteErr}
+        onConfirm={handleDelete}
+      />
     </div>
   )
 }

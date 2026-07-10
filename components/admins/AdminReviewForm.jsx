@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 import { ADMIN_RESIDENT_TYPES } from '@/lib/reviewOptions'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
+import { useMyReview } from '@/hooks/useMyReview'
 
 function DotRating({ value, onChange, size = 28 }) {
   return (
@@ -35,25 +36,7 @@ export default function AdminReviewForm({ open, onClose, admin }) {
   const session = useSession()
   const router = useRouter()
 
-  // Recensione dell'utente corrente per questo amministratore, qualunque sia lo
-  // stato di pubblicazione (RLS consente "read own unpublished"). Dato per forza
-  // per-visitatore: fetchata client-side, non può far parte di una pagina statica
-  // condivisa (vedi lib/supabase/static.ts e lo stesso pattern in BuildingReviewForm).
-  const [existingReview, setExistingReview] = useState(null)
-
-  const fetchMyReview = useCallback(async () => {
-    if (!session?.user?.id) { setExistingReview(null); return }
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('admin_reviews')
-      .select('*, profiles(display_name, avatar_url, role)')
-      .eq('administrator_id', admin.id)
-      .eq('user_id', session.user.id)
-      .maybeSingle()
-    setExistingReview(data || null)
-  }, [session?.user?.id, admin.id])
-
-  useEffect(() => { fetchMyReview() }, [fetchMyReview])
+  const [existingReview, fetchMyReview] = useMyReview('admin_reviews', 'administrator_id', admin.id)
 
   const [type, setType] = useState('resident')
   const [score, setScore] = useState(0)
@@ -65,6 +48,24 @@ export default function AdminReviewForm({ open, onClose, admin }) {
 
   function setCat(k, v) { setCats((c) => ({ ...c, [k]: v })) }
 
+  // Prefill in modalità modifica: existingReview arriva async (useMyReview),
+  // quindi i campi non possono essere inizializzati direttamente da useState.
+  // Rieseguito anche alla riapertura (dipendenza su open) per scartare eventuali
+  // modifiche non salvate di un'apertura precedente.
+  useEffect(() => {
+    if (!existingReview) return
+    setType(existingReview.resident_type || 'resident')
+    setScore(existingReview.score || 0)
+    setCats({
+      availability: existingReview.score_availability || 0,
+      transparency: existingReview.score_transparency || 0,
+      speed: existingReview.score_speed || 0,
+      assemblies: existingReview.score_assemblies || 0,
+      value: existingReview.score_value || 0,
+    })
+    setBody(existingReview.body || '')
+  }, [existingReview, open])
+
   async function submit() {
     if (!session) { setErr('Devi accedere per pubblicare una recensione.'); return }
     if (!score) { setErr('Assegna una valutazione generale.'); return }
@@ -75,25 +76,37 @@ export default function AdminReviewForm({ open, onClose, admin }) {
     setBusy(true); setErr('')
     try {
       const supabase = createClient()
-      const payload = {
-        resident_type: type, score,
-        score_availability: cats.availability || null,
-        score_transparency: cats.transparency || null,
-        score_speed: cats.speed || null,
-        score_assemblies: cats.assemblies || null,
-        score_value: cats.value || null,
-        body,
-        user_id: session.user.id, administrator_id: admin.id, is_published: true,
-      }
 
       if (existingReview?.id) {
+        // Modifica: aggiorna solo corpo/punteggi, come per BuildingReviewForm.
+        // Il trigger DB rimette la recensione in verifica, qui non forziamo
+        // is_published/moderation_status.
         // NB: al momento non esiste una policy RLS "admin_reviews: update own"
         // (a differenza di "reviews: update own"). Se non è stata aggiunta,
         // questa update viene bloccata da RLS e .select().single() lo rende un
         // errore esplicito invece di un no-op silenzioso.
-        const { error } = await supabase.from('admin_reviews').update(payload).eq('id', existingReview.id).select().single()
+        const updatePayload = {
+          score,
+          score_availability: cats.availability || null,
+          score_transparency: cats.transparency || null,
+          score_speed: cats.speed || null,
+          score_assemblies: cats.assemblies || null,
+          score_value: cats.value || null,
+          body,
+        }
+        const { error } = await supabase.from('admin_reviews').update(updatePayload).eq('id', existingReview.id).select().single()
         if (error) throw new Error('Non è stato possibile aggiornare la recensione. Riprova più tardi o contattaci se il problema persiste.')
       } else {
+        const payload = {
+          resident_type: type, score,
+          score_availability: cats.availability || null,
+          score_transparency: cats.transparency || null,
+          score_speed: cats.speed || null,
+          score_assemblies: cats.assemblies || null,
+          score_value: cats.value || null,
+          body,
+          user_id: session.user.id, administrator_id: admin.id, is_published: true,
+        }
         const { error } = await supabase.from('admin_reviews').insert(payload).select('id').single()
         if (error) throw error
       }
@@ -112,6 +125,11 @@ export default function AdminReviewForm({ open, onClose, admin }) {
       {existingReview?.moderation_status === 'pending' && (
         <p style={{ fontSize: 12, color: 'var(--amber-tx)', background: 'var(--amber-bg)', borderRadius: 6, padding: '8px 12px', marginBottom: 16 }}>
           La tua recensione precedente è ancora in fase di verifica.
+        </p>
+      )}
+      {existingReview && existingReview.moderation_status !== 'pending' && (
+        <p style={{ fontSize: 12, color: 'var(--amber-tx)', background: 'var(--amber-bg)', borderRadius: 6, padding: '8px 12px', marginBottom: 16 }}>
+          Salvando le modifiche la recensione tornerà in verifica.
         </p>
       )}
 

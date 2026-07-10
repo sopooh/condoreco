@@ -1,6 +1,13 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { scoreColor, TRUST_BADGE } from '@/lib/score'
 import { defaultAvatarFor, avatarById, ROLES } from '@/lib/avatars'
 import ReviewPhotos from '@/components/photos/ReviewPhotos'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import { createClient } from '@/lib/supabase/client'
+import { useSession } from '@/components/providers/SessionProvider'
 
 // Barre di fiducia (1-3)
 function TrustBars({ bars, tone }) {
@@ -56,7 +63,30 @@ function Tag({ label, tone }) {
   )
 }
 
-export default function ReviewItem({ review: r, photos }) {
+export default function ReviewItem({ review: r, photos, onEdit }) {
+  const session = useSession()
+  const router = useRouter()
+  const isOwn = !!(session?.user?.id && r.user_id === session.user.id)
+  const isPending = r.moderation_status === 'pending'
+  const updatedAt = r.updated_at && r.updated_at !== r.created_at ? r.updated_at : null
+
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [deleteErr, setDeleteErr] = useState('')
+
+  async function handleDelete() {
+    setBusy(true); setDeleteErr('')
+    const supabase = createClient()
+    const { data, error } = await supabase.from('reviews').delete().eq('id', r.id).eq('user_id', session.user.id).select()
+    setBusy(false)
+    if (error || !data || data.length === 0) {
+      setDeleteErr('Non è stato possibile eliminare la recensione. Riprova più tardi.')
+      return
+    }
+    setConfirmOpen(false)
+    router.refresh()
+  }
+
   const badge = TRUST_BADGE[r.resident_type] || { label: 'Non verificato', tone: 'slate', bars: 0 }
   const verified = r.is_verified
 
@@ -89,12 +119,19 @@ export default function ReviewItem({ review: r, photos }) {
               <Tag label={displayLabel} tone={verified ? 'teal' : badge.tone} />
               <TrustBars bars={verified ? 3 : badge.bars} tone={verified ? 'teal' : badge.tone} />
               {verified && <span style={{ fontSize: 11, color: 'var(--teal)', fontWeight: 700 }}>✓ Verificato</span>}
+              {isOwn && isPending && (
+                <span style={{
+                  fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 4, display: 'inline-block',
+                  background: '#FEF3E8', color: '#E8651A',
+                }}>In verifica</span>
+              )}
             </div>
 
             {/* Periodo / rapporto · data */}
             <div style={{ fontSize: 12, color: 'var(--text-4)', fontWeight: 500 }}>
               {sinceText && <span>{sinceText} · </span>}
               {new Date(r.created_at).toLocaleDateString('it-IT')}
+              {updatedAt && <span> · Aggiornata il {new Date(updatedAt).toLocaleDateString('it-IT')}</span>}
             </div>
           </div>
         </div>
@@ -121,6 +158,27 @@ export default function ReviewItem({ review: r, photos }) {
 
       {/* Thumbnail foto associate a questa recensione */}
       <ReviewPhotos photos={reviewPhotos} />
+
+      {isOwn && (
+        <div style={{ display: 'flex', gap: 16, marginTop: 14 }}>
+          <button onClick={onEdit} style={{ background: 'none', border: 'none', color: 'var(--teal)', fontWeight: 700, fontSize: 12, cursor: 'pointer', padding: 0 }}>
+            Modifica
+          </button>
+          <button onClick={() => setConfirmOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontWeight: 700, fontSize: 12, cursor: 'pointer', padding: 0 }}>
+            Elimina
+          </button>
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => { setConfirmOpen(false); setDeleteErr('') }}
+        title="Eliminare la recensione?"
+        message="Vuoi eliminare la recensione? L'azione non è reversibile."
+        busy={busy}
+        error={deleteErr}
+        onConfirm={handleDelete}
+      />
     </div>
   )
 }

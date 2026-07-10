@@ -13,16 +13,31 @@ async function getAdminsData(searchParams) {
 
   const city = searchParams.city || null
   const query = searchParams.q?.trim() || ''
+  const feeMin = searchParams.feeMin ? Number(searchParams.feeMin) : 0
+  const feeMax = searchParams.feeMax ? Number(searchParams.feeMax) : 3000
 
-  let req = supabase.from('admin_scores').select('*')
-  if (city) req = req.eq('city', city)
-  if (query) {
-    req = req.or(`name.ilike.%${query}%,studio_name.ilike.%${query}%`)
+  function applyCommonFilters(req) {
+    if (city) req = req.eq('city', city)
+    if (query) {
+      req = req.or(`name.ilike.%${query}%,studio_name.ilike.%${query}%`)
+    }
+    return req
   }
 
-  const [{ data: adminRows }, { data: cityRows }] = await Promise.all([
+  let req = applyCommonFilters(supabase.from('admin_scores').select('*'))
+  // Filtro attivo solo se scostato dal default: altrimenti gte(...,0) su
+  // Postgres escluderebbe gli amministratori con avg_monthly_fee null
+  // (nessun edificio con quota valorizzata).
+  if (feeMin > 0) req = req.gte('avg_monthly_fee', feeMin)
+  if (feeMax < 3000) req = req.lte('avg_monthly_fee', feeMax)
+
+  // Baseline dell'istogramma: stessi filtri tranne il range fee.
+  const feeCountsReq = applyCommonFilters(supabase.from('admin_scores').select('avg_monthly_fee'))
+
+  const [{ data: adminRows }, { data: cityRows }, { data: feeRows }] = await Promise.all([
     req,
     supabase.from('admin_scores').select('city'),
+    feeCountsReq,
   ])
 
   const admins = adminRows || []
@@ -46,13 +61,14 @@ async function getAdminsData(searchParams) {
     cityCounts.set(a.city, (cityCounts.get(a.city) || 0) + 1)
   })
   const cities = Array.from(cityCounts.keys()).sort().map((name) => ({ name }))
+  const feeCounts = (feeRows || []).map((a) => a.avg_monthly_fee).filter(Boolean)
 
-  return { admins, buildingsByAdmin, cities, city }
+  return { admins, buildingsByAdmin, cities, feeCounts, city }
 }
 
 export default async function AdminsPage({ searchParams }) {
   const resolvedParams = await searchParams
-  const { admins, buildingsByAdmin, cities, city } = await getAdminsData(resolvedParams)
+  const { admins, buildingsByAdmin, cities, feeCounts, city } = await getAdminsData(resolvedParams)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -71,6 +87,7 @@ export default async function AdminsPage({ searchParams }) {
         admins={admins}
         buildingsByAdmin={buildingsByAdmin}
         cities={cities}
+        feeCounts={feeCounts}
         city={city}
       />
     </div>

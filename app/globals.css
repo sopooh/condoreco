@@ -1206,6 +1206,8 @@ input, select, textarea { font-family: inherit; }
 .admins-toolbar-inner { flex-wrap: nowrap; }
 .admins-results-grid { padding: 24px 40px; grid-template-columns: 1fr; }
 .admins-results-grid.has-map { grid-template-columns: 1fr 420px; }
+.admins-results-grid.has-filters { grid-template-columns: 240px 1fr; }
+.admins-results-grid.has-filters.has-map { grid-template-columns: 240px 1fr 420px; }
 
 .profile-header-wrap { padding: 40px 40px 32px; }
 .profile-header-row { gap: 32px; flex-wrap: nowrap; }
@@ -1241,6 +1243,8 @@ input, select, textarea { font-family: inherit; }
   .admins-toolbar-inner { flex-wrap: wrap; }
   .admins-results-grid { padding: 16px; }
   .admins-results-grid.has-map { grid-template-columns: 1fr; }
+  .admins-results-grid.has-filters { grid-template-columns: 1fr; }
+  .admins-results-grid.has-filters.has-map { grid-template-columns: 1fr; }
 
   .profile-header-wrap { padding: 20px 16px 20px; }
   .profile-header-row { gap: 16px; flex-wrap: wrap; }

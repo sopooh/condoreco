@@ -5,18 +5,27 @@ import Link from 'next/link'
 import AdminRow from '@/components/admins/AdminRow'
 import AdminCityTabs from '@/components/admins/AdminCityTabs'
 import AdminSearchForm from '@/components/admins/AdminSearchForm'
+import AdminFilterSidebar from '@/components/admins/AdminFilterSidebar'
 import MapView from '@/components/map/MapView'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
-// Riceve admins/buildingsByAdmin/cities già filtrati/calcolati server-side
-// (città + testo via searchParams). Qui restano solo stati di UI — mostra/
-// nascondi mappa, riga espansa — nessun rifetch dei dati. Il breakpoint
-// mobile/desktop è deciso da CSS (niente useIsMobile): la mappa stessa non è
-// mai condizionata dal viewport, solo showMap (stato reale, non a rischio di
-// hydration mismatch) ne decide il mount — l'arrangiamento a griglia lo
-// gestisce la classe .has-map in globals.css.
-export default function AdminsResultsView({ admins, buildingsByAdmin, cities, city }) {
+// Riceve admins/buildingsByAdmin/cities/feeCounts già filtrati/calcolati
+// server-side (città + testo + range fee via searchParams). Qui restano solo
+// stati di UI — mostra/nascondi mappa, drawer filtri mobile, riga espansa —
+// nessun rifetch dei dati. Il breakpoint mobile/desktop della mappa resta
+// deciso da CSS (niente useIsMobile): la mappa stessa non è mai condizionata
+// dal viewport, solo showMap (stato reale, non a rischio di hydration
+// mismatch) ne decide il mount — l'arrangiamento a griglia lo gestisce la
+// classe .has-map in globals.css. La sidebar filtri invece usa useIsMobile
+// (hook già hydration-safe, valore iniziale fisso false) solo per decidere
+// se mostrarla inline o dietro al bottone "Filtri": nessun componente
+// imperativo tipo Leaflet è coinvolto, quindi il mismatch iniziale non crea
+// gli stessi problemi della mappa.
+export default function AdminsResultsView({ admins, buildingsByAdmin, cities, feeCounts, city }) {
+  const isMobile = useIsMobile()
   const [expandedId, setExpandedId] = useState(null)
   const [showMap, setShowMap] = useState(true)
+  const [showFilters, setShowFilters] = useState(false)
 
   const expandedBuildings = expandedId
     ? (buildingsByAdmin[expandedId] || [])
@@ -31,6 +40,14 @@ export default function AdminsResultsView({ admins, buildingsByAdmin, cities, ci
         <div className="admins-toolbar-inner" style={{ maxWidth: 1360, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
           <AdminSearchForm />
           <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+            {isMobile && (
+              <button onClick={() => setShowFilters(v => !v)} style={{
+                padding: '9px 18px', borderRadius: 8, border: '1px solid var(--border)',
+                background: showFilters ? 'var(--teal-lt)' : 'var(--white)',
+                color: 'var(--teal-dk)', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}>Filtri</button>
+            )}
             <Link href="/aggiungi-condominio" style={{
               padding: '9px 16px', borderRadius: 8, border: '1.5px solid var(--teal)',
               background: 'var(--teal-lt)', fontWeight: 600, fontSize: 13,
@@ -50,12 +67,37 @@ export default function AdminsResultsView({ admins, buildingsByAdmin, cities, ci
 
       <AdminCityTabs cities={cities} />
 
-      {/* Layout: 2 colonne desktop, 1 colonna mobile */}
-      <div className={`admins-results-grid${showMap ? ' has-map' : ''}`} style={{
+      {/* Drawer filtri mobile */}
+      {isMobile && showFilters && (
+        <>
+          <div onClick={() => setShowFilters(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 200 }} />
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 201,
+            background: 'var(--white)', borderRadius: '16px 16px 0 0',
+            padding: '20px 20px 40px', maxHeight: '80vh', overflowY: 'auto',
+            boxShadow: '0 -8px 32px rgba(0,0,0,0.15)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <span style={{ fontSize: 16, fontWeight: 700 }}>Filtri</span>
+              <button onClick={() => setShowFilters(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-3)' }}>✕</button>
+            </div>
+            <AdminFilterSidebar feeCounts={feeCounts} />
+            <button onClick={() => setShowFilters(false)} style={{
+              width: '100%', marginTop: 20, padding: '14px', borderRadius: 8, border: 'none',
+              background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer',
+            }}>Applica filtri</button>
+          </div>
+        </>
+      )}
+
+      {/* Layout: 3 colonne desktop (filtri, lista, mappa), 1 colonna mobile */}
+      <div className={`admins-results-grid${!isMobile ? ' has-filters' : ''}${showMap ? ' has-map' : ''}`} style={{
         maxWidth: 1360, margin: '0 auto',
         display: 'grid',
         gap: 28, alignItems: 'start',
       }}>
+        {!isMobile && <AdminFilterSidebar feeCounts={feeCounts} />}
+
         {/* Admin list */}
         <div>
           <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 16 }}>

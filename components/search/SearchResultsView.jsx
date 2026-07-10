@@ -13,7 +13,7 @@ import { scoreColor } from '@/lib/score'
 // Riceve buildings già filtrati server-side (query testo + città + servizi via
 // searchParams). Qui restano solo stati puramente di UI — mostra/nascondi
 // mappa, drawer filtri mobile, pin selezionato — nessun rifetch dei dati.
-export default function SearchResultsView({ buildings, cities, query, city, focusLat, focusLng }) {
+export default function SearchResultsView({ buildings, cities, feeCounts, query, city, focusLat, focusLng }) {
   const isMobile = useIsMobile()
   const [showMap, setShowMap] = useState(!isMobile)
   const [showFilters, setShowFilters] = useState(false)
@@ -86,7 +86,7 @@ export default function SearchResultsView({ buildings, cities, query, city, focu
               <span style={{ fontSize: 16, fontWeight: 700 }}>Filtri</span>
               <button onClick={() => setShowFilters(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-3)' }}>✕</button>
             </div>
-            <FilterSidebar />
+            <FilterSidebar feeCounts={feeCounts} />
             <button onClick={() => setShowFilters(false)} style={{
               width: '100%', marginTop: 20, padding: '14px', borderRadius: 8, border: 'none',
               background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer',
@@ -138,7 +138,7 @@ export default function SearchResultsView({ buildings, cities, query, city, focu
 
       {/* Layout desktop: 3 colonne */}
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '16px' : '24px 40px', display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-        {!isMobile && <FilterSidebar />}
+        {!isMobile && <FilterSidebar feeCounts={feeCounts} />}
 
         {/* Lista edifici */}
         <div style={{ flex: 1, minWidth: isMobile ? 'unset' : 420, width: isMobile ? '100%' : 'auto' }}>

@@ -2,16 +2,14 @@
 
 import { useMemo } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { ALL_AMENITIES } from '@/lib/amenities'
 
 const FEE_MIN = 0
 const FEE_MAX = 3000
 const STEP = 10
 const N_BUCKETS = 24 // barre dell'istogramma
 
-// Calcola i bucket dell'istogramma da una lista di quote (già filtrate
-// server-side per città/query/servizi, ma non per il range fee stesso —
-// così lo sfondo dell'istogramma mostra sempre la distribuzione completa).
+// Stesso istogramma di components/search/FilterSidebar.jsx, ma sulla media
+// (avg_monthly_fee, view admin_scores) invece che sulla quota del singolo edificio.
 function buildHistogram(fees) {
   const counts = new Array(N_BUCKETS).fill(0)
   const bw = (FEE_MAX - FEE_MIN) / N_BUCKETS
@@ -24,24 +22,15 @@ function buildHistogram(fees) {
   return counts
 }
 
-export default function FilterSidebar({ feeCounts = [] }) {
+export default function AdminFilterSidebar({ feeCounts = [] }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const selected = (searchParams.get('amenities') || '').split(',').filter(Boolean)
 
   const feeMin = searchParams.get('feeMin') ? Number(searchParams.get('feeMin')) : FEE_MIN
   const feeMax = searchParams.get('feeMax') ? Number(searchParams.get('feeMax')) : FEE_MAX
   const isDefaultRange = feeMin === FEE_MIN && feeMax === FEE_MAX
   const histogram = useMemo(() => buildHistogram(feeCounts), [feeCounts])
-
-  function toggleAmenity(id) {
-    const next = selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]
-    const params = new URLSearchParams(searchParams.toString())
-    if (next.length) params.set('amenities', next.join(','))
-    else params.delete('amenities')
-    router.push(`${pathname}?${params.toString()}`)
-  }
 
   function setFee(next) {
     const params = new URLSearchParams(searchParams.toString())
@@ -56,8 +45,8 @@ export default function FilterSidebar({ feeCounts = [] }) {
     <div style={{ width: 240, flexShrink: 0 }}>
       <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 20 }}>Filtra per</div>
 
-      {/* ── Spese condominiali (Booking style) ── */}
-      <Section title="Spese condominiali">
+      <div style={{ paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid var(--border)' }}>
+        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>Spese condominiali medie</div>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-2)', marginBottom: 10 }}>
           {isDefaultRange
             ? 'Tutte le fasce'
@@ -85,27 +74,23 @@ export default function FilterSidebar({ feeCounts = [] }) {
 
         {/* Double range slider */}
         <div className="fee-range-wrap">
-          {/* Background track */}
           <div style={{
             position: 'absolute', top: '50%', left: 0, right: 0,
             transform: 'translateY(-50%)', height: 4,
             background: '#E5E7EB', borderRadius: 100, pointerEvents: 'none',
           }} />
-          {/* Active range track */}
           <div style={{
             position: 'absolute', top: '50%', transform: 'translateY(-50%)', height: 4,
             background: 'var(--teal)', borderRadius: 100, pointerEvents: 'none',
             left: `${((feeMin - FEE_MIN) / (FEE_MAX - FEE_MIN)) * 100}%`,
             right: `${((FEE_MAX - feeMax) / (FEE_MAX - FEE_MIN)) * 100}%`,
           }} />
-          {/* Min thumb */}
           <input
             type="range" className="fee-range-input"
             min={FEE_MIN} max={FEE_MAX} step={STEP} value={feeMin}
             style={{ zIndex: feeMin > FEE_MAX - 50 ? 5 : 3 }}
             onChange={(e) => setFee({ feeMin: Math.min(Number(e.target.value), feeMax - STEP), feeMax })}
           />
-          {/* Max thumb */}
           <input
             type="range" className="fee-range-input"
             min={FEE_MIN} max={FEE_MAX} step={STEP} value={feeMax}
@@ -114,7 +99,6 @@ export default function FilterSidebar({ feeCounts = [] }) {
           />
         </div>
 
-        {/* Min/max labels */}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, fontSize: 11, color: 'var(--text-4)' }}>
           <span>€{FEE_MIN}</span>
           <span>€{FEE_MAX}+</span>
@@ -126,29 +110,7 @@ export default function FilterSidebar({ feeCounts = [] }) {
             Azzera filtro
           </button>
         )}
-      </Section>
-
-      <Section title="Servizi">
-        {ALL_AMENITIES.map(([id, l]) => (
-          <label key={id} style={row}>
-            <input type="checkbox" checked={selected.includes(id)}
-              onChange={() => toggleAmenity(id)}
-              style={{ width: 16, height: 16, accentColor: 'var(--teal)', flexShrink: 0 }} />
-            <span>{l}</span>
-          </label>
-        ))}
-      </Section>
+      </div>
     </div>
   )
 }
-
-function Section({ title, children }) {
-  return (
-    <div style={{ paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid var(--border)' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>{title}</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{children}</div>
-    </div>
-  )
-}
-
-const row = { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)', cursor: 'pointer' }

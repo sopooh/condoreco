@@ -4,17 +4,14 @@ import Link from 'next/link'
 
 const platformLinks = [
   { label: 'Cerca condominio', to: '/cerca' },
-  { label: 'Recensisci il tuo condominio', to: '/aggiungi-condominio' },
-  { label: 'Condomini a Milano', to: '/cerca' },
   { label: 'Amministratori', to: '/amministratori' },
-  { label: 'Come funziona', to: '/' },
+  { label: 'Come funziona', to: '/come-funziona' },
 ]
 
 const communityLinks = [
   { label: 'Regole recensioni', to: '/regole-recensioni' },
   { label: 'Linee guida community', to: '/linee-guida-community' },
   { label: 'Segnala un contenuto', to: '/segnala-contenuto' },
-  { label: 'Esperienza con l\'amministrazione', to: '/esperienza-amministrazione' },
   { label: 'FAQ', to: '/faq' },
 ]
 

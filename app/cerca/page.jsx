@@ -1,6 +1,7 @@
 import { createStaticClient } from '@/lib/supabase/static'
 import SearchResultsView from '@/components/search/SearchResultsView'
 import { AMENITY_DB } from '@/lib/amenities'
+import { attachCoverPhotos } from '@/lib/photos'
 
 export const metadata = {
   title: 'Cerca condominio',
@@ -49,8 +50,13 @@ async function getSearchData(searchParams) {
   const citySet = new Set()
   ;(cityRows || []).forEach((b) => { if (b.city) citySet.add(b.city) })
 
+  // Foto caricate dagli utenti in thumbnail al posto della mappa statica
+  // (priorità già gestita da getBuildingPreviewImage, manca solo il dato):
+  // una per edificio, preferendo la cover e poi il quality_score migliore.
+  const buildingsWithPhotos = await attachCoverPhotos(supabase, buildings || [])
+
   return {
-    buildings: buildings || [],
+    buildings: buildingsWithPhotos,
     cities: Array.from(citySet).sort().map((name) => ({ name })),
     feeCounts: (feeRows || []).map((b) => b.monthly_fee).filter(Boolean),
     query,

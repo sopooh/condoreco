@@ -43,40 +43,24 @@ export default function AdminRow({ admin: a, buildings = [], expanded, onToggle 
       overflow: 'hidden', boxShadow: expanded ? '0 4px 20px rgba(0,0,0,0.07)' : 'none',
       transition: 'box-shadow 0.15s',
     }}>
-      {/* Header row */}
-      <div style={{ padding: '20px 24px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-        <AdminAnimalAvatar adminId={a.id} size={52} />
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3, flexWrap: 'wrap' }}>
+      {/* Header: righe pulite a piena larghezza, nessuna colonna in competizione con il testo */}
+      <div style={{ padding: '20px 24px' }}>
+        {/* Riga 1: avatar + nome studio + badge verificato + espandi */}
+        <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+          <AdminAnimalAvatar adminId={a.id} size={52} />
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 16, fontWeight: 700 }}>{a.name}</span>
             {a.verified && (
               <span style={{
                 color: '#10B981', fontSize: 13, fontWeight: 700,
                 background: '#ECFDF5', borderRadius: '50%', width: 18, height: 18,
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }} title="Verificato">✓</span>
             )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor(a.score) }}>{a.score?.toFixed(1)}</span>
-            <RatingDots value={a.score} size={11} />
-            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>({a.review_count} recensioni)</span>
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text-3)' }}>
-            {a.building_count} condomini gestiti · {a.city} · Attivo dal {a.active_since}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-          <Link className="btn btn-ghost" href={`/amministratore/${a.id}`} onClick={e => e.stopPropagation()}>
-            Vedi profilo
-          </Link>
-          <button className="btn btn-primary" onClick={e => e.stopPropagation()}>
-            Contatta
-          </button>
           <button
             onClick={onToggle}
+            aria-label={expanded ? 'Comprimi dettagli' : 'Espandi dettagli'}
             style={{
               width: 30, height: 30, borderRadius: '50%', border: '1px solid var(--border)',
               background: 'var(--white)', display: 'flex', alignItems: 'center',
@@ -86,13 +70,32 @@ export default function AdminRow({ admin: a, buildings = [], expanded, onToggle 
             }}
           >▼</button>
         </div>
+
+        {/* Riga 2: stelle + conteggio recensioni */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor(a.score) }}>{a.score?.toFixed(1)}</span>
+          <RatingDots value={a.score} size={11} />
+          <span style={{ fontSize: 12, color: 'var(--text-4)' }}>({a.review_count} recensioni)</span>
+        </div>
+
+        {/* Riga 3: metadati su una riga, wrap normale se lo spazio non basta */}
+        <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 8, lineHeight: 1.5 }}>
+          {a.building_count} condomini gestiti · {a.city} · Attivo dal {a.active_since}
+        </div>
+
+        {/* Ultima riga: Vedi profilo, da solo, a destra */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
+          <Link className="btn btn-ghost" href={`/amministratore/${a.id}`} onClick={e => e.stopPropagation()}>
+            Vedi profilo
+          </Link>
+        </div>
       </div>
 
       {/* Expanded section */}
       {expanded && (
         <div style={{ borderTop: '1px solid var(--border-2)', padding: '20px 24px' }}>
-          {/* Score bars — 5 columns */}
-          <div style={{ display: 'flex', gap: 20, marginBottom: 24 }}>
+          {/* Score bars — vanno a capo su più righe se non c'è spazio, mai in overflow orizzontale */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, marginBottom: 24 }}>
             <ScoreCell label="Trasparenza" value={a.score_transparency} />
             <ScoreCell label="Tempi di risposta" value={a.score_speed} />
             <ScoreCell label="Manutenzione" value={a.score_maintenance} />
@@ -139,7 +142,7 @@ function ScoreCell({ label, value }) {
   const color = scoreColor(value)
   const pct = value != null ? (value / 5) * 100 : 0
   return (
-    <div style={{ flex: 1, minWidth: 0 }}>
+    <div style={{ flex: '1 1 130px', minWidth: 130 }}>
       <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 500, marginBottom: 5, whiteSpace: 'nowrap' }}>
         {label}
       </div>

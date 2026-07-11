@@ -1,5 +1,6 @@
 import { createStaticClient } from '@/lib/supabase/static'
 import AdminsResultsView from '@/components/admins/AdminsResultsView'
+import { attachCoverPhotos } from '@/lib/photos'
 
 export const revalidate = 3600
 
@@ -49,7 +50,10 @@ async function getAdminsData(searchParams) {
       .from('building_scores')
       .select('*')
       .in('administrator_id', ids)
-    buildings?.forEach((b) => {
+    // Foto caricate dagli utenti in thumbnail al posto della mappa statica,
+    // stesso trattamento della lista Esplora.
+    const buildingsWithPhotos = await attachCoverPhotos(supabase, buildings || [])
+    buildingsWithPhotos.forEach((b) => {
       if (!buildingsByAdmin[b.administrator_id]) buildingsByAdmin[b.administrator_id] = []
       buildingsByAdmin[b.administrator_id].push(b)
     })
@@ -72,7 +76,7 @@ export default async function AdminsPage({ searchParams }) {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{ background: 'var(--white)', padding: '28px 40px 20px' }}>
+      <div className="admins-hero" style={{ background: 'var(--white)' }}>
         <div style={{ maxWidth: 1360, margin: '0 auto' }}>
           <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', marginBottom: 4 }}>
             Amministratori

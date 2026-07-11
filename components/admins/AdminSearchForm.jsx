@@ -23,7 +23,7 @@ export default function AdminSearchForm() {
       style={{
         display: 'flex', border: '1.5px solid var(--border)', borderRadius: 8,
         overflow: 'hidden', background: 'var(--white)', boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-        maxWidth: 420, flex: 1,
+        maxWidth: 420, flex: 1, minWidth: 0,
       }}
     >
       <input
@@ -37,7 +37,7 @@ export default function AdminSearchForm() {
           }
         }}
         placeholder="Cerca amministratore o studio..."
-        style={{ flex: 1, border: 'none', outline: 'none', padding: '11px 14px', fontSize: 14 }}
+        style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', padding: '11px 14px', fontSize: 14 }}
       />
       <button type="submit" className="btn btn-primary" style={{ borderRadius: 0, padding: '0 20px' }}>
         Cerca

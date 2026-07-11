@@ -1,4 +1,5 @@
 import ScoreBar from '@/components/ui/ScoreBar'
+import AdminContactButton from '@/components/admins/AdminContactButton'
 import { scoreColor } from '@/lib/score'
 
 export default function AdminHeader({ admin: a }) {
@@ -12,6 +13,9 @@ export default function AdminHeader({ admin: a }) {
             </h1>
             <div style={{ fontSize: 13, color: 'var(--text-4)', marginBottom: 18, fontWeight: 500 }}>
               {a.address} · {a.city} · attivo dal {a.active_since} · {a.building_count} condomini gestiti
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <AdminContactButton admin={a} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7, maxWidth: 420 }}>
               <ScoreBar label="Reperibilità" value={a.score_availability} />

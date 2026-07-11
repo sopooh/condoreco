@@ -3,11 +3,12 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-
-const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY || 'get_your_own_D6rA4zTHduk6KOKTXzGB'
-const MAPTILER_STYLE = `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`
+import { addBaseTileLayer } from '@/lib/mapTiles'
 
 // Mini mappa con un singolo pin arancione e preview costo medio in stile booking.
+// Resta separata da components/map/ResultsMap: qui pan/zoom/tastiera sono
+// disabilitati, zoom fisso senza fit-bounds, icona a goccia invece che pillola.
+// Condivide comunque lo stesso tile layer via lib/mapTiles.
 export default function BuildingMapInner({ lat, lng, monthlyFee, height = 220 }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
@@ -16,9 +17,9 @@ export default function BuildingMapInner({ lat, lng, monthlyFee, height = 220 })
     if (!lat || !lng || mapRef.current || !containerRef.current) return
     const map = L.map(containerRef.current, {
       scrollWheelZoom: false, dragging: false, zoomControl: false,
-      doubleClickZoom: false, boxZoom: false, keyboard: false, attributionControl: false,
+      doubleClickZoom: false, boxZoom: false, keyboard: false,
     }).setView([lat, lng], 16)
-    L.tileLayer(MAPTILER_STYLE, { maxZoom: 20 }).addTo(map)
+    addBaseTileLayer(map)
 
     const monthly = Number(monthlyFee)
     const feeLabel = Number.isFinite(monthly) && monthly > 0 ? `€${Math.round(monthly)}/mese` : 'Costo n/d'

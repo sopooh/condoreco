@@ -17,7 +17,7 @@ export default function AdminCityTabs({ cities }) {
 
   return (
     <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)', overflowX: 'auto' }}>
-      <div style={{ maxWidth: 1360, margin: '0 auto', display: 'flex', padding: '0 40px' }}>
+      <div className="admins-city-tabs-inner" style={{ maxWidth: 1360, margin: '0 auto', display: 'flex' }}>
         <CityTab active={!currentCity} onClick={() => setCity(null)} label="Tutte" />
         {cities.map((c) => (
           <CityTab key={c.name} active={currentCity === c.name} onClick={() => setCity(c.name)} label={c.name} />

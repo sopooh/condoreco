@@ -10,14 +10,19 @@ export function useMyReview(table, column, id) {
   const [review, setReview] = useState(null)
 
   const refetch = useCallback(async () => {
-    if (!session?.user?.id || !id) { setReview(null); return }
+    if (!session?.user?.id || !id) {
+      console.log('[useMyReview] skip fetch: no session or id', { hasSession: !!session?.user?.id, table, column, id })
+      setReview(null)
+      return
+    }
     const supabase = createClient()
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from(table)
       .select('*, profiles(display_name, avatar_url, role)')
       .eq(column, id)
       .eq('user_id', session.user.id)
       .maybeSingle()
+    console.log('[useMyReview] query result', { table, column, id, userId: session.user.id, data, error })
     setReview(data || null)
   }, [session?.user?.id, table, column, id])
 

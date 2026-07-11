@@ -48,6 +48,11 @@ function ReviewerAvatar({ profile, userId, size = 36 }) {
   )
 }
 
+const ownActionButton = {
+  background: 'var(--teal-lt)', color: 'var(--teal-dk)', border: 'none',
+  borderRadius: 100, padding: '6px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+}
+
 function Tag({ label, tone }) {
   const styles = {
     teal:  { background: 'var(--teal-lt)',  color: 'var(--teal-dk)' },
@@ -160,11 +165,11 @@ export default function ReviewItem({ review: r, photos, onEdit }) {
       <ReviewPhotos photos={reviewPhotos} />
 
       {isOwn && (
-        <div style={{ display: 'flex', gap: 16, marginTop: 14 }}>
-          <button onClick={onEdit} style={{ background: 'none', border: 'none', color: 'var(--teal)', fontWeight: 700, fontSize: 12, cursor: 'pointer', padding: 0 }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+          <button onClick={onEdit} style={ownActionButton}>
             Modifica
           </button>
-          <button onClick={() => setConfirmOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--text-3)', fontWeight: 700, fontSize: 12, cursor: 'pointer', padding: 0 }}>
+          <button onClick={() => setConfirmOpen(true)} style={ownActionButton}>
             Elimina
           </button>
         </div>

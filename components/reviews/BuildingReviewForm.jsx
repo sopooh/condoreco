@@ -55,11 +55,14 @@ export default function BuildingReviewForm({ open, onClose, building }) {
 
   function setCat(k, v) { setCats((c) => ({ ...c, [k]: v })) }
 
+  console.log('[BuildingReviewForm] render', { open, buildingId: building.id, existingReview, body, score })
+
   // Prefill in modalità modifica: existingReview arriva async (useMyReview),
   // quindi i campi non possono essere inizializzati direttamente da useState.
   // Rieseguito anche alla riapertura (dipendenza su open) per scartare eventuali
   // modifiche non salvate di un'apertura precedente.
   useEffect(() => {
+    console.log('[BuildingReviewForm] sync effect fired', { open, existingReview })
     if (!existingReview) return
     setType(existingReview.resident_type || 'resident')
     setScore(existingReview.score || 0)
@@ -100,8 +103,14 @@ export default function BuildingReviewForm({ open, onClose, building }) {
           score_noise: cats.noise || null, score_safety: cats.safety || null,
           body,
         }
-        const { error } = await supabase.from('reviews').update(updatePayload).eq('id', existingReview.id)
+        // .select() forza un errore esplicito se RLS blocca l'update (0 righe
+        // aggiornate) invece di un no-op silenzioso che lascerebbe la modifica
+        // non salvata senza alcun avviso all'utente.
+        const { data, error } = await supabase.from('reviews').update(updatePayload).eq('id', existingReview.id).select()
         if (error) throw error
+        if (!data || data.length === 0) {
+          throw new Error('Non è stato possibile aggiornare la recensione. Riprova più tardi o contattaci se il problema persiste.')
+        }
         reviewId = existingReview.id
       } else {
         const payload = {

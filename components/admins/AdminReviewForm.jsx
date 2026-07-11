@@ -48,11 +48,14 @@ export default function AdminReviewForm({ open, onClose, admin }) {
 
   function setCat(k, v) { setCats((c) => ({ ...c, [k]: v })) }
 
+  console.log('[AdminReviewForm] render', { open, adminId: admin.id, existingReview, body, score })
+
   // Prefill in modalità modifica: existingReview arriva async (useMyReview),
   // quindi i campi non possono essere inizializzati direttamente da useState.
   // Rieseguito anche alla riapertura (dipendenza su open) per scartare eventuali
   // modifiche non salvate di un'apertura precedente.
   useEffect(() => {
+    console.log('[AdminReviewForm] sync effect fired', { open, existingReview })
     if (!existingReview) return
     setType(existingReview.resident_type || 'resident')
     setScore(existingReview.score || 0)
@@ -80,11 +83,8 @@ export default function AdminReviewForm({ open, onClose, admin }) {
       if (existingReview?.id) {
         // Modifica: aggiorna solo corpo/punteggi, come per BuildingReviewForm.
         // Il trigger DB rimette la recensione in verifica, qui non forziamo
-        // is_published/moderation_status.
-        // NB: al momento non esiste una policy RLS "admin_reviews: update own"
-        // (a differenza di "reviews: update own"). Se non è stata aggiunta,
-        // questa update viene bloccata da RLS e .select().single() lo rende un
-        // errore esplicito invece di un no-op silenzioso.
+        // is_published/moderation_status. .select().single() rende esplicito
+        // un eventuale blocco RLS invece di un no-op silenzioso.
         const updatePayload = {
           score,
           score_availability: cats.availability || null,

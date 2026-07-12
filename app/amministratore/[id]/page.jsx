@@ -4,7 +4,8 @@ import { createStaticClient } from '@/lib/supabase/static'
 import AdminHeader from '@/components/admins/AdminHeader'
 import AdminBuildings from '@/components/admins/AdminBuildings'
 import AdminActions from '@/components/admins/AdminActions'
-import AdminReviewList from '@/components/admins/AdminReviewList'
+import ReviewsSection from '@/components/reviews/ReviewsSection'
+import { ADMIN_RESIDENT_TYPES, ADMIN_REVIEW_CATEGORIES } from '@/lib/reviewOptions'
 
 export const revalidate = 3600
 
@@ -78,12 +79,24 @@ export default async function AdminPage({ params }) {
   return (
     <>
       <AdminHeader admin={admin} />
-      <AdminBuildings buildings={buildings} />
 
       <div className="wrap" style={{ padding: '24px 40px' }}>
         <AdminActions admin={admin} />
-        <AdminReviewList reviews={reviews} admin={admin} />
+        <ReviewsSection
+          reviews={reviews}
+          table="admin_reviews"
+          column="administrator_id"
+          entityId={admin.id}
+          subtitle={admin.name}
+          residentTypes={ADMIN_RESIDENT_TYPES}
+          categories={ADMIN_REVIEW_CATEGORIES}
+          extras={{}}
+          emptyTitle="Ancora nessuna recensione"
+          emptyText="Sii il primo a raccontare la tua esperienza con questo amministratore."
+        />
       </div>
+
+      <AdminBuildings buildings={buildings} />
     </>
   )
 }

@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Button from '@/components/ui/Button'
-import AdminReviewForm from '@/components/admins/AdminReviewForm'
+import ReviewForm from '@/components/reviews/ReviewForm'
+import { ADMIN_RESIDENT_TYPES, ADMIN_REVIEW_CATEGORIES } from '@/lib/reviewOptions'
 
 export default function AdminActions({ admin }) {
   const [formOpen, setFormOpen] = useState(false)
@@ -14,10 +15,16 @@ export default function AdminActions({ admin }) {
         <Button variant="primary" onClick={() => setFormOpen(true)}>Scrivi una recensione</Button>
       </div>
 
-      <AdminReviewForm
+      <ReviewForm
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        admin={admin}
+        table="admin_reviews"
+        column="administrator_id"
+        entityId={admin.id}
+        subtitle={admin.name}
+        residentTypes={ADMIN_RESIDENT_TYPES}
+        categories={ADMIN_REVIEW_CATEGORIES}
+        extras={{}}
       />
     </>
   )

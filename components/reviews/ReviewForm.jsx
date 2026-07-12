@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
-import { RESIDENT_TYPES, ISSUES } from '@/lib/reviewOptions'
 import { AMENITY_GROUPS } from '@/lib/amenities'
 import PhotoUploader from '@/components/photos/PhotoUploader'
 import { uploadPhoto } from '@/lib/photos'
@@ -35,15 +34,34 @@ function DotRating({ value, onChange, size = 28 }) {
 const LABEL = { display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 10 }
 const GROUP = { marginBottom: 22 }
 
-export default function BuildingReviewForm({ open, onClose, building }) {
+function initialCats(categories) {
+  return Object.fromEntries(categories.map((c) => [c.key, 0]))
+}
+
+// Form recensione condiviso da pagina edificio e pagina amministratore.
+// Le differenze tra le due (tipi di rapporto, categorie punteggio, campi
+// extra come problema ricorrente/da quando/servizi/foto) arrivano tutte
+// come prop invece di essere due componenti separati. Stessa UX per
+// entrambe: punteggio generale, categorie, testo, stesso avviso pre-submit
+// in modalità modifica, stessa validazione, stesso update ristretto a
+// solo punteggi + testo (il resto del payload di insert non viene mai
+// toccato da una modifica).
+export default function ReviewForm({
+  open, onClose,
+  table, column, entityId,
+  subtitle,
+  residentTypes,
+  categories,
+  extras = {},
+}) {
   const session = useSession()
   const router = useRouter()
 
-  const [existingReview, fetchMyReview] = useMyReview('reviews', 'building_id', building.id)
+  const [existingReview, fetchMyReview] = useMyReview(table, column, entityId)
 
   const [type, setType] = useState('resident')
   const [score, setScore] = useState(0)
-  const [cats, setCats] = useState({ admin: 0, maintenance: 0, costs: 0, quality: 0, noise: 0, safety: 0 })
+  const [cats, setCats] = useState(() => initialCats(categories))
   const [issue, setIssue] = useState('none')
   const [body, setBody] = useState('')
   const [since, setSince] = useState('')
@@ -55,28 +73,21 @@ export default function BuildingReviewForm({ open, onClose, building }) {
 
   function setCat(k, v) { setCats((c) => ({ ...c, [k]: v })) }
 
-  console.log('[BuildingReviewForm] render', { open, buildingId: building.id, existingReview, body, score })
+  console.log('[ReviewForm]', table, 'render', { open, entityId, existingReview, body, score })
 
   // Prefill in modalità modifica: existingReview arriva async (useMyReview),
   // quindi i campi non possono essere inizializzati direttamente da useState.
   // Rieseguito anche alla riapertura (dipendenza su open) per scartare eventuali
   // modifiche non salvate di un'apertura precedente.
   useEffect(() => {
-    console.log('[BuildingReviewForm] sync effect fired', { open, existingReview })
+    console.log('[ReviewForm]', table, 'sync effect fired', { open, existingReview })
     if (!existingReview) return
     setType(existingReview.resident_type || 'resident')
     setScore(existingReview.score || 0)
-    setCats({
-      admin: existingReview.score_admin || 0,
-      maintenance: existingReview.score_maintenance || 0,
-      costs: existingReview.score_costs || 0,
-      quality: existingReview.score_quality || 0,
-      noise: existingReview.score_noise || 0,
-      safety: existingReview.score_safety || 0,
-    })
-    setIssue(existingReview.main_issue || 'none')
+    setCats(Object.fromEntries(categories.map((c) => [c.key, existingReview[c.field] || 0])))
+    if (extras.issues) setIssue(existingReview.main_issue || 'none')
     setBody(existingReview.body || '')
-    setSince(existingReview.resident_since || '')
+    if (extras.residentSince) setSince(existingReview.resident_since || '')
   }, [existingReview, open])
 
   async function submit() {
@@ -89,24 +100,19 @@ export default function BuildingReviewForm({ open, onClose, building }) {
     setBusy(true); setErr('')
     try {
       const supabase = createClient()
+      const catFields = Object.fromEntries(categories.map((c) => [c.field, cats[c.key] || null]))
 
       let reviewId
       if (existingReview?.id) {
-        // Modifica: aggiorna solo corpo/punteggi. Il resto (tipo residente, da
-        // quando, problema ricorrente) resta quello dell'invio originale. Il
-        // trigger DB rimette la recensione in verifica (moderation_status/is_published),
-        // qui non li forziamo.
-        const updatePayload = {
-          score,
-          score_admin: cats.admin || null, score_maintenance: cats.maintenance || null,
-          score_costs: cats.costs || null, score_quality: cats.quality || null,
-          score_noise: cats.noise || null, score_safety: cats.safety || null,
-          body,
-        }
+        // Modifica: aggiorna solo punteggi + testo. Il resto (tipo residente,
+        // da quando, problema ricorrente) resta quello dell'invio originale.
+        // Il trigger DB rimette la recensione in verifica (moderation_status/
+        // is_published), qui non li forziamo.
+        const updatePayload = { score, ...catFields, body }
         // .select() forza un errore esplicito se RLS blocca l'update (0 righe
         // aggiornate) invece di un no-op silenzioso che lascerebbe la modifica
         // non salvata senza alcun avviso all'utente.
-        const { data, error } = await supabase.from('reviews').update(updatePayload).eq('id', existingReview.id).select()
+        const { data, error } = await supabase.from(table).update(updatePayload).eq('id', existingReview.id).select()
         if (error) throw error
         if (!data || data.length === 0) {
           throw new Error('Non è stato possibile aggiornare la recensione. Riprova più tardi o contattaci se il problema persiste.')
@@ -114,20 +120,19 @@ export default function BuildingReviewForm({ open, onClose, building }) {
         reviewId = existingReview.id
       } else {
         const payload = {
-          resident_type: type, resident_since: since, score,
-          score_admin: cats.admin || null, score_maintenance: cats.maintenance || null,
-          score_costs: cats.costs || null, score_quality: cats.quality || null,
-          score_noise: cats.noise || null, score_safety: cats.safety || null,
-          main_issue: issue, body,
-          user_id: session.user.id, building_id: building.id, is_published: true,
+          resident_type: type, score, ...catFields, body,
+          user_id: session.user.id, [column]: entityId, is_published: true,
         }
-        const { data, error } = await supabase.from('reviews').insert(payload).select('id').single()
+        if (extras.residentSince) payload.resident_since = since
+        if (extras.issues) payload.main_issue = issue
+
+        const { data, error } = await supabase.from(table).insert(payload).select('id').single()
         if (error) throw error
         reviewId = data.id
       }
 
-      if (photos.length > 0) {
-        await Promise.all(photos.map((f) => uploadPhoto(f.blob, building.id, reviewId))).catch(console.warn)
+      if (extras.photos && photos.length > 0) {
+        await Promise.all(photos.map((f) => uploadPhoto(f.blob, entityId, reviewId))).catch(console.warn)
       }
       onClose()
       await fetchMyReview()
@@ -139,7 +144,7 @@ export default function BuildingReviewForm({ open, onClose, building }) {
   return (
     <Modal open={open} onClose={onClose}
            title={existingReview ? 'Aggiorna la tua recensione' : 'Scrivi una recensione'}
-           subtitle={`${building.address}${building.street_number ? ', ' + building.street_number : ''} — ${building.city}`}>
+           subtitle={subtitle}>
       {existingReview && (
         <p style={{ fontSize: 12, color: 'var(--amber-tx)', background: 'var(--amber-bg)', borderRadius: 6, padding: '8px 12px', marginBottom: 16 }}>
           Salvando le modifiche la recensione tornerà in verifica.
@@ -147,9 +152,9 @@ export default function BuildingReviewForm({ open, onClose, building }) {
       )}
 
       <div style={GROUP}>
-        <label style={LABEL}>Chi sei rispetto a questo edificio?</label>
+        <label style={LABEL}>Chi sei rispetto a {extras.issues ? 'questo edificio' : 'questo amministratore'}?</label>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
-          {RESIDENT_TYPES.map((rt) => (
+          {residentTypes.map((rt) => (
             <button key={rt.value} onClick={() => setType(rt.value)}
               style={{
                 border: `1px solid ${type === rt.value ? 'var(--teal)' : 'var(--border)'}`,
@@ -170,77 +175,85 @@ export default function BuildingReviewForm({ open, onClose, building }) {
       <div style={GROUP}>
         <label style={LABEL}>Per categoria</label>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {[['admin', 'Amministratore'], ['maintenance', 'Manutenzione'], ['costs', 'Spese'],
-            ['quality', 'Qualità vita'], ['noise', 'Silenziosità'], ['safety', 'Sicurezza']].map(([k, l]) => (
-            <div key={k}>
-              <span style={{ display: 'block', fontSize: 12, color: 'var(--text-4)', fontWeight: 500, marginBottom: 5 }}>{l}</span>
-              <DotRating value={cats[k]} onChange={(v) => setCat(k, v)} size={18} />
+          {categories.map((c) => (
+            <div key={c.key}>
+              <span style={{ display: 'block', fontSize: 12, color: 'var(--text-4)', fontWeight: 500, marginBottom: 5 }}>{c.label}</span>
+              <DotRating value={cats[c.key]} onChange={(v) => setCat(c.key, v)} size={18} />
             </div>
           ))}
         </div>
       </div>
 
-      <div style={GROUP}>
-        <label style={LABEL}>Problemi ricorrenti</label>
-        <select value={issue} onChange={(e) => setIssue(e.target.value)}
-          style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '10px 12px', fontSize: 14 }}>
-          {ISSUES.map((i) => <option key={i.value} value={i.value}>{i.label}</option>)}
-        </select>
-      </div>
+      {extras.issues && (
+        <div style={GROUP}>
+          <label style={LABEL}>Problemi ricorrenti</label>
+          <select value={issue} onChange={(e) => setIssue(e.target.value)}
+            style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '10px 12px', fontSize: 14 }}>
+            {extras.issues.map((i) => <option key={i.value} value={i.value}>{i.label}</option>)}
+          </select>
+        </div>
+      )}
 
       <div style={{ height: 1, background: 'var(--border)', margin: '20px 0' }} />
 
       <div style={GROUP}>
         <label style={LABEL}>La tua esperienza</label>
         <textarea value={body} onChange={(e) => setBody(e.target.value)}
-          placeholder="Com'è vivere qui? Amministratore, vicini, manutenzione, parti comuni..."
+          placeholder={extras.issues
+            ? "Com'è vivere qui? Amministratore, vicini, manutenzione, parti comuni..."
+            : "Com'è la gestione? Reperibilità, chiarezza delle comunicazioni, assemblee..."}
           style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: 12, fontSize: 14, minHeight: 90, resize: 'vertical', lineHeight: 1.6 }} />
       </div>
 
-      <div style={GROUP}>
-        <label style={LABEL}>Da quando sei residente?</label>
-        <input value={since} onChange={(e) => setSince(e.target.value)} placeholder="es. Dal 2019"
-          style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '10px 12px', fontSize: 14 }} />
-      </div>
-
-      {/* Servizi — conferma o correggi */}
-      <div style={GROUP}>
-        <label style={LABEL}>Quali servizi sono presenti nello stabile?</label>
-        <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 12, marginTop: -6 }}>
-          Seleziona solo quelli realmente disponibili per i condomini.
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {AMENITY_GROUPS.map(group => (
-            <div key={group.label}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 7 }}>
-                {group.label}
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-                {group.items.map(([id, l]) => {
-                  const active = amenities.includes(id)
-                  return (
-                    <button key={id} type="button"
-                      onClick={() => setAmenities(a => a.includes(id) ? a.filter(x => x !== id) : [...a, id])}
-                      style={{
-                        padding: '7px 8px', borderRadius: 6, fontSize: 12, fontWeight: 600,
-                        border: `1px solid ${active ? 'var(--teal)' : 'var(--border)'}`,
-                        background: active ? 'var(--teal-lt)' : '#fff',
-                        color: active ? 'var(--teal-dk)' : 'var(--text-3)',
-                        cursor: 'pointer', textAlign: 'left',
-                      }}
-                    >{active ? '✓ ' : ''}{l}</button>
-                  )
-                })}
-              </div>
-            </div>
-          ))}
+      {extras.residentSince && (
+        <div style={GROUP}>
+          <label style={LABEL}>Da quando sei residente?</label>
+          <input value={since} onChange={(e) => setSince(e.target.value)} placeholder="es. Dal 2019"
+            style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '10px 12px', fontSize: 14 }} />
         </div>
-      </div>
+      )}
 
-      <div style={GROUP}>
-        <label style={LABEL}>Aggiungi foto (opzionale)</label>
-        <PhotoUploader files={photos} onChange={setPhotos} maxFiles={5} />
-      </div>
+      {extras.amenities && (
+        <div style={GROUP}>
+          <label style={LABEL}>Quali servizi sono presenti nello stabile?</label>
+          <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 12, marginTop: -6 }}>
+            Seleziona solo quelli realmente disponibili per i condomini.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {AMENITY_GROUPS.map(group => (
+              <div key={group.label}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 7 }}>
+                  {group.label}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+                  {group.items.map(([id, l]) => {
+                    const active = amenities.includes(id)
+                    return (
+                      <button key={id} type="button"
+                        onClick={() => setAmenities(a => a.includes(id) ? a.filter(x => x !== id) : [...a, id])}
+                        style={{
+                          padding: '7px 8px', borderRadius: 6, fontSize: 12, fontWeight: 600,
+                          border: `1px solid ${active ? 'var(--teal)' : 'var(--border)'}`,
+                          background: active ? 'var(--teal-lt)' : '#fff',
+                          color: active ? 'var(--teal-dk)' : 'var(--text-3)',
+                          cursor: 'pointer', textAlign: 'left',
+                        }}
+                      >{active ? '✓ ' : ''}{l}</button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {extras.photos && (
+        <div style={GROUP}>
+          <label style={LABEL}>Aggiungi foto (opzionale)</label>
+          <PhotoUploader files={photos} onChange={setPhotos} maxFiles={5} />
+        </div>
+      )}
 
       {err && <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 12 }}>{err}</p>}
       <Button variant="primary" block onClick={submit} disabled={busy} style={{ padding: 13 }}>

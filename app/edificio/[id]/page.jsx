@@ -6,7 +6,8 @@ import BuildingGallery from '@/components/photos/BuildingGallery'
 import BuildingHeader from '@/components/buildings/BuildingHeader'
 import BuildingLayout from '@/components/buildings/BuildingLayout'
 import BuildingActions from '@/components/buildings/BuildingActions'
-import BuildingReviewsSection from '@/components/reviews/BuildingReviewsSection'
+import ReviewsSection from '@/components/reviews/ReviewsSection'
+import { RESIDENT_TYPES, ISSUES, BUILDING_REVIEW_CATEGORIES } from '@/lib/reviewOptions'
 import ScoreBreakdown from '@/components/buildings/ScoreBreakdown'
 import ResidentsDots from '@/components/buildings/ResidentsDots'
 import AdminCard from '@/components/buildings/AdminCard'
@@ -69,7 +70,7 @@ const getBuildingData = cache(async (id) => {
 
 // Pre-genera alla build tutte le pagine edificio esistenti (ISR: revalidate = 3600
 // le tiene aggiornate). Richiede che getBuildingData non tocchi cookies() — myReview
-// è per questo fetchato client-side in BuildingReviewForm, non qui.
+// è per questo fetchato client-side in ReviewForm (useMyReview), non qui.
 export async function generateStaticParams() {
   const supabase = createStaticClient()
   const { data } = await supabase.from('building_scores').select('id')
@@ -119,11 +120,28 @@ export default async function BuildingPage({ params }) {
         left={
           <>
             <BuildingActions building={building} />
-            <BuildingReviewsSection reviews={reviews} photos={photos} building={building}>
+            <ReviewsSection
+              reviews={reviews}
+              photos={photos}
+              table="reviews"
+              column="building_id"
+              entityId={building.id}
+              subtitle={`${building.address}${building.street_number ? ', ' + building.street_number : ''} — ${building.city}`}
+              residentTypes={RESIDENT_TYPES}
+              categories={BUILDING_REVIEW_CATEGORIES}
+              extras={{ issues: ISSUES, residentSince: true, amenities: true, photos: true }}
+              subScores={[
+                { label: 'Verificati', val: building.score_verified },
+                { label: 'Ex residenti', val: building.score_former },
+                { label: 'Chi valuta', val: building.score_evaluating },
+              ]}
+              emptyTitle="Ancora nessuna recensione"
+              emptyText="Sii il primo a raccontare com'è vivere qui."
+            >
               <div style={{ maxWidth: 460, marginBottom: 32 }}>
                 <ScoreBreakdown building={building} />
               </div>
-            </BuildingReviewsSection>
+            </ReviewsSection>
           </>
         }
         aside={

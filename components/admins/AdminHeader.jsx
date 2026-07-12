@@ -6,7 +6,7 @@ export default function AdminHeader({ admin: a }) {
   return (
     <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)' }}>
       <div className="wrap" style={{ padding: '32px 40px 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 220px', gap: 36, alignItems: 'start' }}>
+        <div className="admin-header-grid" style={{ display: 'grid', gap: 36, alignItems: 'start' }}>
           <div>
             <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', lineHeight: 1.1, marginBottom: 5 }}>
               {a.name}
@@ -27,7 +27,7 @@ export default function AdminHeader({ admin: a }) {
           </div>
           <div style={{ background: 'var(--teal-lt)', borderRadius: 10, padding: 20, textAlign: 'center' }}>
             <div style={{ fontSize: 52, fontWeight: 800, color: scoreColor(a.score), letterSpacing: '-2px', lineHeight: 1 }}>
-              {a.score?.toFixed(1)}<span style={{ fontSize: 18, color: 'var(--teal-mid)' }}>/5</span>
+              {a.score?.toFixed(1) ?? 'N/D'}<span style={{ fontSize: 18, color: 'var(--teal-mid)' }}>/5</span>
             </div>
             <div style={{ fontSize: 11, color: 'var(--teal-dk)', fontWeight: 600, marginTop: 5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Rating amministratore

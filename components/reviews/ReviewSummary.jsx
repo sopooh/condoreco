@@ -5,7 +5,7 @@ import { scoreColor } from '@/lib/score'
 import { photoUrl } from '@/lib/photos'
 import PhotoLightbox from '@/components/photos/PhotoLightbox'
 
-export default function ReviewSummary({ reviews, photos, building, onFilter, onSearch }) {
+export default function ReviewSummary({ reviews, photos = [], subScores, onFilter, onSearch }) {
   const [activeFilter, setActiveFilter] = useState(null)
   const [search, setSearch] = useState('')
   const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -60,16 +60,12 @@ export default function ReviewSummary({ reviews, photos, building, onFilter, onS
             </span>
           </div>
 
-          {/* Sub-score per tipo residente */}
-          {building && (
+          {/* Sub-score per tipo residente (solo edifici, admin_scores non li ha) */}
+          {subScores && subScores.length > 0 && (
             <div style={{
               display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap',
             }}>
-              {[
-                { label: 'Verificati', val: building.score_verified },
-                { label: 'Ex residenti', val: building.score_former },
-                { label: 'Chi valuta', val: building.score_evaluating },
-              ].map(({ label, val }) => (
+              {subScores.map(({ label, val }) => (
                 <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     {label}

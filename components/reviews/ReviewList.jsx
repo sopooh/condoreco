@@ -1,11 +1,11 @@
-import ReviewItem from './ReviewItem'
+import ReviewCard from './ReviewCard'
 
-export default function ReviewList({ reviews, photos, onEdit }) {
+export default function ReviewList({ reviews, categories, table, photos = [], onEdit, emptyTitle, emptyText }) {
   if (!reviews.length) {
     return (
       <div className="empty" style={{ padding: '40px 0' }}>
-        <div className="empty-title">Ancora nessuna recensione</div>
-        <p>Sii il primo a raccontare com'è vivere qui.</p>
+        <div className="empty-title">{emptyTitle}</div>
+        <p>{emptyText}</p>
       </div>
     )
   }
@@ -14,7 +14,9 @@ export default function ReviewList({ reviews, photos, onEdit }) {
       <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 14 }}>
         {reviews.length} recensioni
       </div>
-      {reviews.map((r) => <ReviewItem key={r.id} review={r} photos={photos} onEdit={onEdit} />)}
+      {reviews.map((r) => (
+        <ReviewCard key={r.id} review={r} categories={categories} table={table} photos={photos} onEdit={onEdit} />
+      ))}
     </div>
   )
 }

@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Button from '@/components/ui/Button'
-import BuildingReviewForm from '@/components/reviews/BuildingReviewForm'
+import ReviewForm from '@/components/reviews/ReviewForm'
 import VivoQuiFlow from '@/components/buildings/VivoQuiFlow'
+import { RESIDENT_TYPES, ISSUES, BUILDING_REVIEW_CATEGORIES } from '@/lib/reviewOptions'
 
 export default function BuildingActions({ building }) {
   const [formOpen, setFormOpen] = useState(false)
@@ -22,10 +23,16 @@ export default function BuildingActions({ building }) {
         </div>
       </div>
 
-      <BuildingReviewForm
+      <ReviewForm
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        building={building}
+        table="reviews"
+        column="building_id"
+        entityId={building.id}
+        subtitle={`${building.address}${building.street_number ? ', ' + building.street_number : ''} — ${building.city}`}
+        residentTypes={RESIDENT_TYPES}
+        categories={BUILDING_REVIEW_CATEGORIES}
+        extras={{ issues: ISSUES, residentSince: true, amenities: true, photos: true }}
       />
 
       <VivoQuiFlow

@@ -73,7 +73,7 @@ export default function AdminRow({ admin: a, buildings = [], expanded, onToggle 
 
         {/* Riga 2: stelle + conteggio recensioni */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor(a.score) }}>{a.score?.toFixed(1)}</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor(a.score) }}>{a.score?.toFixed(1) ?? 'N/D'}</span>
           <RatingDots value={a.score} size={11} />
           <span style={{ fontSize: 12, color: 'var(--text-4)' }}>({a.review_count} recensioni)</span>
         </div>

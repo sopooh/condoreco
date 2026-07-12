@@ -2,13 +2,27 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { scoreColor } from '@/lib/score'
+import { scoreColor, TRUST_BADGE } from '@/lib/score'
 import { defaultAvatarFor, avatarById, ROLES } from '@/lib/avatars'
-import { ADMIN_RESIDENT_TYPES } from '@/lib/reviewOptions'
+import ReviewPhotos from '@/components/photos/ReviewPhotos'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
 
+// Barre di fiducia (1-3)
+function TrustBars({ bars, tone }) {
+  const colors = { teal: 'var(--teal)', blue: '#3B82F6', amber: '#F59E0B', slate: '#94A3B8' }
+  const color = colors[tone] || 'var(--text-4)'
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'flex-end', gap: 2 }} title={`Affidabilità: ${bars}/3`}>
+      {[1, 2, 3].map(i => (
+        <div key={i} style={{ width: 4, borderRadius: 2, height: 5 + i * 3, background: i <= bars ? color : '#E5E7EB' }} />
+      ))}
+    </div>
+  )
+}
+
+// Mini avatar dell'autore
 function ReviewerAvatar({ profile, userId, size = 36 }) {
   const avatarUrl = profile?.avatar_url
   const role = profile?.role || 'condoranker'
@@ -39,19 +53,30 @@ const ownActionButton = {
   borderRadius: 100, padding: '6px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
 }
 
-function Cat({ label, val }) {
-  if (val == null) return null
+function Tag({ label, tone }) {
+  const styles = {
+    teal:  { background: 'var(--teal-lt)',  color: 'var(--teal-dk)' },
+    blue:  { background: '#EFF6FF',         color: '#1E40AF' },
+    amber: { background: '#FFFBEB',         color: '#92400E' },
+    slate: { background: '#F8FAFC',         color: '#334155', border: '1px solid #E2E8F0' },
+  }
+  const s = styles[tone] || styles.slate
   return (
-    <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 500 }}>
-      {label} <strong style={{ color: 'var(--text-2)' }}>{val.toFixed(1)}</strong>
+    <span style={{ ...s, fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 4, display: 'inline-block' }}>
+      {label}
     </span>
   )
 }
 
-export default function AdminReviewItem({ review: r, onEdit }) {
+// Card recensione condivisa da pagina edificio e pagina amministratore.
+// table/column diversi solo per la delete (reviews vs admin_reviews),
+// categories diverso solo per quali chip punteggio renderizzare, photos
+// passato solo lato edificio (ReviewPhotos torna null su array vuoto).
+export default function ReviewCard({ review: r, categories, photos = [], table, onEdit }) {
   const session = useSession()
   const router = useRouter()
   const isOwn = !!(session?.user?.id && r.user_id === session.user.id)
+  const isPending = r.moderation_status === 'pending'
   const updatedAt = r.updated_at && r.updated_at !== r.created_at ? r.updated_at : null
 
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -61,7 +86,7 @@ export default function AdminReviewItem({ review: r, onEdit }) {
   async function handleDelete() {
     setBusy(true); setDeleteErr('')
     const supabase = createClient()
-    const { data, error } = await supabase.from('admin_reviews').delete().eq('id', r.id).eq('user_id', session.user.id).select()
+    const { data, error } = await supabase.from(table).delete().eq('id', r.id).eq('user_id', session.user.id).select()
     setBusy(false)
     if (error || !data || data.length === 0) {
       setDeleteErr('Non è stato possibile eliminare la recensione. Riprova più tardi.')
@@ -71,35 +96,49 @@ export default function AdminReviewItem({ review: r, onEdit }) {
     router.refresh()
   }
 
+  const badge = TRUST_BADGE[r.resident_type] || { label: 'Non verificato', tone: 'slate', bars: 0 }
+  const verified = r.is_verified
+
+  const displayLabel = verified && r.resident_type === 'resident'
+    ? 'Residente verificato'
+    : badge.label
+
+  // Dati profilo reali (dalla join con profiles)
   const profile = r.profiles || null
   const displayName = profile?.display_name || 'Anonimo'
-  const residentLabel = ADMIN_RESIDENT_TYPES.find((t) => t.value === r.resident_type)?.label || r.resident_type
-  const isPending = r.moderation_status === 'pending'
+
+  // resident_since: solo reviews (edifici) la valorizza, admin_reviews no
+  const sinceText = r.resident_since || null
+
+  const reviewPhotos = photos.filter((p) => p.review_id === r.id)
 
   return (
-    <div id={`admin-review-${r.id}`} style={{ borderBottom: '1px solid var(--border)', padding: '20px 0' }}>
+    <div id={`review-${r.id}`} style={{ borderBottom: '1px solid var(--border)', padding: '20px 0' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          {/* Avatar autore */}
           <ReviewerAvatar profile={profile} userId={r.user_id} />
 
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>{displayName}</div>
 
+            {/* Badge + barre */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap', marginBottom: 4 }}>
-              <span style={{
-                fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 4, display: 'inline-block',
-                background: '#F8FAFC', color: '#334155', border: '1px solid #E2E8F0',
-              }}>{residentLabel}</span>
-              {r.is_verified && <span style={{ fontSize: 11, color: 'var(--teal)', fontWeight: 700 }}>✓ Verificato</span>}
-              {isPending && (
+              <Tag label={displayLabel} tone={verified ? 'teal' : badge.tone} />
+              <TrustBars bars={verified ? 3 : badge.bars} tone={verified ? 'teal' : badge.tone} />
+              {verified && <span style={{ fontSize: 11, color: 'var(--teal)', fontWeight: 700 }}>✓ Verificato</span>}
+              {isOwn && isPending && (
                 <span style={{
                   fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 4, display: 'inline-block',
-                  background: 'var(--amber-bg)', color: 'var(--amber-tx)',
-                }}>Da verificare</span>
+                  background: '#FEF3E8', color: '#E8651A',
+                }}>In verifica</span>
               )}
             </div>
 
+            {/* Periodo / rapporto · data */}
             <div style={{ fontSize: 12, color: 'var(--text-4)', fontWeight: 500 }}>
+              {sinceText && <span>{sinceText} · </span>}
               {new Date(r.created_at).toLocaleDateString('it-IT')}
               {updatedAt && <span> · Aggiornata il {new Date(updatedAt).toLocaleDateString('it-IT')}</span>}
             </div>
@@ -118,12 +157,13 @@ export default function AdminReviewItem({ review: r, onEdit }) {
       )}
 
       <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-        <Cat label="Reperibilità" val={r.score_availability} />
-        <Cat label="Trasparenza" val={r.score_transparency} />
-        <Cat label="Velocità" val={r.score_speed} />
-        <Cat label="Assemblee" val={r.score_assemblies} />
-        <Cat label="Qualità/prezzo" val={r.score_value} />
+        {categories.map((c) => (
+          <Cat key={c.key} label={c.label} val={r[c.field]} />
+        ))}
       </div>
+
+      {/* Thumbnail foto associate a questa recensione (solo edifici) */}
+      <ReviewPhotos photos={reviewPhotos} />
 
       {isOwn && (
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
@@ -146,5 +186,14 @@ export default function AdminReviewItem({ review: r, onEdit }) {
         onConfirm={handleDelete}
       />
     </div>
+  )
+}
+
+function Cat({ label, val }) {
+  if (val == null) return null
+  return (
+    <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 500 }}>
+      {label} <strong style={{ color: 'var(--text-2)' }}>{val.toFixed(1)}</strong>
+    </span>
   )
 }

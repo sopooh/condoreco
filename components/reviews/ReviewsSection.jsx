@@ -3,20 +3,26 @@
 import { useState, useMemo } from 'react'
 import ReviewSummary from './ReviewSummary'
 import ReviewList from './ReviewList'
-import BuildingReviewForm from './BuildingReviewForm'
+import ReviewForm from './ReviewForm'
 import ResidentPhotos from '@/components/photos/ResidentPhotos'
 import { useSession } from '@/components/providers/SessionProvider'
 import { useMyReview } from '@/hooks/useMyReview'
 
-// Riceve reviews/photos/building già fetchati server-side come props (solo
+// Sezione recensioni condivisa da pagina edificio e pagina amministratore.
+// Riceve reviews/photos già fetchati server-side come props (solo
 // pubblicate). Filtro per punteggio e ricerca testuale avvengono client-side
 // sui dati passati, nessun rifetch al mount. La recensione dell'utente
 // corrente viene invece fetchata client-side qualunque sia lo stato di
 // pubblicazione, cosi resta visibile (con badge "In verifica") anche quando
 // una modifica la rimette in moderazione.
-export default function BuildingReviewsSection({ reviews, photos, building, children }) {
+export default function ReviewsSection({
+  reviews, photos = [], children,
+  table, column, entityId,
+  subtitle, residentTypes, categories, extras,
+  subScores, emptyTitle, emptyText,
+}) {
   const session = useSession()
-  const [myReview, refetchMyReview] = useMyReview('reviews', 'building_id', building.id)
+  const [myReview, refetchMyReview] = useMyReview(table, column, entityId)
   const [filterScore, setFilterScore] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [editOpen, setEditOpen] = useState(false)
@@ -35,17 +41,31 @@ export default function BuildingReviewsSection({ reviews, photos, building, chil
 
   return (
     <>
-      <ReviewSummary reviews={reviews} photos={photos} building={building} onFilter={setFilterScore} onSearch={setSearchQuery} />
+      <ReviewSummary reviews={reviews} photos={photos} subScores={subScores} onFilter={setFilterScore} onSearch={setSearchQuery} />
       {children}
-      <ReviewList reviews={filteredReviews} photos={photos} onEdit={() => setEditOpen(true)} />
+      <ReviewList
+        reviews={filteredReviews}
+        categories={categories}
+        table={table}
+        photos={photos}
+        onEdit={() => setEditOpen(true)}
+        emptyTitle={emptyTitle}
+        emptyText={emptyText}
+      />
 
-      {/* Foto caricate dai residenti (review_id null) */}
+      {/* Foto caricate dai residenti (review_id null, solo edifici) */}
       <ResidentPhotos photos={photos} />
 
-      <BuildingReviewForm
+      <ReviewForm
         open={editOpen}
         onClose={() => { setEditOpen(false); refetchMyReview() }}
-        building={building}
+        table={table}
+        column={column}
+        entityId={entityId}
+        subtitle={subtitle}
+        residentTypes={residentTypes}
+        categories={categories}
+        extras={extras}
       />
     </>
   )

@@ -23,7 +23,6 @@ export default function ProfileClient() {
     zone: '',
     verified: false,
   })
-  const [profileLoaded, setProfileLoaded] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [onboardingOpen, setOnboardingOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
@@ -36,32 +35,35 @@ export default function ProfileClient() {
   // ── Carica profilo reale da Supabase ──
   useEffect(() => {
     if (!session) return
-    getProfile(session.user.id).then(({ data }) => {
-      if (!data) return
-      const url = data.avatar_url || ''
-      const isPhoto = url.startsWith('data:') || (url.startsWith('http') && !url.includes('/avatars/'))
-      setProfile({
-        username: data.display_name || '',
-        avatar_id: !isPhoto && url ? url.replace('/avatars/', '').replace('.png', '') : null,
-        photo_url: isPhoto ? url : null,
-        role: data.role || 'condoranker',
-        zone: data.zone || '',
-        verified: data.verified || false,
-      })
-      setProfileLoaded(true)
-    })
-  }, [session])
+    let cancelled = false
 
-  // ── Onboarding automatico al primo accesso ──
-  // Chiave localStorage con prefisso condorank_ mantenuto invariato di proposito:
-  // la migrazione a condoreco_ è pianificata post-lancio, non va anticipata qui.
-  // Lettura in useEffect (mai durante il render) per evitare hydration mismatch:
-  // localStorage non esiste lato server.
-  useEffect(() => {
-    if (!session || !profileLoaded) return
-    const key = `condorank_onboarded_${session.user.id}`
-    if (!window.localStorage.getItem(key)) setOnboardingOpen(true)
-  }, [session, profileLoaded])
+    getProfile(session.user.id).then(({ data }) => {
+      if (cancelled) return
+
+      const displayName = data?.display_name?.trim() || ''
+      const hasPersistedProfile = Boolean(displayName)
+      const onboardingKey = `condorank_onboarded_${session.user.id}`
+      const alreadyOnboarded = hasPersistedProfile || Boolean(window.localStorage.getItem(onboardingKey))
+
+      if (hasPersistedProfile) window.localStorage.setItem(onboardingKey, '1')
+      setOnboardingOpen(!alreadyOnboarded)
+
+      if (data) {
+        const url = data.avatar_url || ''
+        const isPhoto = url.startsWith('data:') || (url.startsWith('http') && !url.includes('/avatars/'))
+        setProfile({
+          username: displayName,
+          avatar_id: !isPhoto && url ? url.replace('/avatars/', '').replace('.png', '') : null,
+          photo_url: isPhoto ? url : null,
+          role: data.role || 'condoranker',
+          zone: data.zone || '',
+          verified: data.verified || false,
+        })
+      }
+    })
+
+    return () => { cancelled = true }
+  }, [session])
 
   // ── Salva profilo su Supabase (helper condiviso) ──
   async function persistProfile(data) {
@@ -107,7 +109,7 @@ export default function ProfileClient() {
   if (!session) {
     return (
       <div className="empty">
-        <div className="empty-title">Non hai effettuato l'accesso</div>
+        <div className="empty-title">Non hai effettuato l&apos;accesso</div>
         <p>Accedi dal menu in alto per vedere il tuo profilo.</p>
       </div>
     )

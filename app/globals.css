@@ -1358,3 +1358,11 @@ input, select, textarea { font-family: inherit; }
 
 /* Attribution Leaflet/MapTiler: sempre visibile, stile discreto */
 .leaflet-control-attribution { font-size: 8px; line-height: 1.4; padding: 0 4px; opacity: 0.6; background: rgba(255,255,255,0.6); }
+
+/* Spinner per stati di caricamento/verifica (es. verifica documento residenza) */
+@keyframes condo-spin { to { transform: rotate(360deg); } }
+.condo-spinner {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid var(--border); border-top-color: var(--teal);
+  animation: condo-spin 0.8s linear infinite;
+}

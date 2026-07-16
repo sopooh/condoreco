@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 export function useUserBuildings(userId) {
   const [current, setCurrent] = useState([])
   const [past, setPast] = useState([])
+  const [reviewCount, setReviewCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
@@ -19,6 +20,7 @@ export function useUserBuildings(userId) {
     if (!reviews?.length) {
       setCurrent([])
       setPast([])
+      setReviewCount(0)
       setLoading(false)
       return
     }
@@ -50,6 +52,7 @@ export function useUserBuildings(userId) {
 
     setCurrent(currentList)
     setPast(pastList)
+    setReviewCount(reviews.length)
     setLoading(false)
   }, [userId])
 
@@ -57,5 +60,5 @@ export function useUserBuildings(userId) {
 
   const refetch = () => load()
 
-  return { current, past, loading, refetch }
+  return { current, past, loading, refetch, reviewCount }
 }

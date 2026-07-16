@@ -5,7 +5,7 @@ import { scoreColor, feeBand, costPerSqm } from '@/lib/score'
 import BuildingPreviewImage from '@/components/buildings/BuildingPreviewImage'
 import IconRow from '@/components/buildings/IconRow'
 
-export default function BuildingRow({ building: b }) {
+export default function BuildingRow({ building: b, showEnterCondo = false, onEnterCondo }) {
   const router = useRouter()
   const band = feeBand(b.monthly_fee)
   const perSqm = costPerSqm(b.monthly_fee, b.avg_sqm)
@@ -17,7 +17,7 @@ export default function BuildingRow({ building: b }) {
       onClick={() => router.push(`/edificio/${b.id}`)}
       style={{
         display: 'flex', background: 'var(--white)',
-        border: '1px solid var(--border)', borderRadius: 12, cursor: 'pointer',
+        border: '1px solid var(--border)', borderRadius: 16, cursor: 'pointer',
         transition: 'box-shadow 0.15s',
       }}
       onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'}
@@ -47,23 +47,45 @@ export default function BuildingRow({ building: b }) {
                 {band && <Chip label="Spese" value={band.range} />}
                 {perSqm && <Chip label="Al mq" value={`${perSqm}€/mq`} />}
               </div>
-              <button
-                onClick={e => { e.stopPropagation(); router.push(`/edificio/${b.id}`) }}
-                style={{
-                  background: 'var(--teal)', color: '#fff', border: 'none', borderRadius: 6,
-                  padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                  whiteSpace: 'nowrap', flexShrink: 0, alignSelf: 'flex-end',
-                }}
-              >
-                Vedi dettagli
-              </button>
+              {!showEnterCondo && (
+                <button
+                  onClick={e => { e.stopPropagation(); router.push(`/edificio/${b.id}`) }}
+                  style={{
+                    background: 'var(--teal)', color: '#fff', border: 'none', borderRadius: 6,
+                    padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    whiteSpace: 'nowrap', flexShrink: 0, alignSelf: 'flex-end',
+                  }}
+                >
+                  Vedi dettagli
+                </button>
+              )}
+              {showEnterCondo && (
+                <>
+                  <button
+                    onClick={e => { e.stopPropagation(); router.push(`/edificio/${b.id}`) }}
+                    className="btn btn-outline-teal btn-lg"
+                    style={{ flexShrink: 0, alignSelf: 'flex-end' }}
+                  >
+                    Vedi dettagli
+                  </button>
+                  <button
+                    onClick={e => { e.stopPropagation(); onEnterCondo?.(b.id) }}
+                    className="btn btn-primary btn-lg"
+                    style={{ flexShrink: 0, alignSelf: 'flex-end' }}
+                    aria-label={`Entra nell'area condominio di ${b.address}`}
+                  >
+                    <LockIcon /> Entra condo
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
           {/* Badge + score */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
             <span style={b.status === 'verified' ? badgeVerified : badgePending}>
-              {b.status === 'verified' ? 'Verificato' : 'Da verificare'}
+              {b.status === 'verified' && <ShieldCheckIcon />}
+              {b.status === 'verified' ? 'Verificata' : 'Da verificare'}
             </span>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>{scoreLabel(b.score)}</div>
@@ -76,7 +98,7 @@ export default function BuildingRow({ building: b }) {
 
         {/* Riga inferiore: solo icone */}
         <div style={{ paddingTop: 8, borderTop: '1px solid var(--border)', marginTop: 'auto' }}>
-          <IconRow b={b} />
+          <IconRow b={b} showLabels={showEnterCondo} />
         </div>
       </div>
     </div>
@@ -95,8 +117,26 @@ function Chip({ label, value, valueColor }) {
   )
 }
 
-const badgePending  = { background: '#FEF3E8', color: '#E8651A', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 100, whiteSpace: 'nowrap' }
-const badgeVerified = { background: 'var(--teal-lt)', color: 'var(--teal-dk)', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 100, whiteSpace: 'nowrap' }
+const badgePending  = { display: 'flex', alignItems: 'center', gap: 4, background: '#FEF3E8', color: '#E8651A', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 100, whiteSpace: 'nowrap' }
+const badgeVerified = { display: 'flex', alignItems: 'center', gap: 4, background: 'var(--teal-lt)', color: 'var(--teal-dk)', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 100, whiteSpace: 'nowrap' }
+
+function LockIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 018 0v4" />
+    </svg>
+  )
+}
+
+function ShieldCheckIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  )
+}
 
 function scoreLabel(score) {
   if (score == null) return 'Nuovo'

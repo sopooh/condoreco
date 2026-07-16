@@ -43,7 +43,7 @@ const LEVEL_COLOR = {
   none: 'var(--text-4)',
 }
 
-export default function IconBadge({ type, value, title }) {
+export default function IconBadge({ type, value, title, showLabel = false }) {
   const color = LEVEL_COLOR[scoreLevel(value)]
   return (
     <div
@@ -53,6 +53,9 @@ export default function IconBadge({ type, value, title }) {
       }}
     >
       <div style={{ width: 18, height: 18, color }}>{ICONS[type]}</div>
+      {showLabel && (
+        <span style={{ fontSize: 10, color: 'var(--text-4)', whiteSpace: 'nowrap' }}>{title}</span>
+      )}
       <span style={{ fontSize: 11, fontWeight: 700, color }}>
         {value != null ? value.toFixed(1) : '—'}
       </span>

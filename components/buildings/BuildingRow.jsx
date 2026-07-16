@@ -40,45 +40,45 @@ export default function BuildingRow({ building: b, showEnterCondo = false, onEnt
             <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {b.neighborhood ? `${b.neighborhood} · ` : ''}{b.city}{b.year_built ? ` · Anno ${b.year_built}` : ''}
             </div>
-            {/* Chip Rating / Spese / Al mq + Vedi dettagli sulla stessa riga */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flex: 1 }}>
-                <Chip label="Rating" value={b.score?.toFixed(1) ?? 'N/D'} valueColor={scoreColor(b.score)} />
-                {band && <Chip label="Spese" value={band.range} />}
-                {perSqm && <Chip label="Al mq" value={`${perSqm}€/mq`} />}
-              </div>
+
+            {/* Chip Rating / Spese / Al mq */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: showEnterCondo ? 8 : 0, minWidth: 0 }}>
+              <Chip label="Rating" value={b.score?.toFixed(1) ?? 'N/D'} valueColor={scoreColor(b.score)} />
+              {band && <Chip label="Spese" value={band.range} />}
+              {perSqm && <Chip label="Al mq" value={`${perSqm}€/mq`} />}
               {!showEnterCondo && (
                 <button
                   onClick={e => { e.stopPropagation(); router.push(`/edificio/${b.id}`) }}
                   style={{
                     background: 'var(--teal)', color: '#fff', border: 'none', borderRadius: 6,
                     padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                    whiteSpace: 'nowrap', flexShrink: 0, alignSelf: 'flex-end',
+                    whiteSpace: 'nowrap', alignSelf: 'flex-end',
                   }}
                 >
                   Vedi dettagli
                 </button>
               )}
-              {showEnterCondo && (
-                <>
-                  <button
-                    onClick={e => { e.stopPropagation(); router.push(`/edificio/${b.id}`) }}
-                    className="btn btn-outline-teal btn-lg"
-                    style={{ flexShrink: 0, alignSelf: 'flex-end' }}
-                  >
-                    Vedi dettagli
-                  </button>
-                  <button
-                    onClick={e => { e.stopPropagation(); onEnterCondo?.(b.id) }}
-                    className="btn btn-primary btn-lg"
-                    style={{ flexShrink: 0, alignSelf: 'flex-end' }}
-                    aria-label={`Entra nell'area condominio di ${b.address}`}
-                  >
-                    <LockIcon /> Entra condo
-                  </button>
-                </>
-              )}
             </div>
+
+            {/* Pulsanti Vedi dettagli / Entra condo: sempre su una riga dedicata,
+                mai in competizione di spazio con le chip. */}
+            {showEnterCondo && (
+              <div className="building-row-actions">
+                <button
+                  onClick={e => { e.stopPropagation(); router.push(`/edificio/${b.id}`) }}
+                  className="btn btn-outline-teal btn-lg"
+                >
+                  Vedi dettagli
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); onEnterCondo?.(b.id) }}
+                  className="btn btn-primary btn-lg"
+                  aria-label={`Entra nell'area condominio di ${b.address}`}
+                >
+                  <LockIcon /> Entra condo
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Badge + score */}

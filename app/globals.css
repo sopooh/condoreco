@@ -1197,9 +1197,11 @@ input, select, textarea { font-family: inherit; }
 .building-layout-wrap { padding: 24px 40px; }
 .building-layout-grid { display: grid; grid-template-columns: 1fr 260px; gap: 40px; }
 
-.building-row { gap: 14px; padding: 14px; }
+.building-row { gap: 14px; padding: 14px; max-width: 100%; box-sizing: border-box; overflow: hidden; }
 .building-row-preview { width: 150px; min-width: 150px; height: 170px; }
-.building-row-top { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+.building-row-top { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; min-width: 0; }
+.building-row-actions { display: flex; gap: 8px; flex-wrap: wrap; min-width: 0; max-width: 100%; }
+.building-row-actions .btn-lg { flex: 1 1 140px; min-width: 0; max-width: 100%; }
 
 .building-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
 
@@ -1295,6 +1297,7 @@ input, select, textarea { font-family: inherit; }
 
   .building-row { gap: 10px; padding: 10px; }
   .building-row-preview { width: 100px; min-width: 100px; height: 120px; }
+  .icon-row { gap: 8px; row-gap: 10px; }
   /* Sotto la soglia tablet la colonna badge/verifica non entra più accanto a
      indirizzo+chip+pulsanti (soprattutto con i due pulsanti Entra condo/Vedi
      dettagli): scende sotto invece di forzare la riga a sbordare dalla card. */
@@ -1344,6 +1347,11 @@ input, select, textarea { font-family: inherit; }
   .profile-email { font-size: 12px; }
   .profile-pill { padding: 4px 8px; font-size: 10px; gap: 4px; }
   .profile-badges-col { gap: 4px; }
+}
+
+@media (max-width: 390px) {
+  .building-row-actions { flex-direction: column; }
+  .building-row-actions .btn-lg { width: 100%; }
 }
 
 /* Attribution Leaflet/MapTiler: sempre visibile, stile discreto */

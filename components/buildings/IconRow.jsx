@@ -2,7 +2,7 @@ import IconBadge from '@/components/ui/IconBadge'
 
 export default function IconRow({ b, showLabels = false }) {
   return (
-    <div style={{ display: 'flex', gap: 14, justifyContent: 'space-between' }}>
+    <div className="icon-row" style={{ display: 'flex', gap: 14, justifyContent: 'space-between', flexWrap: 'wrap', minWidth: 0, maxWidth: '100%' }}>
       <IconBadge type="admin" value={b.score_admin} title="Amministratore" showLabel={showLabels} />
       <IconBadge type="maintenance" value={b.score_maintenance} title="Manutenzione" showLabel={showLabels} />
       <IconBadge type="costs" value={b.score_costs} title="Spese" showLabel={showLabels} />

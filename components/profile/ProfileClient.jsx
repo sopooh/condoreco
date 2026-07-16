@@ -28,6 +28,19 @@ export default function ProfileClient() {
   const [editOpen, setEditOpen] = useState(false)
   const [leavingId, setLeavingId] = useState(null)
   const [returningId, setReturningId] = useState(null)
+  const [avatarSize, setAvatarSize] = useState(104)
+
+  // Sotto ~400px avatar (104px) + nome + badge non entrano su una riga senza
+  // restringere qualcosa: i badge devono restare a destra del nome (mai andare
+  // a capo sotto), quindi si rimpicciolisce davvero l'avatar invece di scalarlo
+  // solo visivamente (un transform CSS non libera spazio nel layout flex).
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 400px)')
+    const update = () => setAvatarSize(mq.matches ? 72 : 104)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
 
   const userId = session?.user?.id
   const { current: currentBuildings, past: pastBuildings, loading: buildingsLoading, refetch, reviewCount } = useUserBuildings(userId)
@@ -139,7 +152,7 @@ export default function ProfileClient() {
 
             {/* AVATAR */}
             <div className="profile-avatar-col">
-              <Avatar userId={userId} avatarId={profile.avatar_id} photoUrl={profile.photo_url} role={profile.role} size={104} />
+              <Avatar userId={userId} avatarId={profile.avatar_id} photoUrl={profile.photo_url} role={profile.role} size={avatarSize} />
             </div>
 
             {/* INFO */}

@@ -23,7 +23,6 @@ export default function ProfileClient() {
     zone: '',
     verified: false,
   })
-  const [profileLoaded, setProfileLoaded] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [onboardingOpen, setOnboardingOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
@@ -34,34 +33,35 @@ export default function ProfileClient() {
   const { current: currentBuildings, past: pastBuildings, loading: buildingsLoading, refetch } = useUserBuildings(userId)
 
   // ── Carica profilo reale da Supabase ──
+  // Onboarding automatico al primo accesso: la fonte di verità è il profilo
+  // su Supabase (display_name già impostato = onboarding già completato),
+  // non il localStorage da solo, altrimenti riappare su un altro browser/
+  // dispositivo o se il localStorage viene svuotato.
+  // Chiave localStorage con prefisso condorank_ mantenuto invariato di proposito:
+  // la migrazione a condoreco_ è pianificata post-lancio, non va anticipata qui.
   useEffect(() => {
     if (!session) return
     getProfile(session.user.id).then(({ data }) => {
-      if (!data) return
-      const url = data.avatar_url || ''
-      const isPhoto = url.startsWith('data:') || (url.startsWith('http') && !url.includes('/avatars/'))
-      setProfile({
-        username: data.display_name || '',
-        avatar_id: !isPhoto && url ? url.replace('/avatars/', '').replace('.png', '') : null,
-        photo_url: isPhoto ? url : null,
-        role: data.role || 'condoranker',
-        zone: data.zone || '',
-        verified: data.verified || false,
-      })
-      setProfileLoaded(true)
+      const key = `condorank_onboarded_${session.user.id}`
+      if (data) {
+        const url = data.avatar_url || ''
+        const isPhoto = url.startsWith('data:') || (url.startsWith('http') && !url.includes('/avatars/'))
+        setProfile({
+          username: data.display_name || '',
+          avatar_id: !isPhoto && url ? url.replace('/avatars/', '').replace('.png', '') : null,
+          photo_url: isPhoto ? url : null,
+          role: data.role || 'condoranker',
+          zone: data.zone || '',
+          verified: data.verified || false,
+        })
+      }
+      if (data?.display_name) {
+        window.localStorage.setItem(key, '1')
+      } else if (!window.localStorage.getItem(key)) {
+        setOnboardingOpen(true)
+      }
     })
   }, [session])
-
-  // ── Onboarding automatico al primo accesso ──
-  // Chiave localStorage con prefisso condorank_ mantenuto invariato di proposito:
-  // la migrazione a condoreco_ è pianificata post-lancio, non va anticipata qui.
-  // Lettura in useEffect (mai durante il render) per evitare hydration mismatch:
-  // localStorage non esiste lato server.
-  useEffect(() => {
-    if (!session || !profileLoaded) return
-    const key = `condorank_onboarded_${session.user.id}`
-    if (!window.localStorage.getItem(key)) setOnboardingOpen(true)
-  }, [session, profileLoaded])
 
   // ── Salva profilo su Supabase (helper condiviso) ──
   async function persistProfile(data) {

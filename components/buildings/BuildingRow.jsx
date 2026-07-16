@@ -66,13 +66,13 @@ export default function BuildingRow({ building: b, showEnterCondo = false, onEnt
               <div className="building-row-actions">
                 <button
                   onClick={e => { e.stopPropagation(); router.push(`/edificio/${b.id}`) }}
-                  className="btn btn-outline-teal btn-lg"
+                  className="btn btn-outline-teal building-row-action-btn"
                 >
                   Vedi dettagli
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); onEnterCondo?.(b.id) }}
-                  className="btn btn-primary btn-lg"
+                  className="btn btn-primary building-row-action-btn"
                   aria-label={`Entra nell'area condominio di ${b.address}`}
                 >
                   <LockIcon /> Entra condo
@@ -98,7 +98,7 @@ export default function BuildingRow({ building: b, showEnterCondo = false, onEnt
 
         {/* Riga inferiore: solo icone */}
         <div style={{ paddingTop: 8, borderTop: '1px solid var(--border)', marginTop: 'auto' }}>
-          <IconRow b={b} showLabels={showEnterCondo} />
+          <IconRow b={b} />
         </div>
       </div>
     </div>

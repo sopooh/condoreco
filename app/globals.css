@@ -41,7 +41,6 @@ input, select, textarea { font-family: inherit; }
 .btn-block { width: 100%; }
 .btn-outline-teal { background: var(--white); color: var(--teal-dk); border: 1.5px solid var(--teal); }
 .btn-outline-teal:hover { background: var(--teal-lt); }
-.btn-lg { min-height: 48px; padding: 0 20px; border-radius: 8px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 
 /* score bar */
 .score-bar-row { display: flex; align-items: center; gap: 10px; }
@@ -1200,8 +1199,12 @@ input, select, textarea { font-family: inherit; }
 .building-row { gap: 14px; padding: 14px; max-width: 100%; box-sizing: border-box; overflow: hidden; }
 .building-row-preview { width: 150px; min-width: 150px; height: 170px; }
 .building-row-top { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; min-width: 0; }
-.building-row-actions { display: flex; gap: 8px; flex-wrap: wrap; min-width: 0; max-width: 100%; }
-.building-row-actions .btn-lg { flex: 1 1 140px; min-width: 0; max-width: 100%; }
+.building-row-actions { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; }
+.building-row-action-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  width: auto; min-width: 0; flex: 0 1 auto;
+  height: 50px; padding: 0 18px; font-size: 14px; white-space: nowrap;
+}
 
 .building-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
 
@@ -1297,12 +1300,11 @@ input, select, textarea { font-family: inherit; }
 
   .building-row { gap: 10px; padding: 10px; }
   .building-row-preview { width: 100px; min-width: 100px; height: 120px; }
-  .icon-row { gap: 8px; row-gap: 10px; }
   /* Sotto la soglia tablet la colonna badge/verifica non entra più accanto a
-     indirizzo+chip+pulsanti (soprattutto con i due pulsanti Entra condo/Vedi
-     dettagli): scende sotto invece di forzare la riga a sbordare dalla card. */
+     indirizzo+chip+pulsanti: scende sotto invece di forzare la riga a
+     sbordare dalla card. */
   .building-row-top { flex-direction: column; }
-  .btn-lg { min-height: 44px; padding: 0 14px; font-size: 13px; }
+  .building-row-action-btn { height: 48px; padding: 0 14px; font-size: 13px; }
 
   .building-list-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 
@@ -1347,11 +1349,6 @@ input, select, textarea { font-family: inherit; }
   .profile-email { font-size: 12px; }
   .profile-pill { padding: 4px 8px; font-size: 10px; gap: 4px; }
   .profile-badges-col { gap: 4px; }
-}
-
-@media (max-width: 390px) {
-  .building-row-actions { flex-direction: column; }
-  .building-row-actions .btn-lg { width: 100%; }
 }
 
 /* Attribution Leaflet/MapTiler: sempre visibile, stile discreto */

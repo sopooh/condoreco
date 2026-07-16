@@ -57,7 +57,11 @@ export default function CondoPrivatoPage({ params }) {
   if (role === undefined || buildingsLoading) return <Loading />
 
   const building = currentBuildings.find(b => b.id === condominiumId)
-  if (role !== 'condoranker' || !building) return <AccessDenied reason="not-a-member" />
+  // 'condoranker' = residente, 'admin' = moderatore del sito (ha già accesso
+  // completo altrove). Escluso solo 'condoranked' (amministratore di
+  // condominio professionista, non un residente).
+  const canEnter = role === 'condoranker' || role === 'admin'
+  if (!canEnter || !building) return <AccessDenied reason="not-a-member" />
 
   return (
     <div className="wrap condo-private-wrap">

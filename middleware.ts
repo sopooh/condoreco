@@ -2,8 +2,10 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // Gate server-side per /admin (richiede login + profiles.role === 'admin') e
-// per /condominio/[id] (richiede login + profiles.role === 'condoranker' +
-// una recensione attiva, non former_resident, su quello specifico edificio).
+// per /condominio/[id] (richiede login + profiles.role 'condoranker' o
+// 'admin' + una recensione attiva, non former_resident, su quello specifico
+// edificio — esclude solo 'condoranked', amministratore di condominio
+// professionista).
 // Le pagine restano client-heavy (query dirette al browser client), ma senza
 // questo middleware un utente non autorizzato vedrebbe comunque la UI per un
 // istante prima che il fetch client-side la nasconda — qui il redirect
@@ -51,7 +53,10 @@ export async function middleware(request: NextRequest) {
 
   const condoMatch = request.nextUrl.pathname.match(/^\/condominio\/([^/]+)/)
   if (condoMatch) {
-    if (profile?.role !== 'condoranker') {
+    // 'condoranker' = residente, 'admin' = moderatore del sito (accesso
+    // completo già altrove). Escluso solo 'condoranked' (amministratore di
+    // condominio professionista, non un residente).
+    if (profile?.role !== 'condoranker' && profile?.role !== 'admin') {
       return NextResponse.redirect(new URL('/', request.url))
     }
     const buildingId = condoMatch[1]

@@ -1280,7 +1280,7 @@ input, select, textarea { font-family: inherit; }
 .profile-section-title-row { display: flex; align-items: center; gap: 8px; }
 
 .profile-body-wrap { padding: 32px 40px; }
-.profile-body-grid { grid-template-columns: 1fr 300px; gap: 40px; }
+.profile-body-grid { grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; }
 
 .building-gallery-img { height: 380px; }
 .building-gallery-arrow { display: flex; align-items: center; justify-content: center; }
@@ -1304,7 +1304,8 @@ input, select, textarea { font-family: inherit; }
      indirizzo+chip+pulsanti: scende sotto invece di forzare la riga a
      sbordare dalla card. */
   .building-row-top { flex-direction: column; }
-  .building-row-action-btn { height: 48px; padding: 0 14px; font-size: 13px; }
+  .building-row-actions { gap: 8px; }
+  .building-row-action-btn { height: 48px; padding: 0 10px; font-size: 13px; }
 
   .building-list-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 
@@ -1329,7 +1330,7 @@ input, select, textarea { font-family: inherit; }
   .profile-name { font-size: 20px; }
   .profile-second-row { gap: 12px; margin-top: 16px; }
   .profile-body-wrap { padding: 16px; }
-  .profile-body-grid { grid-template-columns: 1fr; gap: 24px; }
+  .profile-body-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
 
   .building-gallery-img { height: 240px; }
   .building-gallery-arrow { display: none; }

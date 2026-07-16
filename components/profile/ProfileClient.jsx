@@ -122,14 +122,6 @@ export default function ProfileClient() {
     setReturningId(null)
   }
 
-  // ── "Entra condo" ──
-  // Nessuna area privata del condominio esiste ancora nel progetto (nessuna route/
-  // funzione corrispondente in tutto il repo): stub nominato in attesa che venga
-  // definita la destinazione reale, senza inventare dati o routing.
-  function handleEnterCondo(buildingId) {
-    console.log('[TODO] Entra condo cliccato per building', buildingId)
-  }
-
   if (!session) {
     return (
       <div className="empty">
@@ -221,7 +213,7 @@ export default function ProfileClient() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {currentBuildings.map(b => (
                       <div key={b.id}>
-                        <BuildingRow building={b} showEnterCondo onEnterCondo={handleEnterCondo} />
+                        <BuildingRow building={b} showEnterCondo />
                         <div style={{ marginTop: 8 }}>
                           <button
                             onClick={() => handleLeave(b.id)}

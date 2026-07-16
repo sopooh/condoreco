@@ -5,7 +5,7 @@ import { scoreColor, feeBand, costPerSqm } from '@/lib/score'
 import BuildingPreviewImage from '@/components/buildings/BuildingPreviewImage'
 import IconRow from '@/components/buildings/IconRow'
 
-export default function BuildingRow({ building: b, showEnterCondo = false, onEnterCondo }) {
+export default function BuildingRow({ building: b, showEnterCondo = false }) {
   const router = useRouter()
   const band = feeBand(b.monthly_fee)
   const perSqm = costPerSqm(b.monthly_fee, b.avg_sqm)
@@ -71,7 +71,7 @@ export default function BuildingRow({ building: b, showEnterCondo = false, onEnt
                   Vedi dettagli
                 </button>
                 <button
-                  onClick={e => { e.stopPropagation(); onEnterCondo?.(b.id) }}
+                  onClick={e => { e.stopPropagation(); router.push(`/condominio/${b.id}`) }}
                   className="btn btn-primary building-row-action-btn"
                   aria-label={`Entra nell'area condominio di ${b.address}`}
                 >

@@ -53,7 +53,9 @@ export default function CondoPrivatoPage({ params }) {
 
   useEffect(() => {
     if (!userId) return
-    getProfile(userId).then(({ data }) => setRole(data?.role ?? null))
+    getProfile(userId)
+      .then(({ data }) => setRole(data?.role ?? null))
+      .catch(() => setRole(null))
   }, [userId])
 
   useEffect(() => {
@@ -64,6 +66,7 @@ export default function CondoPrivatoPage({ params }) {
       .neq('resident_type', 'former_resident')
       .limit(1).maybeSingle()
       .then(({ data }) => setIsVerifiedReview(data?.is_verified ?? false))
+      .catch(() => setIsVerifiedReview(false))
   }, [userId, condominiumId])
 
   // Lettura in useEffect (mai durante il render) per evitare hydration

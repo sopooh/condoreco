@@ -65,7 +65,7 @@ export default function ProfileClient() {
 
   // ── Salva profilo su Supabase (helper condiviso) ──
   async function persistProfile(data) {
-    await upsertProfile({
+    const { error } = await upsertProfile({
       id: userId,
       username: data.username || data.first_name || '',
       avatarId: data.avatar_id || null,
@@ -74,13 +74,18 @@ export default function ProfileClient() {
       zone: data.zone || null,
       verified: data.verified || false,
     })
+    if (error) console.error('Errore nel salvataggio del profilo:', error)
+    return !error
   }
 
-  function completeOnboarding(data) {
+  async function completeOnboarding(data) {
     const merged = { ...profile, ...data }
     setProfile(merged)
-    persistProfile(merged)
-    if (session) window.localStorage.setItem(`condorank_onboarded_${session.user.id}`, '1')
+    const saved = await persistProfile(merged)
+    // Il flag locale viene impostato solo se il salvataggio è riuscito: se fallisce,
+    // al prossimo accesso l'onboarding deve ripresentarsi invece di essere nascosto
+    // da un flag che non corrisponde allo stato reale su Supabase.
+    if (session && saved) window.localStorage.setItem(`condorank_onboarded_${session.user.id}`, '1')
   }
 
   function handleSave(data) {

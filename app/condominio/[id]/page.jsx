@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { useSession } from '@/components/providers/SessionProvider'
 import { useUserBuildings } from '@/hooks/useUserBuildings'
 import { getProfile } from '@/lib/profile'
@@ -43,7 +43,9 @@ function Loading() {
 }
 
 export default function CondoPrivatoPage({ params }) {
-  const { id: condominiumId } = params
+  // In Next 16 params è una Promise anche nei client component: va scartata
+  // con use(), l'accesso sincrono è stato rimosso (vedi upgrade guide v16).
+  const { id: condominiumId } = use(params)
   const session = useSession()
   const userId = session?.user?.id
   const [role, setRole] = useState(undefined)

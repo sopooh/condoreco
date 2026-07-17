@@ -67,6 +67,7 @@ export default function AdminDashboard() {
     const supabase = createClient()
     supabase.from('profiles').select('role').eq('id', session.user.id).single()
       .then(({ data }) => setRole(data?.role ?? null))
+      .catch(() => setRole(null))
   }, [session])
 
   // Come nel resto del progetto (es. /profilo), SessionProvider non

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/components/providers/SessionProvider'
 import { setVerification } from '@/lib/residenceVerification'
@@ -25,7 +25,9 @@ const DOCUMENT_TYPES = [
 // step 3 è simulata con un timeout — da collegare in futuro a un vero
 // processo di revisione.
 export default function VerificaResidenzaPage({ params }) {
-  const { id: condominiumId } = params
+  // In Next 16 params è una Promise anche nei client component: va scartata
+  // con use(), l'accesso sincrono è stato rimosso (vedi upgrade guide v16).
+  const { id: condominiumId } = use(params)
   const router = useRouter()
   const session = useSession()
   const userId = session?.user?.id

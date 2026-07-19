@@ -71,7 +71,7 @@ export default function BuildingRow({ building: b, showEnterCondo = false }) {
                   Vedi dettagli
                 </button>
                 <button
-                  onClick={e => { e.stopPropagation(); router.push(`/condominio/${b.id}`) }}
+                  onClick={e => { e.stopPropagation(); router.push(`/edificio/${b.id}/condominio`) }}
                   className="btn btn-primary building-row-action-btn"
                   aria-label={`Entra nell'area condominio di ${b.address}`}
                 >

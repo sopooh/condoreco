@@ -57,12 +57,17 @@ export async function middleware(request: NextRequest) {
   const edificioCondoMatch = request.nextUrl.pathname.match(/^\/edificio\/([^/]+)\/condominio(?:\/calendario)?$/)
   if (edificioCondoMatch) {
     const buildingId = edificioCondoMatch[1]
-    const { data: membership } = await supabase
+    const { data: membership, error: membershipError } = await supabase
       .from('condo_members')
-      .select('id')
+      .select('role')
       .eq('building_id', buildingId)
       .eq('user_id', user.id)
       .maybeSingle()
+    // Fail-closed di proposito, ma logga: un errore di query (es. colonna
+    // sbagliata) altrimenti si confonderebbe silenziosamente con "non membro".
+    if (membershipError) {
+      console.error('[middleware] condo_members check failed', membershipError.message)
+    }
     if (!membership) {
       return NextResponse.redirect(new URL('/', request.url))
     }

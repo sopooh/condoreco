@@ -24,6 +24,10 @@ const DOCUMENT_TYPES = [
 // il file scelto serve solo a mostrare il nome nella UI. La "verifica" allo
 // step 3 è simulata con un timeout — da collegare in futuro a un vero
 // processo di revisione.
+// IMPORTANTE: completare questo flusso NON crea una riga in condo_members,
+// quindi non concede accesso reale all'area condominio (vedi middleware.ts /
+// useCondoRole). È solo l'anticamera: finché non esiste un vero processo di
+// revisione, l'iscrizione a condo_members resta manuale (SQL Editor).
 export default function VerificaResidenzaPage({ params }) {
   // In Next 16 params è una Promise anche nei client component: va scartata
   // con use(), l'accesso sincrono è stato rimosso (vedi upgrade guide v16).
@@ -51,7 +55,7 @@ export default function VerificaResidenzaPage({ params }) {
   }, [current, userId, condominiumId, documentType, fileName])
 
   function prev() {
-    if (step === 0) { router.push(`/condominio/${condominiumId}`); return }
+    if (step === 0) { router.push(`/edificio/${condominiumId}/condominio`); return }
     setStep(s => Math.max(0, s - 1))
   }
 
@@ -72,7 +76,7 @@ export default function VerificaResidenzaPage({ params }) {
           <span className="profile-pill profile-pill-teal">Residente verificato</span>
         </div>
         <button
-          onClick={() => router.push(`/condominio/${condominiumId}`)}
+          onClick={() => router.push(`/edificio/${condominiumId}/condominio`)}
           style={{
             width: '100%', padding: 14, borderRadius: 10, border: 'none',
             background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer',
@@ -141,7 +145,7 @@ export default function VerificaResidenzaPage({ params }) {
           <>
             <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>Carica il documento</h2>
             <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 20 }}>
-              Oscura pure i dati sensibili, ci serve solo l'indirizzo.
+              Oscura pure i dati sensibili, ci serve solo l&apos;indirizzo.
             </p>
             <label
               onDragOver={e => { e.preventDefault(); setDragOver(true) }}

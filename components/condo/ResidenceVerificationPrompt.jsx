@@ -34,7 +34,7 @@ export default function ResidenceVerificationPrompt({ condominiumId, status }) {
         </p>
       )}
       <button
-        onClick={() => router.push(`/condominio/${condominiumId}/verifica`)}
+        onClick={() => router.push(`/edificio/${condominiumId}/condominio/verifica`)}
         style={{
           marginTop: status === 'rejected' ? 0 : 16,
           padding: '12px 24px', borderRadius: 8, border: 'none',

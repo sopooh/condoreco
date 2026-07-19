@@ -24,9 +24,7 @@ export default function ChatPreviewCard({ messages, isCondoAdmin, onSend, onHide
 
   return (
     <Card hover={false} style={{ padding: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)' }}>Chat del condominio</div>
-      </div>
+      <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 14 }}>Chat del condominio</div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
         {messages.length === 0 && (

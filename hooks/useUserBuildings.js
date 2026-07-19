@@ -56,7 +56,7 @@ export function useUserBuildings(userId) {
     } finally {
       // finally, non solo dopo il "return" felice: se una query lancia
       // un'eccezione, loading non deve restare bloccato a true per sempre
-      // (una pagina come /condominio/[id] ci resta agganciata per l'accesso).
+      // (ProfileClient.jsx resta agganciato a questo flag per la sua UI).
       setLoading(false)
     }
   }, [userId])

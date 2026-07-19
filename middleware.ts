@@ -1,12 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-// Gate server-side per /admin (richiede login + profiles.role === 'admin'),
-// /condominio/[id] (vecchia area privata, in dismissione — richiede login +
-// profiles.role 'condoranker'/'admin' + una recensione attiva su quell'edificio)
-// e /edificio/[id]/condominio (nuova area, sostituisce /condominio/[id]:
-// richiede login + una riga in condo_members per quell'edificio, unica fonte
-// di verità per l'accesso — non più profiles.role né reviews). Il percorso
+// Gate server-side per /admin (richiede login + profiles.role === 'admin') e
+// /edificio/[id]/condominio (richiede login + una riga in condo_members per
+// quell'edificio, unica fonte di verità per l'accesso). Il percorso
 // /edificio/[id]/condominio/verifica resta fuori da questo gate perché deve
 // restare raggiungibile da chi non è ancora membro (è l'unico modo per
 // diventarlo).
@@ -55,30 +52,7 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  const condoMatch = request.nextUrl.pathname.match(/^\/condominio\/([^/]+)/)
-  if (condoMatch) {
-    // 'condoranker' = residente, 'admin' = moderatore del sito (accesso
-    // completo già altrove). Escluso solo 'condoranked' (amministratore di
-    // condominio professionista, non un residente).
-    if (profile?.role !== 'condoranker' && profile?.role !== 'admin') {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
-    const buildingId = condoMatch[1]
-    const { data: residency } = await supabase
-      .from('reviews')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('building_id', buildingId)
-      .neq('resident_type', 'former_resident')
-      .limit(1)
-      .maybeSingle()
-    if (!residency) {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
-    return response
-  }
-
-  // Nuova area condominio: /edificio/[id]/condominio e la sua vista calendario.
+  // Area condominio: /edificio/[id]/condominio e la sua vista calendario.
   // Esclude di proposito /edificio/[id]/condominio/verifica (vedi commento sopra).
   const edificioCondoMatch = request.nextUrl.pathname.match(/^\/edificio\/([^/]+)\/condominio(?:\/calendario)?$/)
   if (edificioCondoMatch) {
@@ -101,7 +75,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/admin/:path*',
-    '/condominio/:path*',
     '/edificio/:id/condominio',
     '/edificio/:id/condominio/calendario',
   ],

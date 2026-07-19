@@ -11,7 +11,8 @@ import CondoDashboard from '@/components/condo/CondoDashboard'
 // l'unica fonte di verità per l'accesso (rispecchia il gate server-side in
 // middleware.ts). Un utente loggato ma non membro vede un invito alla
 // verifica invece di una dashboard silenziosamente vuota.
-export default function CondoDashboardGate({ buildingId }) {
+export default function CondoDashboardGate({ building }) {
+  const buildingId = building.id
   const session = useSession()
   const userId = session?.user?.id
   const { isMember, loading } = useCondoRole(buildingId)
@@ -47,5 +48,5 @@ export default function CondoDashboardGate({ buildingId }) {
     return <ResidenceVerificationPrompt condominiumId={buildingId} status={mockStatus} />
   }
 
-  return <CondoDashboard buildingId={buildingId} />
+  return <CondoDashboard building={building} />
 }

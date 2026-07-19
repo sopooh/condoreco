@@ -4,16 +4,22 @@ import { useState } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 
-// Prima implementazione: il voto è stato locale (mock), non persistito.
-// Il pulsante "Vota" registra un voto per la prima opzione (Sì/Favorevole) —
-// quando collegato al DB andrà sostituito con la reale scelta dell'utente.
-export default function PollsCard({ polls }) {
-  const [votes, setVotes] = useState(() =>
-    Object.fromEntries(polls.map(p => [p.id, p.user_vote]))
-  )
+export default function PollsCard({ polls, onVote, onCreate }) {
+  const [question, setQuestion] = useState('')
+  const [feedback, setFeedback] = useState(null)
+  const [voting, setVoting] = useState(null)
 
-  function vote(pollId, optionId) {
-    setVotes(v => ({ ...v, [pollId]: optionId }))
+  async function handleVote(pollId, vote) {
+    setVoting(pollId)
+    const { error } = await onVote(pollId, vote)
+    setFeedback(error)
+    setVoting(null)
+  }
+
+  async function handleCreate() {
+    const { error } = await onCreate({ question, minVotes: 10, durationDays: 7 })
+    setFeedback(error)
+    if (!error) setQuestion('')
   }
 
   return (
@@ -22,48 +28,70 @@ export default function PollsCard({ polls }) {
         Decisioni del condominio
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {polls.map(poll => {
-          const userVote = votes[poll.id]
-          const hasVoted = !!userVote
-          const [a, b] = poll.options
-          const totalVotes = poll.total_votes + (hasVoted ? 1 : 0)
-          const aVotes = a.votes + (userVote === a.id ? 1 : 0)
-          const pctA = totalVotes > 0 ? Math.round((aVotes / totalVotes) * 100) : 0
+      {polls.length === 0 && (
+        <p style={{ fontSize: 13, color: 'var(--text-4)', marginBottom: 16 }}>Nessuna decisione in corso.</p>
+      )}
 
-          return (
-            <div key={poll.id} style={{ minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 4 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', minWidth: 0 }}>
-                  {poll.question}
-                </div>
-                <Button
-                  variant={hasVoted ? 'ghost' : 'primary'}
-                  disabled={hasVoted}
-                  onClick={() => vote(poll.id, a.id)}
-                  style={{ flexShrink: 0 }}
-                >
-                  {hasVoted ? 'Votato' : 'Vota'}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
+        {polls.map(poll => (
+          <div key={poll.id} style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>
+              {poll.question}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 8 }}>
+              {poll.totalVotes} voti
+              {poll.status === 'rejected' && (
+                <> · Bocciato{poll.rejection_reason === 'quorum' && ' (quorum non raggiunto)'}{poll.rejection_reason === 'majority' && ' (maggioranza non raggiunta)'}</>
+              )}
+              {poll.status === 'approved' && <> · Approvato</>}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: poll.isOpen ? 10 : 0 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--teal-dk)', flexShrink: 0 }}>
+                Favorevole {poll.yesPct}%
+              </span>
+              <div className="score-bar-track">
+                <div className="score-bar-fill" style={{ width: `${poll.yesPct}%`, background: 'var(--teal)' }} />
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', flexShrink: 0 }}>
+                Contrario {poll.noPct}%
+              </span>
+            </div>
+
+            {poll.isOpen && !poll.hasVoted && (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Button variant="primary" disabled={voting === poll.id} onClick={() => handleVote(poll.id, true)}>
+                  Favorevole
+                </Button>
+                <Button variant="outline-teal" disabled={voting === poll.id} onClick={() => handleVote(poll.id, false)}>
+                  Contrario
                 </Button>
               </div>
-              <div style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 8 }}>
-                {totalVotes} voti
+            )}
+            {poll.hasVoted && (
+              <div style={{ fontSize: 12, color: 'var(--text-4)' }}>
+                Hai votato: {poll.myVote ? 'Favorevole' : 'Contrario'}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--teal-dk)', flexShrink: 0 }}>
-                  {a.label} {pctA}%
-                </span>
-                <div className="score-bar-track">
-                  <div className="score-bar-fill" style={{ width: `${pctA}%`, background: 'var(--teal)' }} />
-                </div>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', flexShrink: 0 }}>
-                  {b.label} {100 - pctA}%
-                </span>
-              </div>
-            </div>
-          )
-        })}
+            )}
+          </div>
+        ))}
       </div>
+
+      <div style={{ display: 'flex', gap: 8 }}>
+        <input
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="Proponi una decisione…"
+          style={{
+            flex: 1, minWidth: 0, border: '1.5px solid var(--border)', borderRadius: 100,
+            padding: '10px 16px', fontSize: 14, outline: 'none', fontFamily: 'inherit',
+          }}
+        />
+        <Button variant="primary" onClick={handleCreate} disabled={!question.trim()}>
+          Crea
+        </Button>
+      </div>
+      {feedback && <p style={{ fontSize: 13, color: 'var(--red-tx)', marginTop: 8 }}>{feedback}</p>}
     </Card>
   )
 }

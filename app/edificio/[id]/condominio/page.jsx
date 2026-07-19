@@ -19,11 +19,11 @@ export default async function CondoDashboardPage({ params }) {
   const supabase = createStaticClient()
   const { data: building } = await supabase
     .from('building_scores')
-    .select('id')
+    .select('*')
     .eq('id', id)
     .maybeSingle()
 
   if (!building) notFound()
 
-  return <CondoDashboardGate buildingId={id} />
+  return <CondoDashboardGate building={building} />
 }

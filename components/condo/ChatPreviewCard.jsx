@@ -4,44 +4,61 @@ import { useState } from 'react'
 import Card from '@/components/ui/Card'
 import Avatar from '@/components/ui/Avatar'
 
-// Prima implementazione: l'invio aggiunge il messaggio solo allo stato
-// locale (mock), nessuna chiamata al backend.
-export default function ChatPreviewCard({ messages }) {
-  const [items, setItems] = useState(messages)
-  const [draft, setDraft] = useState('')
+function formatTime(isoTimestamp) {
+  return new Date(isoTimestamp).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+}
 
-  function send(e) {
+export default function ChatPreviewCard({ messages, isCondoAdmin, onSend, onHide }) {
+  const [draft, setDraft] = useState('')
+  const [sending, setSending] = useState(false)
+
+  async function send(e) {
     e.preventDefault()
     const text = draft.trim()
-    if (!text) return
-    setItems(list => [...list, {
-      id: `local-${Date.now()}`, sender: 'Tu', role: 'resident', verified: false,
-      text, timestamp: new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
-      read: true,
-    }])
-    setDraft('')
+    if (!text || sending) return
+    setSending(true)
+    const { error } = await onSend(text)
+    setSending(false)
+    if (!error) setDraft('')
   }
 
   return (
     <Card hover={false} style={{ padding: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)' }}>Chat del condominio</div>
-        <a href="#" style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 13, fontWeight: 700, color: 'var(--teal-dk)' }}>
-          Apri chat <ChevronRightIcon />
-        </a>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
-        {items.slice(-3).map(msg => (
+        {messages.length === 0 && (
+          <p style={{ fontSize: 13, color: 'var(--text-4)' }}>Ancora nessun messaggio.</p>
+        )}
+        {messages.slice(-3).map(msg => (
           <div key={msg.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 0 }}>
-            <Avatar userId={msg.sender} role={msg.role === 'admin' ? 'condoranked' : 'condoranker'} size={32} showRole={false} />
+            <Avatar
+              userId={msg.created_by}
+              avatarId={msg.profiles?.avatar_url && !msg.profiles.avatar_url.startsWith('http') && !msg.profiles.avatar_url.startsWith('data:')
+                ? msg.profiles.avatar_url.replace('/avatars/', '').replace('.png', '')
+                : null}
+              photoUrl={msg.profiles?.avatar_url?.startsWith('http') || msg.profiles?.avatar_url?.startsWith('data:') ? msg.profiles.avatar_url : null}
+              role={msg.profiles?.role}
+              size={32}
+              showRole={false}
+            />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{msg.sender}</span>
-                {msg.verified && <VerifiedIcon />}
-                <span style={{ fontSize: 11, color: 'var(--text-4)', marginLeft: 'auto', flexShrink: 0 }}>{msg.timestamp}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{msg.profiles?.display_name ?? 'Utente'}</span>
+                <span style={{ fontSize: 11, color: 'var(--text-4)', marginLeft: 'auto', flexShrink: 0 }}>{formatTime(msg.created_at)}</span>
+                {isCondoAdmin && (
+                  <button
+                    onClick={() => onHide(msg.id)}
+                    aria-label="Nascondi messaggio"
+                    style={{ fontSize: 11, color: 'var(--text-4)', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0 }}
+                  >
+                    Nascondi
+                  </button>
+                )}
               </div>
-              <div style={{ fontSize: 13, color: 'var(--text-2)', overflowWrap: 'break-word' }}>{msg.text}</div>
+              <div style={{ fontSize: 13, color: 'var(--text-2)', overflowWrap: 'break-word' }}>{msg.content}</div>
             </div>
           </div>
         ))}
@@ -60,6 +77,7 @@ export default function ChatPreviewCard({ messages }) {
         <button
           type="submit"
           aria-label="Invia messaggio"
+          disabled={sending}
           style={{
             width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
             background: 'var(--teal)', color: '#fff', border: 'none', cursor: 'pointer',
@@ -70,23 +88,6 @@ export default function ChatPreviewCard({ messages }) {
         </button>
       </form>
     </Card>
-  )
-}
-
-function ChevronRightIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M9 6l6 6-6 6" />
-    </svg>
-  )
-}
-
-function VerifiedIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" strokeWidth="2.5" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M8 12l3 3 5-6" />
-    </svg>
   )
 }
 

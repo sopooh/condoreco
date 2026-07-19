@@ -1,34 +1,51 @@
+import Link from 'next/link'
 import Card from '@/components/ui/Card'
 
-// Colori per tipo di avviso: solo token semantici già definiti in
-// app/globals.css (usati anche da .tag.red/.tag.blue/.tag.green), nessun
-// colore nuovo.
+// Colori per tipo evento: stessi token semantici già usati in globals.css
+// (e nello stesso mapping di BoardPage.jsx per il calendario completo),
+// nessun colore nuovo. event_type viene da public.events.
 const TYPE_STYLE = {
-  urgent: { bg: 'var(--red-bg)', color: 'var(--red-tx)', icon: DropIcon },
-  info:   { bg: 'var(--blue-bg)', color: 'var(--blue-tx)', icon: CalendarIcon },
-  event:  { bg: 'var(--green-bg)', color: 'var(--green-tx)', icon: PeopleIcon },
+  water:       { bg: 'var(--red-bg)',   color: 'var(--red-tx)',   icon: DropIcon },
+  maintenance: { bg: 'var(--amber-bg)', color: 'var(--amber-tx)', icon: WrenchIcon },
+  meeting:     { bg: 'var(--green-bg)', color: 'var(--green-tx)', icon: PeopleIcon },
+  general:     { bg: 'var(--blue-bg)',  color: 'var(--blue-tx)',  icon: CalendarIcon },
 }
 
-export default function UrgentNoticesCard({ notices }) {
-  const active = notices.filter(n => n.status === 'active').slice(0, 3)
+function formatEventDate(isoDate) {
+  return new Date(isoDate + 'T00:00:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })
+}
+
+function formatTimeRange(ev) {
+  if (!ev.time_start) return null
+  return ev.time_start.slice(0, 5) + (ev.time_end ? `–${ev.time_end.slice(0, 5)}` : '')
+}
+
+export default function UrgentNoticesCard({ events, isCondoAdmin, onApprove, viewAllHref }) {
+  const upcoming = events.slice(0, 3)
 
   return (
     <Card hover={false} style={{ padding: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)' }}>Bacheca urgente del mese</div>
-        <a href="#" style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 13, fontWeight: 700, color: 'var(--teal-dk)' }}>
+        <Link href={viewAllHref} style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 13, fontWeight: 700, color: 'var(--teal-dk)' }}>
           Vedi tutte <ChevronRightIcon />
-        </a>
+        </Link>
       </div>
 
+      {upcoming.length === 0 && (
+        <p style={{ fontSize: 13, color: 'var(--text-4)' }}>Nessun evento in programma.</p>
+      )}
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {active.map(notice => {
-          const style = TYPE_STYLE[notice.type] || TYPE_STYLE.info
+        {upcoming.map(ev => {
+          const style = TYPE_STYLE[ev.event_type] || TYPE_STYLE.general
           const Icon = style.icon
+          const timeRange = formatTimeRange(ev)
           return (
-            <div key={notice.id} style={{
+            <div key={ev.id} style={{
               display: 'flex', alignItems: 'center', gap: 12,
               background: 'var(--bg)', borderRadius: 10, padding: '10px 12px', minWidth: 0,
+              opacity: ev.approved ? 1 : 0.7,
             }}>
               <div style={{
                 width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
@@ -37,17 +54,36 @@ export default function UrgentNoticesCard({ notices }) {
               }}>
                 <Icon />
               </div>
-              <div style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {notice.date} · {notice.title}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {formatEventDate(ev.event_date)} · {ev.title}
+                </div>
+                {!ev.approved && (
+                  <div style={{ fontSize: 11, color: 'var(--amber-tx)', fontWeight: 600, marginTop: 2 }}>
+                    In attesa di approvazione
+                  </div>
+                )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                <span style={{
-                  fontSize: 12, fontWeight: 700, color: style.color, background: style.bg,
-                  padding: '4px 10px', borderRadius: 100, whiteSpace: 'nowrap',
-                }}>
-                  {notice.time_range}
-                </span>
-                <span style={{ color: 'var(--text-4)' }}><ChevronRightIcon /></span>
+                {timeRange && (
+                  <span style={{
+                    fontSize: 12, fontWeight: 700, color: style.color, background: style.bg,
+                    padding: '4px 10px', borderRadius: 100, whiteSpace: 'nowrap',
+                  }}>
+                    {timeRange}
+                  </span>
+                )}
+                {!ev.approved && isCondoAdmin && (
+                  <button
+                    onClick={() => onApprove(ev.id)}
+                    style={{
+                      fontSize: 12, fontWeight: 700, color: 'var(--teal-dk)', background: 'none',
+                      border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Approva
+                  </button>
+                )}
               </div>
             </div>
           )
@@ -89,6 +125,14 @@ function PeopleIcon() {
       <path d="M3 20a6 6 0 0112 0" />
       <circle cx="17" cy="9" r="2.5" />
       <path d="M15.5 20a5 5 0 016 0" />
+    </svg>
+  )
+}
+
+function WrenchIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.1 2.1-2-2z" />
     </svg>
   )
 }

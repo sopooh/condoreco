@@ -15,7 +15,7 @@ export function useCondoChat(buildingId) {
     const supabase = createClient()
     const { data, error } = await supabase
       .from('messages')
-      .select('id, content, created_at, created_by, hidden, profiles:created_by(display_name, avatar_url)')
+      .select('id, content, created_at, created_by, hidden, profiles:created_by(display_name, avatar_url, role)')
       .eq('building_id', buildingId)
       .order('created_at', { ascending: false })
       .limit(50)
@@ -47,7 +47,7 @@ export function useCondoChat(buildingId) {
           // Il payload Realtime non contiene la join col profilo: la recuperiamo
           const { data: profile } = await supabase
             .from('profiles')
-            .select('display_name, avatar_url')
+            .select('display_name, avatar_url, role')
             .eq('id', payload.new.created_by)
             .single()
 

@@ -3,7 +3,7 @@ import { defaultAvatarFor, avatarById, ROLES } from '@/lib/avatars'
 // Avatar circolare con anello colorato e pallino ruolo sotto.
 // Supporta sia gli animali scelti (avatar_id) sia una vera foto (photoUrl).
 export default function Avatar({ userId, avatarId, photoUrl, role, size = 96, showRole = true }) {
-  const roleConf = role ? ROLES[role] : null
+  const roleConf = role ? (ROLES[role] || ROLES.condoranker) : null
   const ring = roleConf ? roleConf.color : 'var(--teal)'
 
   // Determina la sorgente immagine: foto reale > animale scelto > animale default

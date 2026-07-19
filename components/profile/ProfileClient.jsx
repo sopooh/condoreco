@@ -28,11 +28,30 @@ export default function ProfileClient() {
   const [editOpen, setEditOpen] = useState(false)
   const [leavingId, setLeavingId] = useState(null)
   const [returningId, setReturningId] = useState(null)
+  const [avatarSize, setAvatarSize] = useState(104)
+
+  // Sotto ~400px avatar (104px) + nome + badge non entrano su una riga senza
+  // restringere qualcosa: i badge devono restare a destra del nome (mai andare
+  // a capo sotto), quindi si rimpicciolisce davvero l'avatar invece di scalarlo
+  // solo visivamente (un transform CSS non libera spazio nel layout flex).
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 400px)')
+    const update = () => setAvatarSize(mq.matches ? 72 : 104)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
 
   const userId = session?.user?.id
-  const { current: currentBuildings, past: pastBuildings, loading: buildingsLoading, refetch } = useUserBuildings(userId)
+  const { current: currentBuildings, past: pastBuildings, loading: buildingsLoading, refetch, reviewCount } = useUserBuildings(userId)
 
   // ── Carica profilo reale da Supabase ──
+  // Onboarding automatico al primo accesso: la fonte di verità è il profilo
+  // su Supabase (display_name già impostato = onboarding già completato),
+  // non il localStorage da solo, altrimenti riappare su un altro browser/
+  // dispositivo o se il localStorage viene svuotato.
+  // Chiave localStorage con prefisso condorank_ mantenuto invariato di proposito:
+  // la migrazione a condoreco_ è pianificata post-lancio, non va anticipata qui.
   useEffect(() => {
     if (!session) return
     let cancelled = false
@@ -41,19 +60,12 @@ export default function ProfileClient() {
       if (cancelled) return
       if (error) console.error('[ProfileClient] getProfile failed', error)
 
-      const displayName = data?.display_name?.trim() || ''
-      const hasPersistedProfile = Boolean(displayName)
-      const onboardingKey = `condorank_onboarded_${session.user.id}`
-      const alreadyOnboarded = hasPersistedProfile || Boolean(window.localStorage.getItem(onboardingKey))
-
-      if (hasPersistedProfile) window.localStorage.setItem(onboardingKey, '1')
-      setOnboardingOpen(!alreadyOnboarded)
-
+      const key = `condorank_onboarded_${session.user.id}`
       if (data) {
         const url = data.avatar_url || ''
         const isPhoto = url.startsWith('data:') || (url.startsWith('http') && !url.includes('/avatars/'))
         setProfile({
-          username: displayName,
+          username: data.display_name || '',
           avatar_id: !isPhoto && url ? url.replace('/avatars/', '').replace('.png', '') : null,
           photo_url: isPhoto ? url : null,
           role: data.role || 'condoranker',
@@ -61,14 +73,20 @@ export default function ProfileClient() {
           verified: data.verified || false,
         })
       }
+      if (data?.display_name) {
+        window.localStorage.setItem(key, '1')
+      } else if (!window.localStorage.getItem(key)) {
+        setOnboardingOpen(true)
+      }
     })
 
     return () => { cancelled = true }
   }, [session])
 
+
   // ── Salva profilo su Supabase (helper condiviso) ──
   async function persistProfile(data) {
-    await upsertProfile({
+    const { error } = await upsertProfile({
       id: userId,
       username: data.username || data.first_name || '',
       avatarId: data.avatar_id || null,
@@ -77,13 +95,18 @@ export default function ProfileClient() {
       zone: data.zone || null,
       verified: data.verified || false,
     })
+    if (error) console.error('Errore nel salvataggio del profilo:', error)
+    return !error
   }
 
-  function completeOnboarding(data) {
+  async function completeOnboarding(data) {
     const merged = { ...profile, ...data }
     setProfile(merged)
-    persistProfile(merged)
-    if (session) window.localStorage.setItem(`condorank_onboarded_${session.user.id}`, '1')
+    const saved = await persistProfile(merged)
+    // Il flag locale viene impostato solo se il salvataggio è riuscito: se fallisce,
+    // al prossimo accesso l'onboarding deve ripresentarsi invece di essere nascosto
+    // da un flag che non corrisponde allo stato reale su Supabase.
+    if (session && saved) window.localStorage.setItem(`condorank_onboarded_${session.user.id}`, '1')
   }
 
   function handleSave(data) {
@@ -123,48 +146,51 @@ export default function ProfileClient() {
   return (
     <>
       {/* HEADER */}
-      <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)' }}>
-        <div className="wrap profile-header-wrap">
-          <div className="profile-header-row" style={{ display: 'flex', alignItems: 'flex-start' }}>
+      <div className="wrap profile-header-wrap">
+        <div className="profile-card">
+          <div className="profile-header-row">
 
             {/* AVATAR */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Avatar userId={userId} avatarId={profile.avatar_id} photoUrl={profile.photo_url} role={profile.role} size={104} />
-              <button onClick={() => setPickerOpen(true)}
-                style={{ marginTop: 12, fontSize: 12, fontWeight: 600, color: 'var(--teal)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                Cambia avatar
-              </button>
+            <div className="profile-avatar-col">
+              <Avatar userId={userId} avatarId={profile.avatar_id} photoUrl={profile.photo_url} role={profile.role} size={avatarSize} />
             </div>
 
             {/* INFO */}
-            <div style={{ flex: 1, paddingTop: 4 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px' }}>{displayName}</h1>
-                {profile.verified && (
-                  <span style={{ background: 'var(--teal)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 100 }}>
-                    Verificato
-                  </span>
-                )}
-              </div>
-              <div style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 12 }}>{session.user.email}</div>
-              <div style={{ fontSize: 13, color: 'var(--text-4)', marginTop: 6, marginBottom: 16 }}>
-                <span style={{ background: '#FEF3C7', color: '#92400E', fontSize: 12, fontWeight: 700, padding: '5px 12px', borderRadius: 100 }}>
-                  Early Member
-                </span>
-              </div>
+            <div style={{ flex: 1, minWidth: 0, paddingTop: 4 }}>
+              <h1 className="profile-name">{displayName}</h1>
+              <div className="profile-email">{session.user.email}</div>
             </div>
 
-            {/* AZIONI */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 20 }}>
-              <div style={{ display: 'flex', gap: 28 }}>
-                <StatBox n={currentBuildings.length + pastBuildings.length} l="Abitazioni" />
-              </div>
-              <button onClick={() => setEditOpen(true)} style={{
-                padding: '9px 18px', borderRadius: 8, border: '1px solid var(--border)',
-                background: 'var(--white)', fontWeight: 600, fontSize: 13, color: 'var(--text-2)', cursor: 'pointer',
-              }}>Modifica profilo</button>
+            {/* BADGES */}
+            <div className="profile-badges-col">
+              {profile.verified && (
+                <span className="profile-pill profile-pill-teal"><ShieldCheckIcon />Verificata</span>
+              )}
+              <span className="profile-pill profile-pill-amber"><StarIcon />Early Member</span>
+              <span className="profile-pill profile-pill-violet">
+                <ReviewIcon />{reviewCount} {reviewCount === 1 ? 'recensione' : 'recensioni'}
+              </span>
             </div>
           </div>
+
+          {/* SECONDA RIGA: cambia avatar + statistica abitazioni */}
+          <div className="profile-second-row">
+            <button onClick={() => setPickerOpen(true)} className="profile-avatar-btn">
+              <CameraIcon />Cambia avatar
+            </button>
+            <div className="profile-stat-row">
+              <div className="profile-stat-icon"><HomeStatIcon /></div>
+              <div>
+                <div className="profile-stat-n">{currentBuildings.length + pastBuildings.length}</div>
+                <div className="profile-stat-l">Abitazioni</div>
+                <div className="profile-stat-sub">in cui hai vissuto</div>
+              </div>
+            </div>
+          </div>
+
+          <button onClick={() => setEditOpen(true)} className="profile-edit-btn">
+            Modifica profilo <ChevronRightIcon />
+          </button>
         </div>
       </div>
 
@@ -174,7 +200,10 @@ export default function ProfileClient() {
 
           {/* LE MIE ABITAZIONI */}
           <div>
-            <SectionTitle>Le mie abitazioni</SectionTitle>
+            <div className="profile-section-title-row" style={{ marginBottom: 16 }}>
+              <HouseIcon />
+              <SectionTitle noMargin>Le mie abitazioni</SectionTitle>
+            </div>
 
             {buildingsLoading && (
               <div style={{ fontSize: 14, color: 'var(--text-3)', padding: '20px 0' }}>Caricamento...</div>
@@ -192,7 +221,7 @@ export default function ProfileClient() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {currentBuildings.map(b => (
                       <div key={b.id}>
-                        <BuildingRow building={b} />
+                        <BuildingRow building={b} showEnterCondo />
                         <div style={{ marginTop: 8 }}>
                           <button
                             onClick={() => handleLeave(b.id)}
@@ -302,18 +331,67 @@ export default function ProfileClient() {
   )
 }
 
-function StatBox({ n, l }) {
+function ShieldCheckIcon() {
   return (
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{n}</div>
-      <div style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2, fontWeight: 500 }}>{l}</div>
-    </div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
   )
 }
 
-function SectionTitle({ children }) {
+function StarIcon() {
   return (
-    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16 }}>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z" />
+    </svg>
+  )
+}
+
+function ReviewIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+    </svg>
+  )
+}
+
+function CameraIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M4 8a2 2 0 012-2h1l1.5-2h7L17 6h1a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
+  )
+}
+
+function HomeStatIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M4 10l8-6 8 6v9a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9z" />
+    </svg>
+  )
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  )
+}
+
+function HouseIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" strokeWidth="2" aria-hidden="true">
+      <path d="M4 10l8-6 8 6v9a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9z" />
+    </svg>
+  )
+}
+
+function SectionTitle({ children, noMargin = false }) {
+  return (
+    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: noMargin ? 0 : 16 }}>
       {children}
     </div>
   )

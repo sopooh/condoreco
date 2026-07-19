@@ -37,8 +37,9 @@ export default function ProfileClient() {
     if (!session) return
     let cancelled = false
 
-    getProfile(session.user.id).then(({ data }) => {
+    getProfile(session.user.id).then(({ data, error }) => {
       if (cancelled) return
+      if (error) console.error('[ProfileClient] getProfile failed', error)
 
       const displayName = data?.display_name?.trim() || ''
       const hasPersistedProfile = Boolean(displayName)

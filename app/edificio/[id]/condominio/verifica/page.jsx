@@ -156,7 +156,7 @@ export default function VerificaResidenzaPage({ params }) {
                 padding: 24, textAlign: 'center', cursor: 'pointer', background: 'var(--bg)', transition: 'border-color 0.15s',
               }}
             >
-              <input type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={e => handleFile(e.target.files)} />
+              <input id="verifica-documento" name="verifica-documento" type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={e => handleFile(e.target.files)} />
               <div style={{ fontSize: 24, marginBottom: 6 }}>📄</div>
               {fileName ? (
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--teal-dk)' }}>{fileName}</div>

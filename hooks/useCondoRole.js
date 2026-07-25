@@ -22,7 +22,14 @@ async function fetchRole(buildingId, userId) {
     .eq('building_id', buildingId)
     .eq('user_id', userId)
     .maybeSingle()
-    .then(({ data }) => {
+    .then(({ data, error }) => {
+      // Fail-closed di proposito (role null = non membro), ma logga: un
+      // errore di query altrimenti si confonderebbe silenziosamente con
+      // "non e' membro" per un utente che invece ha una riga in condo_members
+      // (vedi stesso pattern in middleware.ts).
+      if (error) {
+        console.error('[useCondoRole] condo_members check failed', error.message)
+      }
       const role = data?.role ?? null // null = non membro
       roleCache.set(cacheKey, role)
       pending.delete(cacheKey)

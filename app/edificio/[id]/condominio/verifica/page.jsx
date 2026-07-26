@@ -4,6 +4,8 @@ import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/components/providers/SessionProvider'
 import { setVerification } from '@/lib/residenceVerification'
+import { createClient } from '@/lib/supabase/client'
+import { invalidateRoleCache } from '@/hooks/useCondoRole'
 
 const STEPS = ['documento', 'carica', 'verifica']
 const STEP_LABELS = {
@@ -24,10 +26,10 @@ const DOCUMENT_TYPES = [
 // il file scelto serve solo a mostrare il nome nella UI. La "verifica" allo
 // step 3 è simulata con un timeout — da collegare in futuro a un vero
 // processo di revisione.
-// IMPORTANTE: completare questo flusso NON crea una riga in condo_members,
-// quindi non concede accesso reale all'area condominio (vedi middleware.ts /
-// useCondoRole). È solo l'anticamera: finché non esiste un vero processo di
-// revisione, l'iscrizione a condo_members resta manuale (SQL Editor).
+// Al termine del timeout la pagina scrive comunque una riga vera in
+// condo_members (ruolo 'resident', vedi migration condo_members_self_enroll):
+// è quello — non lo stato mock in localStorage — a decidere l'accesso reale
+// (vedi middleware.ts / useCondoRole).
 export default function VerificaResidenzaPage({ params }) {
   // In Next 16 params è una Promise anche nei client component: va scartata
   // con use(), l'accesso sincrono è stato rimosso (vedi upgrade guide v16).
@@ -41,18 +43,38 @@ export default function VerificaResidenzaPage({ params }) {
   const [fileName, setFileName] = useState(null)
   const [dragOver, setDragOver] = useState(false)
   const [done, setDone] = useState(false)
+  const [error, setError] = useState(null)
+  const [retryToken, setRetryToken] = useState(0)
 
   const current = STEPS[step]
 
   useEffect(() => {
     if (current !== 'verifica' || !userId) return
+    let cancelled = false
     setVerification(userId, condominiumId, { status: 'pending', documentType, fileName })
-    const t = setTimeout(() => {
+    const t = setTimeout(async () => {
+      const supabase = createClient()
+      // ignoreDuplicates: se esiste già una riga (es. admin assegnato a mano)
+      // non la tocca — questo flusso concede solo 'resident', mai un upgrade.
+      const { error: upsertError } = await supabase
+        .from('condo_members')
+        .upsert(
+          { building_id: condominiumId, user_id: userId, role: 'resident' },
+          { onConflict: 'building_id,user_id', ignoreDuplicates: true }
+        )
+      if (cancelled) return
+      if (upsertError) {
+        console.error('[verifica] condo_members upsert failed', upsertError.message)
+        setVerification(userId, condominiumId, { status: 'rejected', documentType, fileName })
+        setError('Non siamo riusciti a completare la verifica. Riprova tra qualche minuto.')
+        return
+      }
+      invalidateRoleCache(condominiumId, userId)
       setVerification(userId, condominiumId, { status: 'approved', documentType, fileName })
       setDone(true)
     }, 2500)
-    return () => clearTimeout(t)
-  }, [current, userId, condominiumId, documentType, fileName])
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [current, userId, condominiumId, documentType, fileName, retryToken])
 
   function prev() {
     if (step === 0) { router.push(`/edificio/${condominiumId}/condominio`); return }
@@ -170,10 +192,26 @@ export default function VerificaResidenzaPage({ params }) {
           </>
         )}
 
-        {current === 'verifica' && (
+        {current === 'verifica' && !error && (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <div className="condo-spinner" style={{ margin: '0 auto 20px' }} />
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>Stiamo verificando il documento…</div>
+          </div>
+        )}
+
+        {current === 'verifica' && error && (
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>⚠️</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 20 }}>{error}</div>
+            <button
+              onClick={() => { setError(null); setRetryToken(t => t + 1) }}
+              style={{
+                width: '100%', padding: 14, borderRadius: 10, border: 'none',
+                background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer',
+              }}
+            >
+              Riprova
+            </button>
           </div>
         )}
 

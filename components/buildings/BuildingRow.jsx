@@ -5,7 +5,7 @@ import { scoreColor, feeBand, costPerSqm } from '@/lib/score'
 import BuildingPreviewImage from '@/components/buildings/BuildingPreviewImage'
 import IconRow from '@/components/buildings/IconRow'
 
-export default function BuildingRow({ building: b, showEnterCondo = false }) {
+export default function BuildingRow({ building: b, showEnterCondo = false, highlighted = false }) {
   const router = useRouter()
   const band = feeBand(b.monthly_fee)
   const perSqm = costPerSqm(b.monthly_fee, b.avg_sqm)
@@ -17,11 +17,13 @@ export default function BuildingRow({ building: b, showEnterCondo = false }) {
       onClick={() => router.push(`/edificio/${b.id}`)}
       style={{
         display: 'flex', background: 'var(--white)',
-        border: '1px solid var(--border)', borderRadius: 16, cursor: 'pointer',
-        transition: 'box-shadow 0.15s',
+        border: highlighted ? '2px solid var(--teal)' : '1px solid var(--border)',
+        borderRadius: 16, cursor: 'pointer',
+        boxShadow: highlighted ? '0 4px 16px rgba(13,103,111,0.18)' : 'none',
+        transition: 'box-shadow 0.15s, border-color 0.15s',
       }}
       onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'}
-      onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+      onMouseLeave={e => e.currentTarget.style.boxShadow = highlighted ? '0 4px 16px rgba(13,103,111,0.18)' : 'none'}
     >
       {/* Foto / Mappa statica */}
       <div className="building-row-preview" style={{ flexShrink: 0, borderRadius: 10, overflow: 'hidden' }}>
@@ -44,7 +46,7 @@ export default function BuildingRow({ building: b, showEnterCondo = false }) {
             {/* Chip Rating / Spese / Al mq */}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: showEnterCondo ? 8 : 0, minWidth: 0 }}>
               <Chip label="Rating" value={b.score?.toFixed(1) ?? 'N/D'} valueColor={scoreColor(b.score)} />
-              {band && <Chip label="Spese" value={band.range} />}
+              <Chip label="Spese" value={band ? band.range : 'N/D'} />
               {perSqm && <Chip label="Al mq" value={`${perSqm}€/mq`} />}
               {!showEnterCondo && (
                 <button

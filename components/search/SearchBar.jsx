@@ -55,6 +55,10 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540 })
   const router = useRouter()
   const wrapRef = useRef(null)
   const debounceRef = useRef(null)
+  // La ricerca risultati parte già valorizzata (initial) quando si arriva da
+  // /cerca?q=... — senza questo guard il fetch di suggerimenti scattava anche
+  // al mount e apriva il dropdown sopra la mappa full screen appena atterrati.
+  const touchedRef = useRef(false)
 
   useEffect(() => {
     const h = e => {
@@ -66,7 +70,7 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540 })
 
   useEffect(() => {
     clearTimeout(debounceRef.current)
-    if (!q || q.trim().length < 3) { setResults([]); setOpen(false); return }
+    if (!touchedRef.current || !q || q.trim().length < 3) { setResults([]); setOpen(false); return }
 
     debounceRef.current = setTimeout(async () => {
       setLoading(true)
@@ -118,7 +122,7 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540 })
       }}>
         <input
           value={q}
-          onChange={e => setQ(e.target.value)}
+          onChange={e => { touchedRef.current = true; setQ(e.target.value) }}
           onFocus={() => results.length > 0 && setOpen(true)}
           onKeyDown={e => e.key === 'Escape' && setOpen(false)}
           placeholder={isMobile ? 'Cerca via, città...' : 'Cerca via, quartiere, città — es. Via Manzoni 14, Milano'}

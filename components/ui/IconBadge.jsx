@@ -54,7 +54,7 @@ export default function IconBadge({ type, value, title }) {
     >
       <div style={{ width: 18, height: 18, color }}>{ICONS[type]}</div>
       <span style={{ fontSize: 11, fontWeight: 700, color }}>
-        {value != null ? value.toFixed(1) : '—'}
+        {value != null ? value.toFixed(1) : 'N/D'}
       </span>
     </div>
   )

@@ -8,10 +8,16 @@ import BuildingLayout from '@/components/buildings/BuildingLayout'
 import BuildingActions from '@/components/buildings/BuildingActions'
 import ReviewsSection from '@/components/reviews/ReviewsSection'
 import { RESIDENT_TYPES, ISSUES, BUILDING_REVIEW_CATEGORIES } from '@/lib/reviewOptions'
-import ScoreBreakdown from '@/components/buildings/ScoreBreakdown'
 import ResidentsDots from '@/components/buildings/ResidentsDots'
 import AdminCard from '@/components/buildings/AdminCard'
 import BuildingMap from '@/components/map/BuildingMap'
+import RankingBar from '@/components/buildings/RankingBar'
+import CategoryRatings from '@/components/buildings/CategoryRatings'
+import InsightCards from '@/components/buildings/InsightCards'
+import ReportsHistory from '@/components/buildings/ReportsHistory'
+import BuildingFacts from '@/components/buildings/BuildingFacts'
+import { buildingPercentiles } from '@/lib/percentile'
+import { reviewTrend } from '@/lib/trend'
 
 export const revalidate = 3600
 
@@ -26,7 +32,7 @@ const getBuildingData = cache(async (id) => {
 
   if (!building) return null
 
-  const [adminRes, reviewsRes, photosRes, residentsRes] = await Promise.all([
+  const [adminRes, reviewsRes, photosRes, residentsRes, cohortRes, reportsRes] = await Promise.all([
     building.administrator_id
       ? supabase.from('admin_scores').select('*').eq('id', building.administrator_id).maybeSingle()
       : Promise.resolve({ data: null }),
@@ -50,6 +56,18 @@ const getBuildingData = cache(async (id) => {
       .in('resident_type', ['resident', 'tenant', 'owner'])
       .eq('is_published', true)
       .limit(10),
+    // Cohort di edifici della stessa città, per il calcolo dei percentili
+    // (lib/percentile.js). Solo i campi usati nel confronto, non l'intera riga.
+    supabase
+      .from('building_scores')
+      .select('id, city, neighborhood, score, score_noise, score_safety, score_quality, score_maintenance, score_costs, score_admin')
+      .eq('city', building.city),
+    // Segnalazioni separate dalle recensioni (vedi sezione "Segnalazioni passate").
+    supabase
+      .from('building_reports')
+      .select('id, category, status, created_at, resolved_at')
+      .eq('building_id', id)
+      .order('created_at', { ascending: false }),
   ])
 
   const seenResidents = new Set()
@@ -65,6 +83,8 @@ const getBuildingData = cache(async (id) => {
     reviews: reviewsRes.data || [],
     photos: photosRes.data || [],
     residents,
+    cohort: cohortRes.data || [],
+    reports: reportsRes.data || [],
   }
 })
 
@@ -108,18 +128,37 @@ export default async function BuildingPage({ params }) {
   const data = await getBuildingData(id)
   if (!data) notFound()
 
-  const { building, admin, reviews, photos, residents } = data
+  const { building, admin, reviews, photos, residents, cohort, reports } = data
   const fullAddress = `${building.address}${building.street_number ? ', ' + building.street_number : ''}`
+
+  const percentiles = buildingPercentiles(building, cohort)
+  const trend = reviewTrend(reviews)
+  const reportStats = reports.length === 0 ? null : buildReportStats(reports)
 
   return (
     <>
       <BuildingGallery photos={photos} address={fullAddress} />
       <BuildingHeader building={building} hideScore={photos.length > 0} />
 
+      <div className="wrap" style={{ padding: '24px 40px 0' }}>
+        <BuildingActions building={building} />
+      </div>
+
+      <div className="wrap" style={{ padding: '24px 40px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <RankingBar percentile={percentiles?.score ?? null} sampleSize={percentiles?.sampleSize} />
+        <CategoryRatings building={building} percentiles={percentiles} />
+        <InsightCards
+          trend={trend}
+          maintenancePercentile={percentiles?.score_maintenance ?? null}
+          reportStats={reportStats}
+        />
+        <ReportsHistory reports={reports} />
+        <BuildingFacts building={building} />
+      </div>
+
       <BuildingLayout
         left={
           <>
-            <BuildingActions building={building} />
             <ReviewsSection
               reviews={reviews}
               photos={photos}
@@ -137,11 +176,7 @@ export default async function BuildingPage({ params }) {
               ]}
               emptyTitle="Ancora nessuna recensione"
               emptyText="Sii il primo a raccontare com'è vivere qui."
-            >
-              <div style={{ maxWidth: 460, marginBottom: 32 }}>
-                <ScoreBreakdown building={building} />
-              </div>
-            </ReviewsSection>
+            />
           </>
         }
         aside={
@@ -157,17 +192,7 @@ export default async function BuildingPage({ params }) {
 
             {admin && <AdminCard admin={admin} />}
 
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Info edificio</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-              <Info k="Anno" v={building.year_built} />
-              <Info k="Piani" v={building.floors} />
-              <Info k="Unità" v={building.units} />
-              <Info k="Riscaldamento" v={building.heating_type} />
-              <Info k="Ascensore" v={building.has_elevator ? 'Sì' : 'No'} />
-              <Info k="Giardino" v={building.has_garden ? 'Sì' : 'No'} />
-            </div>
-
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Posizione</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Posizione</div>
             <BuildingMap lat={building.lat} lng={building.lng} monthlyFee={building.monthly_fee} height={200} />
           </>
         }
@@ -176,11 +201,16 @@ export default async function BuildingPage({ params }) {
   )
 }
 
-function Info({ k, v }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-      <span style={{ color: 'var(--text-4)', fontWeight: 500 }}>{k}</span>
-      <span style={{ color: 'var(--text-2)', fontWeight: 600 }}>{v}</span>
-    </div>
-  )
+// Statistiche aggregate per le card "Segnalazioni" (InsightCards) e la
+// sezione "Segnalazioni passate" (ReportsHistory) — segnalazioni/anno
+// calcolate sull'arco temporale reale coperto dai dati, non su 10 anni fissi.
+function buildReportStats(reports) {
+  const sorted = [...reports].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+  const firstDate = new Date(sorted[0].created_at)
+  const years = Math.max((Date.now() - firstDate.getTime()) / (1000 * 60 * 60 * 24 * 365), 1)
+  return {
+    total: reports.length,
+    perYear: reports.length / years,
+    percentile: null,
+  }
 }

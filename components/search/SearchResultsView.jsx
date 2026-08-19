@@ -19,8 +19,9 @@ const TRANSITION = '280ms ease'
 // stile Booking. Un'unica istanza Leaflet resta sempre montata — mapState
 // ('compact' | 'fullscreen' | 'hidden') ridimensiona solo il container, non
 // la ricrea mai: centro/zoom/marker restano intatti a ogni cambio stato
-// (vedi ResizeObserver in ResultsMapInner). L'utente può cambiare stato via
-// bottoni o via gesto di scroll/touch sopra la mappa (mai dalla lista).
+// (vedi ResizeObserver in ResultsMapInner). Il cambio di stato avviene solo
+// via bottoni ("Apri mappa" / "Riduci mappa" / "Nascondi mappa" / "Mostra
+// mappa"), niente gesti di scroll/touch sopra la mappa.
 export default function SearchResultsView({ buildings, cities, feeCounts, query, city, focusLat, focusLng }) {
   const isMobile = useIsMobile()
   const [mapState, setMapState] = useState('compact')
@@ -33,10 +34,10 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
 
   // blocca lo scroll di pagina solo in fullscreen: la mappa occupa tutta
   // l'area sotto la navbar, non c'è altro da scrollare finché non si riduce.
-  // Se si entra in fullscreen da un gesto di scroll (pagina già scrollata di
-  // qualche decina di px prima che lo stato cambi), lo scroll residuo lascia
-  // il blocco sticky "impigliato" fuori dal viewport: si azzera lo scroll
-  // PRIMA di bloccarlo, cosi la mappa fullscreen parte sempre allineata.
+  // Se si clicca "Apri mappa" dopo aver scrollato la lista, lo scroll
+  // residuo lascia il blocco sticky "impigliato" fuori dal viewport: si
+  // azzera lo scroll PRIMA di bloccarlo, cosi la mappa fullscreen parte
+  // sempre allineata.
   useEffect(() => {
     if (mapState === 'fullscreen') {
       window.scrollTo(0, 0)
@@ -106,9 +107,6 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
             focusLng={focusLng}
             onResultSelect={handleMarkerClick}
             interactive={mapState === 'fullscreen'}
-            mapState={mapState === 'hidden' ? null : mapState}
-            onRequestExpand={() => setMapState('fullscreen')}
-            onRequestCollapse={() => setMapState('compact')}
             containerStyle={{ borderRadius: 0, border: 'none' }}
           />
 

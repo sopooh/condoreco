@@ -10,11 +10,6 @@ import { addBaseTileLayer } from '@/lib/mapTiles'
 const DEFAULT_CENTER = [45.4642, 9.19] // Milano
 const DEFAULT_ZOOM = 12
 
-const GESTURE_PAUSE_MS = 400
-const WHEEL_EXPAND_THRESHOLD = 90
-const WHEEL_COLLAPSE_THRESHOLD = 120
-const TOUCH_THRESHOLD = 70
-
 // Mappa condivisa per le liste di risultati (Esplora, Amministratori): stesso
 // container/altezza, tile layer, logica di fit-bounds e stile dei pin per
 // entrambe le pagine. Ogni risultato porta i propri dati (lat/lng, score,
@@ -29,12 +24,6 @@ const TOUCH_THRESHOLD = 70
 export default function ResultsMapInner({
   results = [], height = 480, focusLat, focusLng, onResultSelect, containerStyle = {},
   interactive = false,
-  // mapState + callback sono opzionali: solo chi li passa (Esplora) attiva i
-  // gesti di scroll/touch per espandere/richiudere. AdminsResultsView non li
-  // passa e resta quindi invariato.
-  mapState = null,
-  onRequestExpand,
-  onRequestCollapse,
 }) {
   const router = useRouter()
   const mapRef = useRef(null)
@@ -119,79 +108,6 @@ export default function ResultsMapInner({
       map.setView([focusLat, focusLng], 13)
     }
   }, [results, router, focusLat, focusLng])
-
-  // ── Gesti scroll/touch per espandere (compact) o richiudere (fullscreen) ──
-  // Scope volutamente ristretto al solo container della mappa: scrollare la
-  // lista risultati sotto non attraversa mai questi handler, quindi non può
-  // mai innescare un'espansione automatica. Soglia + reset su pausa (400ms)
-  // evitano trigger accidentali durante una lettura normale delle card.
-  const wheelAccum = useRef(0)
-  const wheelLastTime = useRef(0)
-  const touchStartY = useRef(null)
-  const touchFiredRef = useRef(false)
-  const gestureStateRef = useRef({ mapState, onRequestExpand, onRequestCollapse })
-  useEffect(() => { gestureStateRef.current = { mapState, onRequestExpand, onRequestCollapse } })
-
-  // Handler nativi in fase di capture: quando la mappa e' interattiva
-  // (fullscreen) lo scrollWheelZoom di Leaflet chiama stop() sull'evento
-  // (preventDefault + stopPropagation) per zoomare invece di scrollare la
-  // pagina — un onWheel React (delegato, fase bubble) non lo vedrebbe mai.
-  // Attaccandoci in capture sullo stesso nodo leggiamo l'evento PRIMA che
-  // Leaflet lo fermi, senza toccarne il comportamento di zoom.
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-
-    function handleWheel(e) {
-      const { mapState: state, onRequestExpand: expand, onRequestCollapse: collapse } = gestureStateRef.current
-      if (!state) return
-      const now = Date.now()
-      if (now - wheelLastTime.current > GESTURE_PAUSE_MS) wheelAccum.current = 0
-      wheelLastTime.current = now
-
-      if (state === 'compact' && expand) {
-        wheelAccum.current = e.deltaY > 0 ? wheelAccum.current + e.deltaY : 0
-        if (wheelAccum.current > WHEEL_EXPAND_THRESHOLD) {
-          wheelAccum.current = 0
-          expand()
-        }
-      } else if (state === 'fullscreen' && collapse) {
-        wheelAccum.current = e.deltaY < 0 ? wheelAccum.current + e.deltaY : 0
-        if (wheelAccum.current < -WHEEL_COLLAPSE_THRESHOLD) {
-          wheelAccum.current = 0
-          collapse()
-        }
-      }
-    }
-
-    function handleTouchStart(e) {
-      touchStartY.current = e.touches.length === 1 ? e.touches[0].clientY : null
-      touchFiredRef.current = false
-    }
-
-    function handleTouchMove(e) {
-      const { mapState: state, onRequestExpand: expand, onRequestCollapse: collapse } = gestureStateRef.current
-      if (!state || touchStartY.current == null || touchFiredRef.current || e.touches.length !== 1) return
-      const dy = e.touches[0].clientY - touchStartY.current // >0 = trascina verso il basso
-
-      if (state === 'compact' && expand && -dy > TOUCH_THRESHOLD) {
-        touchFiredRef.current = true
-        expand()
-      } else if (state === 'fullscreen' && collapse && dy > TOUCH_THRESHOLD) {
-        touchFiredRef.current = true
-        collapse()
-      }
-    }
-
-    el.addEventListener('wheel', handleWheel, { capture: true, passive: true })
-    el.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true })
-    el.addEventListener('touchmove', handleTouchMove, { capture: true, passive: true })
-    return () => {
-      el.removeEventListener('wheel', handleWheel, { capture: true })
-      el.removeEventListener('touchstart', handleTouchStart, { capture: true })
-      el.removeEventListener('touchmove', handleTouchMove, { capture: true })
-    }
-  }, [])
 
   return (
     <div

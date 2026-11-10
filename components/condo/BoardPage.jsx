@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useCalendarEvents } from '@/hooks/useCalendarEvents'
+import { usePublicInterventions } from '@/hooks/usePublicInterventions'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { googleCalendarUrl, downloadIcs } from '@/lib/calendarLinks'
 import { toLocalISODate, monthGridRange } from '@/lib/localDate'
@@ -59,16 +60,30 @@ export default function BoardPage({ buildingId }) {
   const { events, loading, error, isCondoAdmin, createEvent, updateEvent, deleteEvent, approveEvent } =
     useCalendarEvents(buildingId, year, month)
 
+  // Interventi programmati dai residenti ("I tuoi interventi"): in calendario
+  // per tutti, in sola lettura, come appuntamenti di manutenzione.
+  const range = monthGridRange(year, month)
+  const { items: interventions } = usePublicInterventions(buildingId, toLocalISODate(range.start), toLocalISODate(range.end))
+  const allEvents = useMemo(() => [
+    ...events,
+    ...interventions.filter((i) => i.status === 'scheduled').map((i) => ({
+      id: `int-${i.id}`, isIntervention: true, approved: true,
+      title: i.title, description: null, location: i.location,
+      event_date: i.scheduled_date, time_start: i.time_start, time_end: i.time_end,
+      event_type: 'maintenance', profiles: null,
+    })),
+  ], [events, interventions])
+
   const q = query.trim().toLowerCase()
   const eventsByDay = useMemo(() => {
     const acc = {}
-    events
+    allEvents
       .filter((ev) => !q || `${ev.title} ${ev.description ?? ''} ${ev.location ?? ''}`.toLowerCase().includes(q))
       .forEach((ev) => { (acc[ev.event_date] ??= []).push(ev) })
     // giornata intera prima, poi per orario
     Object.values(acc).forEach((list) => list.sort((a, b) => (a.time_start ?? '').localeCompare(b.time_start ?? '')))
     return acc
-  }, [events, q])
+  }, [allEvents, q])
 
   const goTo = (y, m) => {
     const d = new Date(y, m, 1)
@@ -284,7 +299,9 @@ export default function BoardPage({ buildingId }) {
             <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--text-2)', margin: '12px 0 0', whiteSpace: 'pre-wrap' }}>{selected.description}</p>
           )}
           <p style={{ fontSize: 12, color: 'var(--text-4)', margin: '12px 0 0' }}>
-            Proposto da {selected.profiles?.display_name ?? 'un residente'}
+            {selected.isIntervention
+              ? 'Intervento programmato da un residente con il proprio manutentore'
+              : `Proposto da ${selected.profiles?.display_name ?? 'un residente'}`}
           </p>
 
           {!selected.approved && (
@@ -308,7 +325,7 @@ export default function BoardPage({ buildingId }) {
             <button onClick={() => downloadIcs(selected)} style={secondaryBtn}>Apple / Outlook</button>
           </div>
 
-          {isCondoAdmin && (
+          {isCondoAdmin && !selected.isIntervention && (
             <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <button onClick={() => setCreating(selected)} style={secondaryBtn}>Modifica</button>
               <button

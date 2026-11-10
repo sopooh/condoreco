@@ -8,7 +8,7 @@ function formatTime(isoTimestamp) {
   return new Date(isoTimestamp).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
 }
 
-export default function ChatPreviewCard({ messages, isCondoAdmin, onSend, onHide }) {
+export default function ChatPreviewCard({ messages, isCondoAdmin, onSend, onHide, limit = 3 }) {
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
 
@@ -30,7 +30,7 @@ export default function ChatPreviewCard({ messages, isCondoAdmin, onSend, onHide
         {messages.length === 0 && (
           <p style={{ fontSize: 13, color: 'var(--text-4)' }}>Ancora nessun messaggio.</p>
         )}
-        {messages.slice(-3).map(msg => (
+        {messages.slice(-limit).map(msg => (
           <div key={msg.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 0 }}>
             <Avatar
               userId={msg.created_by}

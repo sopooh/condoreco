@@ -198,113 +198,91 @@ export default function ProfileClient() {
       <div className="wrap profile-body-wrap">
         <div className="profile-body-grid" style={{ display: 'grid' }}>
 
-          {/* LE MIE ABITAZIONI */}
-          <div>
-            <div className="profile-section-title-row" style={{ marginBottom: 16 }}>
+          {/* LE MIE ABITAZIONI: un solo blocco, un solo modo di aggiungere */}
+          <section>
+            <div className="profile-section-title-row" style={{ marginBottom: 14 }}>
               <HouseIcon />
-              <SectionTitle noMargin>Le mie abitazioni</SectionTitle>
+              <h2 style={sectionHeading}>Le mie abitazioni</h2>
             </div>
 
-            {buildingsLoading && (
+            {buildingsLoading ? (
               <div style={{ fontSize: 14, color: 'var(--text-3)', padding: '20px 0' }}>Caricamento...</div>
-            )}
-
-
-            {/* Ora abiti qui */}
-            {!buildingsLoading && (
-              <div style={{ marginBottom: 32 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--teal)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
-                  Ora abiti qui
+            ) : currentBuildings.length === 0 && pastBuildings.length === 0 ? (
+              <div style={{ ...card, padding: '28px 22px', textAlign: 'center' }}>
+                <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--teal-lt)', color: 'var(--teal)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                  <HomeStatIcon />
                 </div>
-
-                {currentBuildings.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {currentBuildings.map(b => (
-                      <div key={b.id}>
-                        <BuildingRow building={b} showEnterCondo />
-                        <div style={{ marginTop: 8 }}>
-                          <button
-                            onClick={() => handleLeave(b.id)}
-                            disabled={leavingId === b.id}
-                            style={ghostTealBtn}
-                          >
-                            {leavingId === b.id ? 'Aggiornamento...' : 'Segno come ex-abitazione →'}
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
+                  Non hai ancora aggiunto la tua casa
+                </div>
+                <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.5, margin: '0 auto 18px', maxWidth: 360 }}>
+                  Aggiungi il condominio dove vivi, o dove hai vissuto, per recensirlo e accedere all&apos;area riservata ai residenti.
+                </p>
+                <Link href="/aggiungi-condominio" style={primaryBtn}>Aggiungi la tua casa</Link>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                {currentBuildings.length > 0 && (
+                  <div>
+                    <div style={groupLabel}>Dove abiti ora</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {currentBuildings.map(b => (
+                        <div key={b.id}>
+                          <BuildingRow building={b} showEnterCondo />
+                          <button onClick={() => handleLeave(b.id)} disabled={leavingId === b.id} style={textBtn}>
+                            {leavingId === b.id ? 'Aggiornamento...' : 'Non abito più qui'}
                           </button>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                ) : (
-                  <p style={{ fontSize: 14, color: 'var(--text-4)', marginBottom: 12 }}>
-                    Nessuna abitazione attuale registrata.
-                  </p>
                 )}
 
-                {/* Sempre visibile: aggiungi condominio */}
-                <Link href="/aggiungi-condominio" style={{
-                  marginTop: 12, padding: '10px 20px', borderRadius: 8, border: 'none',
-                  background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 13,
-                  cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
-                }}>
-                  + Aggiungi condominio
-                </Link>
-              </div>
-            )}
-
-            {/* Hai abitato in */}
-            {!buildingsLoading && pastBuildings.length > 0 && (
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
-                  Hai abitato in
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {pastBuildings.map(b => (
-                    <div key={b.id}>
-                      <BuildingRow building={b} />
-                      <div style={{ marginTop: 8 }}>
-                        <button
-                          onClick={() => handleReturn(b.id)}
-                          disabled={returningId === b.id}
-                          style={ghostTealBtn}
-                        >
-                          {returningId === b.id ? 'Aggiornamento...' : 'Abito di nuovo qui'}
-                        </button>
-                      </div>
+                {pastBuildings.length > 0 && (
+                  <div>
+                    <div style={groupLabel}>Dove hai abitato</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {pastBuildings.map(b => (
+                        <div key={b.id}>
+                          <BuildingRow building={b} />
+                          <button onClick={() => handleReturn(b.id)} disabled={returningId === b.id} style={textBtn}>
+                            {returningId === b.id ? 'Aggiornamento...' : 'Abito di nuovo qui'}
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
 
-                {/* Aggiungi altri condomini passati */}
-                <Link
-                  href="/aggiungi-condominio"
-                  style={{
-                    marginTop: 12, padding: '10px 20px', borderRadius: 8, border: 'none',
-                    background: 'var(--teal)', color: '#fff', fontWeight: 700,
-                    fontSize: 13, cursor: 'pointer', display: 'inline-block',
-                  }}
-                >
-                  + Aggiungi condominio dove hai vissuto
-                </Link>
+                <Link href="/aggiungi-condominio" style={secondaryBtn}>+ Aggiungi un&apos;altra abitazione</Link>
               </div>
             )}
-          </div>
+          </section>
 
           {/* SIDEBAR */}
-          <aside>
-            <SectionTitle>Azioni rapide</SectionTitle>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 28 }}>
-              <QuickLink href="/aggiungi-condominio" label="+ Aggiungi condominio" />
-              <QuickLink href="/cerca" label="Esplora edifici" />
-              <QuickLink href="/amministratori" label="Cerca amministratori" />
-            </div>
+          <aside style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <section>
+              <h2 style={{ ...sectionHeading, marginBottom: 10 }}>Esplora</h2>
+              <nav style={{ ...card, overflow: 'hidden' }}>
+                <NavRow href="/cerca" label="Cerca edifici" sub="Recensioni e spese dei condomini" />
+                <NavRow href="/amministratori" label="Cerca amministratori" sub="Valutazioni degli amministratori" last />
+              </nav>
+            </section>
 
-            <SectionTitle>Info account</SectionTitle>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: 'var(--text-3)' }}>
-              <InfoRow label="Email" value={session.user.email} />
-              <InfoRow label="Zona" value={profile.zone || '—'} />
-              <InfoRow label="Ruolo" value={roleConf?.label || 'Recoer'} />
-              <InfoRow label="Membro da" value={memberSince} />
-            </div>
+            <section>
+              <h2 style={{ ...sectionHeading, marginBottom: 10 }}>Il tuo account</h2>
+              <div style={{ ...card, padding: '4px 16px' }}>
+                <InfoRow label="Email" value={session.user.email} />
+                <InfoRow
+                  label="Zona"
+                  value={profile.zone || (
+                    <button onClick={() => setEditOpen(true)} style={{ ...textBtn, marginTop: 0, padding: 0, lineHeight: 1.2 }}>Aggiungi</button>
+                  )}
+                />
+                <InfoRow label="Ruolo" value={roleConf?.label || 'Recoer'} />
+                <InfoRow label="Membro da" value={memberSince} last />
+              </div>
+            </section>
           </aside>
         </div>
       </div>
@@ -389,39 +367,60 @@ function HouseIcon() {
   )
 }
 
-function SectionTitle({ children, noMargin = false }) {
-  return (
-    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: noMargin ? 0 : 16 }}>
-      {children}
-    </div>
-  )
+const sectionHeading = {
+  fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0,
 }
 
-function QuickLink({ href, label }) {
+const groupLabel = {
+  fontSize: 13, fontWeight: 600, color: 'var(--text-3)', marginBottom: 10,
+}
+
+const card = {
+  background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12,
+}
+
+const primaryBtn = {
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  padding: '12px 22px', borderRadius: 10, background: 'var(--teal)', color: '#fff',
+  fontWeight: 700, fontSize: 14,
+}
+
+const secondaryBtn = {
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  padding: '12px 16px', borderRadius: 10, border: '1.5px dashed var(--border)',
+  color: 'var(--teal-dk)', fontWeight: 600, fontSize: 14, background: 'transparent',
+}
+
+// azione secondaria sotto una scheda: testo, non un secondo bottone pieno
+const textBtn = {
+  marginTop: 6, padding: '4px 2px', border: 'none', background: 'none',
+  color: 'var(--teal)', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+}
+
+// riga di navigazione: icona-freccia a destra, separatori, chiaramente un link
+function NavRow({ href, label, sub, last = false }) {
   return (
     <Link href={href} style={{
-      width: '100%', textAlign: 'left', padding: '11px 14px', borderRadius: 8,
-      border: '1px solid var(--border)', background: 'var(--white)',
-      fontSize: 13, fontWeight: 600, color: 'var(--teal-dk)', cursor: 'pointer',
-      display: 'block', boxSizing: 'border-box',
-    }}>{label} →</Link>
+      display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
+      borderBottom: last ? 'none' : '1px solid var(--border)', color: 'inherit',
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{label}</div>
+        <div style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{sub}</div>
+      </div>
+      <span style={{ color: 'var(--text-4)', display: 'inline-flex' }}><ChevronRightIcon /></span>
+    </Link>
   )
 }
 
-const ghostTealBtn = {
-  padding: '8px 18px', borderRadius: 8,
-  border: '1.5px solid var(--teal)',
-  background: 'var(--teal-lt)',
-  color: 'var(--teal-dk)',
-  fontWeight: 600, fontSize: 13,
-  cursor: 'pointer',
-}
-
-function InfoRow({ label, value }) {
+function InfoRow({ label, value, last = false }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-      <span>{label}</span>
-      <span style={{ color: 'var(--text-2)', fontWeight: 500, textAlign: 'right' }}>{value}</span>
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
+      padding: '12px 0', borderBottom: last ? 'none' : '1px solid var(--border)', fontSize: 13,
+    }}>
+      <span style={{ color: 'var(--text-3)' }}>{label}</span>
+      <span style={{ color: 'var(--text)', fontWeight: 500, textAlign: 'right', minWidth: 0, overflowWrap: 'anywhere' }}>{value}</span>
     </div>
   )
 }

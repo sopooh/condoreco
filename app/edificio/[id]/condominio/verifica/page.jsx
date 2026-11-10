@@ -7,9 +7,12 @@ import { useSession } from '@/components/providers/SessionProvider'
 import { setVerification } from '@/lib/residenceVerification'
 import { createClient } from '@/lib/supabase/client'
 import { invalidateRoleCache } from '@/hooks/useCondoRole'
+import UnitForm from '@/components/condo/UnitForm'
+import { normalizeFloor } from '@/hooks/useNeighbourNotices'
 
-const STEPS = ['documento', 'carica', 'verifica']
+const STEPS = ['unita', 'documento', 'carica', 'verifica']
 const STEP_LABELS = {
+  unita: 'La tua casa',
   documento: 'Scegli il documento',
   carica: 'Carica il documento',
   verifica: 'Verifica in corso',
@@ -40,6 +43,7 @@ export default function VerificaResidenzaPage({ params }) {
   const userId = session?.user?.id
 
   const [step, setStep] = useState(0)
+  const [unit, setUnit] = useState(null) // { tenure, millesimi, floor }
   const [documentType, setDocumentType] = useState(null)
   const [fileName, setFileName] = useState(null)
   const [dragOver, setDragOver] = useState(false)
@@ -64,6 +68,13 @@ export default function VerificaResidenzaPage({ params }) {
           { onConflict: 'building_id,user_id', ignoreDuplicates: true }
         )
       if (cancelled) return
+      if (!upsertError && unit) {
+        const { error: unitError } = await supabase.rpc('set_my_unit', {
+          p_building: condominiumId, p_floor: normalizeFloor(unit.floor), p_millesimi: unit.millesimi, p_tenure: unit.tenure,
+        })
+        if (unitError) console.error('[verifica] set_my_unit failed', unitError.message)
+      }
+      if (cancelled) return
       if (upsertError) {
         console.error('[verifica] condo_members upsert failed', upsertError.message)
         setVerification(userId, condominiumId, { status: 'rejected', documentType, fileName })
@@ -75,7 +86,7 @@ export default function VerificaResidenzaPage({ params }) {
       setDone(true)
     }, 2500)
     return () => { cancelled = true; clearTimeout(t) }
-  }, [current, userId, condominiumId, documentType, fileName, retryToken])
+  }, [current, userId, condominiumId, documentType, fileName, retryToken, unit])
 
   function prev() {
     if (step === 0) { router.push(`/edificio/${condominiumId}/condominio`); return }
@@ -111,6 +122,7 @@ export default function VerificaResidenzaPage({ params }) {
   }
 
   const canProceed = {
+    unita: !!unit,
     documento: !!documentType,
     carica: !!fileName,
     verifica: false,
@@ -137,6 +149,15 @@ export default function VerificaResidenzaPage({ params }) {
       )}
 
       <div style={cardStyle}>
+        {current === 'unita' && (
+          <>
+            <IconTile><House size={28} strokeWidth={1.8} aria-hidden="true" /></IconTile>
+            <h2 style={titleStyle}>La tua casa nel condominio</h2>
+            <p style={subStyle}>Dicci se sei proprietario o in affitto. Se sei proprietario, indica anche i tuoi millesimi.</p>
+            <UnitForm building={{}} initial={unit} submitLabel="Continua" onSubmit={(v) => { setUnit(v); next(); return null }} />
+          </>
+        )}
+
         {current === 'documento' && (
           <>
             <IconTile><DocsIcon /></IconTile>
@@ -229,7 +250,7 @@ export default function VerificaResidenzaPage({ params }) {
           </div>
         )}
 
-        {current !== 'verifica' && (
+        {current !== 'verifica' && current !== 'unita' && (
           <button onClick={next} disabled={!canProceed} style={{ ...primaryBtn(canProceed), marginTop: 28 }}>
             Continua <ArrowRightIcon />
           </button>

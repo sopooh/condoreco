@@ -21,28 +21,34 @@ export function useNeighbourNotices(buildingId) {
   const session = useSession()
   const userId = session?.user?.id ?? null
   const [myFloor, setMyFloor] = useState(undefined) // undefined = in caricamento, null = non indicato
+  const [myUnit, setMyUnit] = useState(undefined)   // { floor, millesimi, tenure }
   const [floorCounts, setFloorCounts] = useState({})
 
   const load = useCallback(async () => {
     if (!userId || !buildingId) return
     const supabase = createClient()
     const [{ data: me }, { data: counts }] = await Promise.all([
-      supabase.from('condo_members').select('floor').eq('building_id', buildingId).eq('user_id', userId).maybeSingle(),
+      supabase.from('condo_members').select('floor, millesimi, tenure').eq('building_id', buildingId).eq('user_id', userId).maybeSingle(),
       supabase.rpc('condo_floor_counts', { p_building: buildingId }),
     ])
     setMyFloor(me?.floor ?? null)
+    setMyUnit(me ? { floor: me.floor ?? null, millesimi: me.millesimi ?? null, tenure: me.tenure ?? null } : null)
     setFloorCounts(Object.fromEntries((counts || []).map((r) => [r.floor, r.residents])))
   }, [userId, buildingId])
 
   useEffect(() => { load() }, [load])
 
   async function saveFloor(floor) {
-    const value = normalizeFloor(floor)
-    const { error } = await createClient().from('condo_members')
-      .update({ floor: value }).eq('building_id', buildingId).eq('user_id', userId).select('floor')
-    if (error) return { error: 'Non riesco a salvare il piano. Riprova.' }
-    setMyFloor(value)
-    load()
+    return saveUnit({ floor })
+  }
+
+  // piano, millesimi e titolo (proprietario/inquilino) del residente
+  async function saveUnit({ floor = null, millesimi = null, tenure = null }) {
+    const { error } = await createClient().rpc('set_my_unit', {
+      p_building: buildingId, p_floor: normalizeFloor(floor), p_millesimi: millesimi, p_tenure: tenure,
+    })
+    if (error) return { error: 'Non riesco a salvare. Riprova.' }
+    await load()
     return { error: null }
   }
 
@@ -63,7 +69,7 @@ export function useNeighbourNotices(buildingId) {
     return { error: null, recipients: row?.recipients ?? 0 }
   }
 
-  return { myFloor, floorCounts, saveFloor, sendNotice }
+  return { myFloor, myUnit, floorCounts, saveFloor, saveUnit, sendNotice }
 }
 
 export function normalizeFloor(f) {
@@ -76,4 +82,11 @@ export function normalizeFloor(f) {
 export function floorLabel(f) {
   if (f == null) return ''
   return f === 'T' ? 'piano terra' : `piano ${f}`
+}
+
+// "12,345" / "12.345" / "12" -> 12.345; null se non valido (0 < x <= 1000)
+export function parseMillesimi(str) {
+  const n = Number(String(str ?? '').trim().replace(',', '.'))
+  if (!Number.isFinite(n) || n <= 0 || n > 1000) return null
+  return Math.round(n * 1000) / 1000
 }

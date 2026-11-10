@@ -10,14 +10,14 @@ create policy "polls: author update while open"
   on public.polls
   for update
   to authenticated
-  using (created_by = auth.uid() and status = 'open')
-  with check (created_by = auth.uid() and status = 'open');
+  using (created_by = auth.uid() and status = 'open' and public.is_member(building_id))
+  with check (created_by = auth.uid() and status = 'open' and public.is_member(building_id));
 
 revoke update on public.polls from authenticated;
 grant update (question, min_votes, closes_at) on public.polls to authenticated;
 
 create or replace function public.polls_guard_author_edit()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin
   -- solo per modifiche fatte da utenti (pg_cron gira senza auth.uid())
   if auth.uid() is null then
@@ -59,9 +59,9 @@ begin
   if not found then
     raise exception 'Decisione non trovata' using errcode = 'P0002';
   end if;
-  if v_poll.created_by is distinct from auth.uid() and not exists (
-    select 1 from public.condo_members m
-    where m.building_id = v_poll.building_id and m.user_id = auth.uid() and m.role = 'admin'
+  if not (
+    (v_poll.created_by = auth.uid() and public.is_member(v_poll.building_id))
+    or public.is_condo_admin(v_poll.building_id)
   ) then
     raise exception 'Non puoi eliminare questa decisione' using errcode = '42501';
   end if;

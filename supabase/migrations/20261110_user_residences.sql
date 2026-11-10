@@ -44,7 +44,7 @@ grant select, insert, update, delete on public.user_residences to authenticated;
 
 -- updated_at automatico (funzione dedicata, nessuna dipendenza da altre migrazioni)
 create or replace function public.user_residences_touch_updated_at()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin
   new.updated_at := now();
   return new;

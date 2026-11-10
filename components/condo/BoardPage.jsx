@@ -19,10 +19,13 @@ const MONTH_NAMES = [
 const WEEKDAYS = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM']
 
 const TYPE_META = {
-  general:     { label: 'Generale',     color: '#2F80ED' },
-  meeting:     { label: 'Riunione',     color: '#16A34A' },
-  maintenance: { label: 'Manutenzione', color: '#E8A317' },
-  water:       { label: 'Acqua',        color: '#E5484D' },
+  general:     { label: 'Generale',     color: '#0D676F', Icon: CalendarIcon },
+  meeting:     { label: 'Riunione',     color: '#16A34A', Icon: PeopleIcon },
+  maintenance: { label: 'Manutenzione', color: '#D97706', Icon: WrenchIcon },
+  water:       { label: 'Acqua',        color: '#2F80ED', Icon: DropIcon },
+  energy:      { label: 'Energia',      color: '#7C3AED', Icon: BoltIcon },
+  services:    { label: 'Servizi',      color: '#475569', Icon: LayersIcon },
+  other:       { label: 'Altro',        color: '#9CA3AF', Icon: DotsIcon },
 }
 const typeMeta = (t) => TYPE_META[t] || TYPE_META.general
 
@@ -49,6 +52,7 @@ export default function BoardPage({ buildingId }) {
   const [selected, setSelected] = useState(null)     // evento aperto
   const [openDay, setOpenDay] = useState(null)       // giorno aperto (YYYY-MM-DD)
   const [creating, setCreating] = useState(false)    // false | { date } | evento da modificare
+  const [justCreated, setJustCreated] = useState(null) // evento appena creato (conferma)
   const [query, setQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -331,11 +335,45 @@ export default function BoardPage({ buildingId }) {
           defaultDate={creating.date}
           onClose={() => setCreating(false)}
           onSubmit={async (values) => {
-            const { error } = creating.id ? await updateEvent(creating.id, values) : await createEvent(values)
-            if (!error) { setCreating(false); setSelected(null) }
+            const isNew = !creating.id
+            const { error, event } = isNew ? await createEvent(values) : await updateEvent(creating.id, values)
+            if (!error) {
+              setCreating(false); setSelected(null); setOpenDay(null)
+              if (isNew && event) setJustCreated(event)
+            }
             return error
           }}
         />
+      )}
+
+      {/* ---- Conferma: appuntamento creato + aggiungi al calendario personale ---- */}
+      {justCreated && (
+        <Sheet isMobile={isMobile} onClose={() => setJustCreated(null)}>
+          <div style={{ textAlign: 'center', padding: '6px 4px 2px' }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--teal-lt)', color: 'var(--teal)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+              <CheckIcon />
+            </div>
+            <h2 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px' }}>Appuntamento creato</h2>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0 }}>
+              <strong style={{ color: 'var(--text)' }}>{justCreated.title}</strong>
+              <span style={{ textTransform: 'capitalize' }}> · {longDate(justCreated.event_date)}</span>
+              {justCreated.time_start ? ` · ${timeRange(justCreated)}` : ''}
+            </p>
+            {!justCreated.approved && (
+              <p style={{ fontSize: 13, color: '#8A5A00', background: '#FFF7E6', borderRadius: 10, padding: '8px 10px', margin: '12px 0 0' }}>
+                Sarà visibile agli altri residenti dopo l&apos;approvazione dell&apos;amministratore.
+              </p>
+            )}
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-3)', margin: '20px 0 8px' }}>Aggiungilo al tuo calendario</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <a href={googleCalendarUrl(justCreated)} target="_blank" rel="noopener noreferrer" style={{ ...primaryBtn, height: 48, textDecoration: 'none' }}>
+              Aggiungi a Google Calendar
+            </a>
+            <button onClick={() => downloadIcs(justCreated)} style={{ ...secondaryBtn, height: 48 }}>Apple Calendar / Outlook (.ics)</button>
+            <button onClick={() => setJustCreated(null)} style={{ ...secondaryBtn, height: 44, border: 'none', color: 'var(--text-3)' }}>Fatto</button>
+          </div>
+        </Sheet>
       )}
     </div>
   )
@@ -428,28 +466,46 @@ function EventFormModal({ isMobile, initial, defaultDate, onClose, onSubmit }) {
   const [error, setError] = useState(null)
   const [saving, setSaving] = useState(false)
   const set = (k) => (e) => setValues((v) => ({ ...v, [k]: e.target.value }))
-  const canSave = values.title.trim() && values.eventDate && !saving
+  const timeOrderOk = !values.timeStart || !values.timeEnd || values.timeEnd > values.timeStart
+  const canSave = values.title.trim() && values.eventDate && timeOrderOk && !saving
+
+  const shortDate = values.eventDate
+    ? new Date(values.eventDate + 'T00:00:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })
+        .replace(/ (\w)/, (m, c) => ' ' + c.toUpperCase())
+    : 'Scegli una data'
 
   return (
     <Sheet isMobile={isMobile} onClose={onClose}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <h2 style={{ fontSize: 19, fontWeight: 800, margin: 0 }}>{initial ? 'Modifica appuntamento' : 'Nuovo appuntamento'}</h2>
-        <button onClick={onClose} aria-label="Chiudi" style={closeBtn}>✕</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+        <span style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--teal-lt)', color: 'var(--teal)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <CalendarIcon size={24} />
+        </span>
+        <h2 style={{ flex: 1, fontSize: 22, fontWeight: 800, margin: 0, letterSpacing: '-0.3px' }}>
+          {initial ? 'Modifica appuntamento' : 'Nuovo appuntamento'}
+        </h2>
+        <button onClick={onClose} aria-label="Chiudi" style={{ ...closeBtn, width: 40, height: 40 }}>✕</button>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <input style={{ ...field, fontSize: 16, fontWeight: 600 }} placeholder="Titolo" value={values.title} onChange={set('title')} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <label style={{ display: 'block' }}>
+          <div style={fieldLabel}>Titolo</div>
+          <input style={field} placeholder="Es. Assemblea condominiale" value={values.title} onChange={set('title')} />
+        </label>
 
         <div>
-          <div style={fieldLabel}>Tipo</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <div style={fieldLabel}>Categoria</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {Object.entries(TYPE_META).map(([k, m]) => {
               const on = values.eventType === k
+              const Icon = m.Icon
               return (
-                <button key={k} type="button" onClick={() => setValues((v) => ({ ...v, eventType: k }))} style={{
-                  minHeight: 0, padding: '7px 12px', borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                  border: `1.5px solid ${m.color}`, background: on ? m.color : 'transparent', color: on ? '#fff' : m.color,
+                <button key={k} type="button" aria-pressed={on} onClick={() => setValues((v) => ({ ...v, eventType: k }))} style={{
+                  minHeight: 0, height: 40, padding: '0 14px', borderRadius: 999, fontSize: 14, fontWeight: on ? 700 : 500, cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  border: `1.5px solid ${on ? m.color : 'transparent'}`,
+                  background: `${m.color}${on ? '33' : '17'}`, color: 'var(--text)',
                 }}>
+                  <span style={{ color: on ? m.color : 'var(--text-2)', display: 'inline-flex' }}><Icon /></span>
                   {m.label}
                 </button>
               )
@@ -459,35 +515,70 @@ function EventFormModal({ isMobile, initial, defaultDate, onClose, onSubmit }) {
 
         <div>
           <div style={fieldLabel}>Data</div>
-          <input type="date" style={field} value={values.eventDate} onChange={set('eventDate')} />
+          <PickerBox icon={<CalendarIcon />} text={shortDate} muted={!values.eventDate}>
+            <input type="date" aria-label="Data" value={values.eventDate} onChange={set('eventDate')} style={hiddenInput} />
+          </PickerBox>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           <div>
             <div style={fieldLabel}>Inizio</div>
-            <input type="time" style={field} value={values.timeStart} onChange={set('timeStart')} />
+            <PickerBox icon={<ClockIcon />} text={values.timeStart || '--:--'} muted={!values.timeStart}>
+              <input type="time" aria-label="Ora di inizio" value={values.timeStart} onChange={set('timeStart')} style={hiddenInput} />
+            </PickerBox>
           </div>
           <div>
             <div style={fieldLabel}>Fine</div>
-            <input type="time" style={field} value={values.timeEnd} onChange={set('timeEnd')} />
+            <PickerBox icon={<ClockIcon />} text={values.timeEnd || '--:--'} muted={!values.timeEnd}>
+              <input type="time" aria-label="Ora di fine" value={values.timeEnd} onChange={set('timeEnd')} style={hiddenInput} />
+            </PickerBox>
           </div>
         </div>
-        <input style={field} placeholder="Luogo (es. cortile, sala comune)" value={values.location} onChange={set('location')} />
-        <textarea style={{ ...field, minHeight: 80, resize: 'vertical' }} placeholder="Descrizione" value={values.description} onChange={set('description')} />
+        {!timeOrderOk && <p style={{ fontSize: 13, color: '#B42318', margin: '-8px 0 0' }}>L&apos;ora di fine deve essere dopo l&apos;inizio.</p>}
+
+        <IconField icon={<PinIcon />}>
+          <input style={{ ...field, paddingLeft: 46 }} placeholder="Luogo (es. cortile, sala comune)" value={values.location} onChange={set('location')} />
+        </IconField>
+        <IconField icon={<LinesIcon />} top>
+          <textarea style={{ ...field, paddingLeft: 46, minHeight: 110, resize: 'vertical' }} placeholder="Descrizione" value={values.description} onChange={set('description')} />
+        </IconField>
 
         {error && <p style={{ fontSize: 13, color: '#B42318', margin: 0 }}>{error}</p>}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4 }}>
-          <button onClick={onClose} style={secondaryBtn}>Annulla</button>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 4 }}>
+          <button onClick={onClose} style={{ ...secondaryBtn, height: 52, fontSize: 16, fontWeight: 700 }}>Annulla</button>
           <button
             disabled={!canSave}
             onClick={async () => { setSaving(true); setError(await onSubmit(values)); setSaving(false) }}
-            style={{ ...primaryBtn, height: 46, opacity: canSave ? 1 : 0.5 }}
+            style={{ ...primaryBtn, height: 52, fontSize: 16, opacity: canSave ? 1 : 0.5 }}
           >
             {saving ? 'Salvataggio...' : 'Salva'}
           </button>
         </div>
       </div>
     </Sheet>
+  )
+}
+
+// Campo "finto" con icona, testo e freccia; il selettore nativo (data/ora)
+// e' un input trasparente sopra, cosi su iPhone si apre la rotella di sistema.
+function PickerBox({ icon, text, muted, children }) {
+  return (
+    <div style={{ ...field, position: 'relative', display: 'flex', alignItems: 'center', gap: 12, height: 50, padding: '0 14px' }}>
+      <span style={{ color: 'var(--text-2)', display: 'inline-flex' }}>{icon}</span>
+      <span style={{ flex: 1, fontSize: 16, color: muted ? 'var(--text-4)' : 'var(--text)' }}>{text}</span>
+      <span style={{ color: 'var(--text-2)', display: 'inline-flex' }}><ChevronDown /></span>
+      {children}
+    </div>
+  )
+}
+
+function IconField({ icon, top = false, children }) {
+  return (
+    <div style={{ position: 'relative' }}>
+      <span style={{ position: 'absolute', left: 14, top: top ? 14 : '50%', transform: top ? 'none' : 'translateY(-50%)', color: 'var(--text-2)', display: 'inline-flex', pointerEvents: 'none' }}>{icon}</span>
+      {children}
+    </div>
   )
 }
 
@@ -515,10 +606,11 @@ const dayRow = {
   borderRadius: 12, border: '1px solid var(--border)', background: 'var(--white)', cursor: 'pointer', color: 'var(--text-4)',
 }
 const field = {
-  width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px',
-  fontSize: 14, fontFamily: 'inherit', background: 'var(--white)', boxSizing: 'border-box',
+  width: '100%', border: '1px solid var(--border)', borderRadius: 12, padding: '13px 14px',
+  fontSize: 16, fontFamily: 'inherit', background: 'var(--white)', boxSizing: 'border-box',
 }
-const fieldLabel = { fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginBottom: 6 }
+const fieldLabel = { fontSize: 14, fontWeight: 700, color: 'var(--text-2)', marginBottom: 8 }
+const hiddenInput = { position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', minHeight: 0, border: 'none' }
 
 /* ---- icone ---- */
 const svg = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
@@ -527,8 +619,17 @@ function ChevronRight() { return <svg {...svg}><path d="M9 6l6 6-6 6" /></svg> }
 function CaretDown() { return <svg {...svg} width={16} height={16}><path d="M7 10l5 5 5-5" fill="currentColor" stroke="none" /></svg> }
 function SearchIcon() { return <svg {...svg}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg> }
 function PlusIcon() { return <svg {...svg} width={28} height={28} strokeWidth={2.2}><path d="M12 5v14M5 12h14" /></svg> }
-function CalendarIcon() { return <svg {...svg} width={18} height={18}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg> }
-function ClockIcon() { return <svg {...svg} width={18} height={18}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg> }
+function CalendarIcon({ size = 18 }) { return <svg {...svg} width={size} height={size}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg> }
+function PeopleIcon() { return <svg {...svg} width={18} height={18}><circle cx="9" cy="8" r="3" /><path d="M3 20a6 6 0 0112 0" /><circle cx="17" cy="9" r="2.5" /><path d="M15.5 14.5A5 5 0 0121 20" /></svg> }
+function WrenchIcon() { return <svg {...svg} width={18} height={18}><path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.1 2.1-2-2z" /></svg> }
+function DropIcon() { return <svg {...svg} width={18} height={18}><path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z" /></svg> }
+function BoltIcon() { return <svg {...svg} width={18} height={18}><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" /></svg> }
+function LayersIcon() { return <svg {...svg} width={18} height={18}><path d="M12 3l9 5-9 5-9-5 9-5z" /><path d="M3 13l9 5 9-5" /></svg> }
+function DotsIcon() { return <svg {...svg} width={18} height={18} strokeWidth={3}><path d="M5 12h.01M12 12h.01M19 12h.01" /></svg> }
+function LinesIcon() { return <svg {...svg} width={18} height={18}><path d="M4 7h16M4 12h16M4 17h10" /></svg> }
+function ChevronDown() { return <svg {...svg} width={18} height={18}><path d="M6 9l6 6 6-6" /></svg> }
+function CheckIcon() { return <svg {...svg} width={28} height={28} strokeWidth={2.4}><path d="M5 12.5l4.5 4.5L19 7.5" /></svg> }
+function ClockIcon() { return <svg {...svg} width={20} height={20}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg> }
 function PinIcon() { return <svg {...svg} width={18} height={18}><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg> }
 function TodayIcon({ day }) {
   return (

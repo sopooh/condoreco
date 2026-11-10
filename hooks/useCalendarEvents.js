@@ -48,7 +48,7 @@ export function useCalendarEvents(buildingId, year, month) {
       if (!session?.user?.id) return { error: 'Devi essere autenticato' }
 
       const supabase = createClient()
-      const { error } = await supabase.from('events').insert({
+      const { data, error } = await supabase.from('events').insert({
         building_id: buildingId,
         created_by: session.user.id,
         title: values.title.trim(),
@@ -60,9 +60,14 @@ export function useCalendarEvents(buildingId, year, month) {
         event_type: values.eventType ?? 'general',
         ...(isCondoAdmin ? { approved: true } : {}),
       })
+        .select('id, title, description, location, event_date, time_start, time_end, event_type, approved')
+        .single()
 
-      if (!error) await load()
-      return { error: error?.message ?? null }
+      if (error) console.error('[useCalendarEvents] insert failed', error)
+      else await load()
+      // event: l'appuntamento appena creato, per offrire subito
+      // "Aggiungi a Google Calendar" / .ics nella conferma
+      return { error: error?.message ?? null, event: data ?? null }
     },
     [buildingId, session?.user?.id, isCondoAdmin, load]
   )

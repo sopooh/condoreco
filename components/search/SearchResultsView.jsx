@@ -14,14 +14,19 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 const NAVBAR_HEIGHT = 58 // components/nav/Navbar.jsx
 const COMPACT_MAP_HEIGHT = 280
 const TRANSITION = '280ms ease'
+const AUTO_HIDE_AFTER_PX = 24   // scroll verso il basso oltre cui la mappa si chiude
+const PULL_TO_SHOW_PX = 50      // trascinamento verso il basso in cima per riaprirla
+const IGNORE_SCROLL_MS = 450    // durante l'animazione il layout cambia: scroll ignorati
 
 // Esplora: preview mappa in alto (sticky sotto navbar+search) + schede sotto,
 // stile Booking. Un'unica istanza Leaflet resta sempre montata — mapState
 // ('compact' | 'fullscreen' | 'hidden') ridimensiona solo il container, non
 // la ricrea mai: centro/zoom/marker restano intatti a ogni cambio stato
-// (vedi ResizeObserver in ResultsMapInner). Il cambio di stato avviene solo
-// via bottoni ("Apri mappa" / "Riduci mappa" / "Nascondi mappa" / "Mostra
-// mappa"), niente gesti di scroll/touch sopra la mappa.
+// (vedi ResizeObserver in ResultsMapInner). Si cambia stato con i bottoni
+// ("Apri mappa" / "Riduci mappa" / "Nascondi mappa" / "Mostra mappa") e in
+// più, dalla pagina (mai da gesti sopra la mappa): scorrendo la lista verso
+// il basso la mappa compatta si chiude da sola; tornati in cima, tirando
+// giù (touch) o con la rotellina verso l'alto si riapre.
 export default function SearchResultsView({ buildings, cities, feeCounts, query, city, focusLat, focusLng }) {
   const isMobile = useIsMobile()
   const [mapState, setMapState] = useState('compact')
@@ -29,6 +34,8 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
   const [selectedBuilding, setSelectedBuilding] = useState(null)
   const [highlightedId, setHighlightedId] = useState(null)
   const stickyRef = useRef(null)
+  const autoHiddenRef = useRef(false)
+  const ignoreScrollUntilRef = useRef(0)
 
   const results = buildings.map((b) => ({ ...b, href: `/edificio/${b.id}` }))
 
@@ -49,8 +56,62 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
   useEffect(() => {
     if (!highlightedId || mapState !== 'compact') return
     const el = document.getElementById(`building-row-${highlightedId}`)
+    // scroll programmatico verso la scheda del pin cliccato: non deve chiudere la mappa
+    ignoreScrollUntilRef.current = Date.now() + 1200
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [highlightedId, mapState])
+
+  // Chiusura automatica scorrendo la lista / riapertura tirando giù in cima.
+  useEffect(() => {
+    const canHide = mapState === 'compact'
+    const canShow = mapState === 'hidden' && autoHiddenRef.current
+    if (!canHide && !canShow) return
+
+    let lastY = window.scrollY
+    let touchStartY = null
+    const ignoring = () => Date.now() < ignoreScrollUntilRef.current
+    const hide = () => {
+      autoHiddenRef.current = true
+      ignoreScrollUntilRef.current = Date.now() + IGNORE_SCROLL_MS
+      setSelectedBuilding(null)
+      setMapState('hidden')
+    }
+    const show = () => {
+      autoHiddenRef.current = false
+      ignoreScrollUntilRef.current = Date.now() + IGNORE_SCROLL_MS
+      setMapState('compact')
+    }
+
+    const onScroll = () => {
+      const y = window.scrollY
+      const goingDown = y > lastY
+      lastY = y
+      if (ignoring()) return
+      if (canHide && goingDown && y > AUTO_HIDE_AFTER_PX) hide()
+      else if (canShow && !goingDown && y <= 0) show()
+    }
+    const onWheel = (e) => {
+      if (canShow && !ignoring() && window.scrollY <= 0 && e.deltaY < 0) show()
+    }
+    const onTouchStart = (e) => {
+      touchStartY = window.scrollY <= 0 ? e.touches[0].clientY : null
+    }
+    const onTouchMove = (e) => {
+      if (!canShow || touchStartY == null || ignoring()) return
+      if (e.touches[0].clientY - touchStartY > PULL_TO_SHOW_PX) { touchStartY = null; show() }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('wheel', onWheel, { passive: true })
+    window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchmove', onTouchMove, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('wheel', onWheel)
+      window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchmove', onTouchMove)
+    }
+  }, [mapState])
 
   function handleMarkerClick(building) {
     setSelectedBuilding(building)
@@ -114,7 +175,7 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
             <>
               <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 500, display: 'flex', gap: 8 }}>
                 {mapState === 'compact' && (
-                  <button onClick={() => setMapState('hidden')} style={floatingBtn}>
+                  <button onClick={() => { autoHiddenRef.current = false; setMapState('hidden') }} style={floatingBtn}>
                     <EyeOffIcon /> Nascondi mappa
                   </button>
                 )}
@@ -155,7 +216,7 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
 
         {mapState === 'hidden' && (
           <div style={{ flexShrink: 0, borderBottom: '1px solid var(--border)', padding: '10px 16px', display: 'flex', justifyContent: 'center' }}>
-            <button onClick={() => setMapState('compact')} style={{ ...floatingBtn, boxShadow: 'none', border: '1px solid var(--border)' }}>
+            <button onClick={() => { autoHiddenRef.current = false; setMapState('compact') }} style={{ ...floatingBtn, boxShadow: 'none', border: '1px solid var(--border)' }}>
               <MapIcon /> Mostra mappa
             </button>
           </div>

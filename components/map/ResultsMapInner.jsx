@@ -88,13 +88,34 @@ export default function ResultsMapInner({
     return () => { map.remove(); mapRef.current = null }
   }, [])
 
+  // Inquadratura sugli edifici in elenco. Finché l'utente non ha spostato o
+  // zoomato la mappa a mano, viene ricalcolata a ogni resize del container:
+  // su mobile il primo fit avveniva prima che il container avesse la misura
+  // definitiva (o con altezza 0 se la mappa era chiusa), e la mappa finiva
+  // fuori dai pin.
+  const fitRef = useRef(() => {})
+  const userMovedRef = useRef(false)
+  const programmaticRef = useRef(false)
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const markUser = () => { if (!programmaticRef.current) userMovedRef.current = true }
+    map.on('dragstart', markUser)
+    map.on('zoomstart', markUser)
+    return () => { map.off('dragstart', markUser); map.off('zoomstart', markUser) }
+  }, [])
+
   // riadatta i tile quando il container cambia dimensione (transizione
-  // compact/fullscreen/hidden), senza toccare centro/zoom/marker.
+  // compact/fullscreen/hidden) e, se l'utente non ha mosso la mappa, rifà il fit.
   useEffect(() => {
     const map = mapRef.current
     const el = containerRef.current
     if (!map || !el || typeof ResizeObserver === 'undefined') return
-    const ro = new ResizeObserver(() => map.invalidateSize())
+    const ro = new ResizeObserver(() => {
+      map.invalidateSize()
+      if (el.clientHeight > 40 && !userMovedRef.current) fitRef.current()
+    })
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
@@ -108,13 +129,22 @@ export default function ResultsMapInner({
     else map.scrollWheelZoom.disable()
   }, [interactive])
 
+  // I genitori ricreano l'array results a ogni render (es. click su un pin):
+  // l'effetto dipende da una firma dei dati, non dall'identità dell'array,
+  // cosi l'inquadratura non viene rifatta senza un vero cambio di risultati.
+  const resultsRef = useRef(results)
+  useEffect(() => { resultsRef.current = results })
+  const resultsSig = results
+    .map((r) => `${r.id}:${r.lat}:${r.lng}:${r.score}:${r.monthly_fee}:${r.status}`)
+    .join('|')
+
   // aggiorna i pin quando cambiano i risultati, e li ri-raggruppa a ogni zoom
   useEffect(() => {
     const map = mapRef.current
     const layer = layerRef.current
     if (!map || !layer) return
 
-    const pts = results.filter((r) => Number.isFinite(Number(r.lat)) && Number.isFinite(Number(r.lng)) && r.lat && r.lng)
+    const pts = resultsRef.current.filter((r) => Number.isFinite(Number(r.lat)) && Number.isFinite(Number(r.lng)) && r.lat && r.lng)
 
     const select = (r) => {
       if (onResultSelectRef.current) onResultSelectRef.current(r)
@@ -147,18 +177,34 @@ export default function ResultsMapInner({
     // Con più edifici la mappa si adatta a tutti i risultati. Padding in pixel
     // + zoomSnap frazionario: niente salti a uno zoom intero troppo largo.
     // Il punto cercato (focusLat/focusLng) resta un fallback per 0 risultati.
-    if (pts.length > 1) {
-      map.fitBounds(L.latLngBounds(pts.map((r) => [r.lat, r.lng])), { padding: [48, 48], maxZoom: 16 })
-    } else if (pts.length === 1) {
-      map.setView([pts[0].lat, pts[0].lng], 15)
-    } else if (focusLat && focusLng) {
-      map.setView([focusLat, focusLng], 13)
+    fitRef.current = () => {
+      const el = containerRef.current
+      if (!el || el.clientHeight <= 40) return // mappa chiusa: si rifà al resize
+      programmaticRef.current = true
+      if (pts.length > 1) {
+        // in alto c'e' la fascia dei bottoni flottanti (Nascondi/Apri mappa):
+        // margine extra perche' nessun pin finisca sotto
+        const pad = Math.min(40, Math.round(Math.min(el.clientWidth, el.clientHeight) / 7))
+        map.fitBounds(L.latLngBounds(pts.map((r) => [r.lat, r.lng])), {
+          paddingTopLeft: [pad, pad + 56], paddingBottomRight: [pad, pad], maxZoom: 16, animate: false,
+        })
+      } else if (pts.length === 1) {
+        map.setView([pts[0].lat, pts[0].lng], 15, { animate: false })
+      } else if (focusLat && focusLng) {
+        map.setView([focusLat, focusLng], 13, { animate: false })
+      }
+      programmaticRef.current = false
     }
+
+    // nuovi risultati (cambio città/filtri): si torna a inquadrare l'elenco
+    userMovedRef.current = false
+    map.invalidateSize()
+    fitRef.current()
 
     render()
     map.on('zoomend', render)
     return () => { map.off('zoomend', render) }
-  }, [results, router, focusLat, focusLng])
+  }, [resultsSig, router, focusLat, focusLng])
 
   return (
     <div

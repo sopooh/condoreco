@@ -38,6 +38,7 @@ const AMENITY_GROUPS = [
     label: 'Praticità',
     items: [
       ['basement', 'Cantina'],
+      ['stairs_cleaning', 'Pulizia scale'],
       ['fiber', 'Fibra internet'],
     ],
   },

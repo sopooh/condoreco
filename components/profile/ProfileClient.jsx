@@ -199,112 +199,82 @@ export default function ProfileClient() {
         <div className="profile-body-grid" style={{ display: 'grid' }}>
 
           {/* LE MIE ABITAZIONI */}
-          <div>
+          <section>
             <div className="profile-section-title-row" style={{ marginBottom: 16 }}>
               <HouseIcon />
               <SectionTitle noMargin>Le mie abitazioni</SectionTitle>
             </div>
 
-            {buildingsLoading && (
+            {buildingsLoading ? (
               <div style={{ fontSize: 14, color: 'var(--text-3)', padding: '20px 0' }}>Caricamento...</div>
-            )}
-
-
-            {/* Ora abiti qui */}
-            {!buildingsLoading && (
-              <div style={{ marginBottom: 32 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--teal)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
-                  Ora abiti qui
-                </div>
-
-                {currentBuildings.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {currentBuildings.map(b => (
-                      <div key={b.id}>
-                        <BuildingRow building={b} showEnterCondo />
-                        <div style={{ marginTop: 8 }}>
-                          <button
-                            onClick={() => handleLeave(b.id)}
-                            disabled={leavingId === b.id}
-                            style={ghostTealBtn}
-                          >
-                            {leavingId === b.id ? 'Aggiornamento...' : 'Segno come ex-abitazione →'}
+            ) : (
+              <>
+                <div style={{ marginBottom: 24 }}>
+                  <div style={subTitleTeal}>Ora abiti qui</div>
+                  {currentBuildings.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {currentBuildings.map(b => (
+                        <div key={b.id}>
+                          <BuildingRow building={b} showEnterCondo />
+                          <button onClick={() => handleLeave(b.id)} disabled={leavingId === b.id} style={textBtn}>
+                            {leavingId === b.id ? 'Aggiornamento...' : 'Non abito più qui'}
                           </button>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ fontSize: 14, color: 'var(--text-4)', margin: 0 }}>
+                      Nessuna abitazione attuale registrata.
+                    </p>
+                  )}
+                </div>
+
+                {pastBuildings.length > 0 && (
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={subTitleGray}>Hai abitato in</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {pastBuildings.map(b => (
+                        <div key={b.id}>
+                          <BuildingRow building={b} />
+                          <button onClick={() => handleReturn(b.id)} disabled={returningId === b.id} style={textBtn}>
+                            {returningId === b.id ? 'Aggiornamento...' : 'Abito di nuovo qui'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ) : (
-                  <p style={{ fontSize: 14, color: 'var(--text-4)', marginBottom: 12 }}>
-                    Nessuna abitazione attuale registrata.
-                  </p>
                 )}
 
-                {/* Sempre visibile: aggiungi condominio */}
-                <Link href="/aggiungi-condominio" style={{
-                  marginTop: 12, padding: '10px 20px', borderRadius: 8, border: 'none',
-                  background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 13,
-                  cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
-                }}>
-                  + Aggiungi condominio
-                </Link>
-              </div>
+                <Link href="/aggiungi-condominio" style={primaryBtn}>+ Aggiungi condominio</Link>
+              </>
             )}
-
-            {/* Hai abitato in */}
-            {!buildingsLoading && pastBuildings.length > 0 && (
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
-                  Hai abitato in
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {pastBuildings.map(b => (
-                    <div key={b.id}>
-                      <BuildingRow building={b} />
-                      <div style={{ marginTop: 8 }}>
-                        <button
-                          onClick={() => handleReturn(b.id)}
-                          disabled={returningId === b.id}
-                          style={ghostTealBtn}
-                        >
-                          {returningId === b.id ? 'Aggiornamento...' : 'Abito di nuovo qui'}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Aggiungi altri condomini passati */}
-                <Link
-                  href="/aggiungi-condominio"
-                  style={{
-                    marginTop: 12, padding: '10px 20px', borderRadius: 8, border: 'none',
-                    background: 'var(--teal)', color: '#fff', fontWeight: 700,
-                    fontSize: 13, cursor: 'pointer', display: 'inline-block',
-                  }}
-                >
-                  + Aggiungi condominio dove hai vissuto
-                </Link>
-              </div>
-            )}
-          </div>
+          </section>
 
           {/* SIDEBAR */}
-          <aside>
-            <SectionTitle>Azioni rapide</SectionTitle>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 28 }}>
-              <QuickLink href="/aggiungi-condominio" label="+ Aggiungi condominio" />
-              <QuickLink href="/cerca" label="Esplora edifici" />
-              <QuickLink href="/amministratori" label="Cerca amministratori" />
-            </div>
+          <aside style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+            <section>
+              <SectionTitle>Azioni rapide</SectionTitle>
+              <nav style={{ ...card, overflow: 'hidden' }}>
+                <ActionRow href="/aggiungi-condominio" icon={<BuildingIcon />} label="Aggiungi condominio" />
+                <ActionRow href="/cerca" icon={<MapIcon />} label="Esplora edifici" />
+                <ActionRow href="/amministratori" icon={<UsersIcon />} label="Cerca amministratori" last />
+              </nav>
+            </section>
 
-            <SectionTitle>Info account</SectionTitle>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: 'var(--text-3)' }}>
-              <InfoRow label="Email" value={session.user.email} />
-              <InfoRow label="Zona" value={profile.zone || '—'} />
-              <InfoRow label="Ruolo" value={roleConf?.label || 'Recoer'} />
-              <InfoRow label="Membro da" value={memberSince} />
-            </div>
+            <section>
+              <SectionTitle>Info account</SectionTitle>
+              <div style={{ ...card, padding: '4px 16px' }}>
+                <InfoRow label="Email" value={session.user.email} />
+                <InfoRow
+                  label="Zona"
+                  value={profile.zone || (
+                    <button onClick={() => setEditOpen(true)} style={{ ...textBtn, marginTop: 0, padding: 0, lineHeight: 1.2, minHeight: 0 }}>Aggiungi</button>
+                  )}
+                />
+                <InfoRow label="Ruolo" value={roleConf?.label || 'Recoer'} />
+                <InfoRow label="Membro da" value={memberSince} last />
+              </div>
+            </section>
           </aside>
         </div>
       </div>
@@ -391,37 +361,94 @@ function HouseIcon() {
 
 function SectionTitle({ children, noMargin = false }) {
   return (
-    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: noMargin ? 0 : 16 }}>
+    <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 1, margin: 0, marginBottom: noMargin ? 0 : 12 }}>
       {children}
-    </div>
+    </h2>
   )
 }
 
-function QuickLink({ href, label }) {
+const subTitleTeal = {
+  fontSize: 14, fontWeight: 700, color: 'var(--teal)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8,
+}
+const subTitleGray = { ...subTitleTeal, color: 'var(--text-4)' }
+
+const card = {
+  background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 14,
+}
+
+const primaryBtn = {
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  padding: '13px 24px', borderRadius: 10, background: 'var(--teal)', color: '#fff',
+  fontWeight: 700, fontSize: 15,
+}
+
+// azione secondaria sotto una scheda: testo, non un secondo bottone pieno
+const textBtn = {
+  marginTop: 6, padding: '4px 2px', border: 'none', background: 'none',
+  color: 'var(--teal)', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+}
+
+// riga della card "Azioni rapide": icona a sinistra, freccia a destra, separatori
+function ActionRow({ href, icon, label, last = false }) {
   return (
     <Link href={href} style={{
-      width: '100%', textAlign: 'left', padding: '11px 14px', borderRadius: 8,
-      border: '1px solid var(--border)', background: 'var(--white)',
-      fontSize: 13, fontWeight: 600, color: 'var(--teal-dk)', cursor: 'pointer',
-      display: 'block', boxSizing: 'border-box',
-    }}>{label} →</Link>
+      display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
+      borderBottom: last ? 'none' : '1px solid var(--border)', color: 'inherit',
+    }}>
+      <span style={{ color: 'var(--teal)', display: 'inline-flex', flexShrink: 0 }}>{icon}</span>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{label}</span>
+      <span style={{ color: 'var(--teal)', display: 'inline-flex', flexShrink: 0 }}><ArrowRightIcon /></span>
+    </Link>
   )
 }
 
-const ghostTealBtn = {
-  padding: '8px 18px', borderRadius: 8,
-  border: '1.5px solid var(--teal)',
-  background: 'var(--teal-lt)',
-  color: 'var(--teal-dk)',
-  fontWeight: 600, fontSize: 13,
-  cursor: 'pointer',
+function BuildingIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="4" y="3" width="11" height="18" rx="1" />
+      <path d="M15 9h4a1 1 0 011 1v11h-5" />
+      <path d="M8 7h1M11 7h1M8 11h1M11 11h1M8 15h1M11 15h1M9 21v-3h2v3" />
+    </svg>
+  )
 }
 
-function InfoRow({ label, value }) {
+function MapIcon() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-      <span>{label}</span>
-      <span style={{ color: 'var(--text-2)', fontWeight: 500, textAlign: 'right' }}>{value}</span>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" />
+      <path d="M9 4v14M15 6v14" />
+    </svg>
+  )
+}
+
+function UsersIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="8" r="3" />
+      <path d="M6 20v-1a6 6 0 0112 0v1" />
+      <circle cx="5" cy="10" r="2" />
+      <circle cx="19" cy="10" r="2" />
+      <path d="M2 19v-.5A3.5 3.5 0 015 15M22 19v-.5A3.5 3.5 0 0019 15" />
+    </svg>
+  )
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  )
+}
+
+function InfoRow({ label, value, last = false }) {
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
+      padding: '12px 0', borderBottom: last ? 'none' : '1px solid var(--border)', fontSize: 13,
+    }}>
+      <span style={{ color: 'var(--text-3)' }}>{label}</span>
+      <span style={{ color: 'var(--text)', fontWeight: 500, textAlign: 'right', minWidth: 0, overflowWrap: 'anywhere' }}>{value}</span>
     </div>
   )
 }

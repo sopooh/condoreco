@@ -105,7 +105,7 @@ export default function CondoDashboard({ building }) {
           href={`${base}/bacheca`}
           tag="Area condominiale"
           title="Bacheca urgente"
-          text="Avvisi, interventi programmati e segnalazioni importanti."
+          text="Avvisi, interventi programmati, segnalazioni e archivio documenti."
           status={[
             scheduledToday ? `${scheduledToday} ${scheduledToday === 1 ? 'intervento' : 'interventi'} oggi` : null,
             openTickets ? `${openTickets} ${openTickets === 1 ? 'ticket aperto' : 'ticket aperti'}` : null,

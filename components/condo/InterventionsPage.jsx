@@ -117,7 +117,7 @@ export default function InterventionsPage({ building }) {
         </div>
 
         {/* ---- fornitori ---- */}
-        <section style={{ marginTop: 8 }}>
+        <section id="fornitori" style={{ marginTop: 8, scrollMarginTop: 70 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
             <div>
               <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Fornitori del condominio</h2>

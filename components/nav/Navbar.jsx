@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
+import NotificationBell from '@/components/nav/NotificationBell'
 
 // Niente useIsMobile qui: nav desktop e hamburger sono renderizzati SEMPRE
 // entrambi, la visibilità è decisa da CSS (.navbar-desktop-nav/.navbar-hamburger
@@ -91,6 +92,7 @@ export default function Navbar() {
           {session ? (
             <>
               <Link href="/profilo" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-3)' }}>Profilo</Link>
+              <NotificationBell />
               {isAdminUser && (
                 <Link href="/admin" style={{ fontSize: 13, fontWeight: 700, color: 'var(--teal)', background: 'var(--teal-lt)', padding: '5px 12px', borderRadius: 6 }}>
                   Admin
@@ -103,7 +105,9 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile hamburger — visibilità via CSS (.navbar-hamburger), non JS */}
+        {/* Mobile: campanella + hamburger — visibilità via CSS, non JS */}
+        <div className="navbar-mobile-right" style={{ alignItems: 'center', gap: 6 }}>
+        {session && <NotificationBell />}
         <button
           className="navbar-hamburger"
           onClick={() => setMenuOpen(v => !v)}
@@ -114,6 +118,7 @@ export default function Navbar() {
           <span style={{ display: 'block', width: 22, height: 2, background: 'var(--text)', borderRadius: 2, opacity: menuOpen ? 0 : 1, transition: 'all 0.2s' }} />
           <span style={{ display: 'block', width: 22, height: 2, background: 'var(--text)', borderRadius: 2, transition: 'all 0.2s', transform: menuOpen ? 'rotate(-45deg) translate(5px, -5px)' : 'none' }} />
         </button>
+        </div>
       </nav>
 
       {/* Mobile menu: pannello che scende dall'alto e copre anche la navbar,

@@ -10,6 +10,8 @@ import { ToolboxArt } from '@/components/condo/CondoArt'
 import { useInterventions, INTERVENTION_STATUS, isActiveIntervention } from '@/hooks/useInterventions'
 import { contactMessage, telLink, waLink, mailLink } from '@/lib/contact'
 import { toLocalISODate } from '@/lib/localDate'
+import { useNeighbourNotices } from '@/hooks/useNeighbourNotices'
+import { NoticeForm, NoticeIcon } from '@/components/condo/NeighbourNotice'
 
 // "I tuoi interventi" (area personale): il residente segnala un problema,
 // sceglie o aggiunge un manutentore e lo contatta direttamente, senza
@@ -25,6 +27,7 @@ export default function InterventionsPage({ building }) {
   const session = useSession()
   const [senderName, setSenderName] = useState(null)
   const { interventions, maintainers, loading, error, createIntervention, updateIntervention, deleteIntervention, addMaintainer } = useInterventions(buildingId)
+  const notices = useNeighbourNotices(buildingId)
 
   useEffect(() => {
     const id = session?.user?.id
@@ -164,6 +167,8 @@ export default function InterventionsPage({ building }) {
           onAddMaintainer={addMaintainer}
           onCreate={createIntervention}
           onCreated={(draft) => { setCreating(false); if (draft.maintainer_id) setContacting(draft) }}
+          building={building}
+          notices={notices}
         />
       )}
       {contacting && (
@@ -283,7 +288,8 @@ function DetailSheet({ intervention: i, maintainer, onClose, onContact, onSchedu
   )
 }
 
-function NewInterventionSheet({ maintainers, defaultCategory, onClose, onAddMaintainer, onCreate, onCreated }) {
+function NewInterventionSheet({ maintainers, defaultCategory, onClose, onAddMaintainer, onCreate, onCreated, building, notices }) {
+  const [mode, setMode] = useState(null) // null = scelta, 'repair' = guasto, 'notice' = avviso ai vicini
   const [step, setStep] = useState(0)
   const [v, setV] = useState({ title: '', category: defaultCategory, location: '', description: '', maintainerId: null })
   const [addingNew, setAddingNew] = useState(false)
@@ -299,6 +305,39 @@ function NewInterventionSheet({ maintainers, defaultCategory, onClose, onAddMain
     setSaving(false)
     if (error) { setErr(error); return }
     onCreated({ id, title: v.title, category: v.category, location: v.location, description: v.description, maintainer_id: v.maintainerId, status: 'requested' })
+  }
+
+  if (mode === null) {
+    return (
+      <Sheet onClose={onClose} title="Nuova segnalazione" subtitle="Che tipo di segnalazione?">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {[
+            { m: 'notice', icon: 'megaphone', t: 'Avviso ai vicini', d: "Porte dell'ascensore aperte, portone aperto, perdita d'acqua: avvisa chi abita a un piano o tutto il palazzo." },
+            { m: 'repair', icon: 'wrench', t: 'Guasto da riparare', d: 'Serve un tecnico: scegli il fornitore e contattalo direttamente.' },
+          ].map((o) => (
+            <button key={o.m} type="button" onClick={() => setMode(o.m)} style={{
+              display: 'flex', alignItems: 'center', gap: 14, padding: 16, borderRadius: 16, minHeight: 0, cursor: 'pointer', textAlign: 'left',
+              border: '1.5px solid var(--border)', background: 'var(--white)', color: 'var(--text)',
+            }}>
+              <span style={{ ...iconTile, width: 48, height: 48 }}><NoticeIcon name={o.icon} size={24} /></span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 16, fontWeight: 800 }}>{o.t}</span>
+                <span style={{ display: 'block', fontSize: 13, color: 'var(--text-3)', lineHeight: 1.4, marginTop: 2 }}>{o.d}</span>
+              </span>
+              <span style={{ color: 'var(--text-4)' }}><ChevronIcon /></span>
+            </button>
+          ))}
+        </div>
+      </Sheet>
+    )
+  }
+
+  if (mode === 'notice') {
+    return (
+      <Sheet onClose={onClose} title="Avviso ai vicini" subtitle="Arriva solo ai residenti verificati">
+        <NoticeForm building={building} {...notices} onBack={() => setMode(null)} onDone={onClose} />
+      </Sheet>
+    )
   }
 
   return (
@@ -319,7 +358,10 @@ function NewInterventionSheet({ maintainers, defaultCategory, onClose, onAddMain
           <label><div style={label}>Dettagli (solo per te e il manutentore)</div>
             <textarea style={{ ...field, minHeight: 80, resize: 'vertical' }} placeholder="Da quando, cosa hai notato, orari in cui sei disponibile" value={v.description} onChange={set('description')} />
           </label>
-          <button disabled={v.title.trim().length < 3} onClick={() => setStep(1)} style={{ ...primaryBtn, height: 52, opacity: v.title.trim().length < 3 ? 0.5 : 1 }}>Continua</button>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 8 }}>
+            <button type="button" onClick={() => setMode(null)} style={ghostBtn}>Indietro</button>
+            <button disabled={v.title.trim().length < 3} onClick={() => setStep(1)} style={{ ...primaryBtn, height: 48, opacity: v.title.trim().length < 3 ? 0.5 : 1 }}>Continua</button>
+          </div>
         </div>
       )}
 

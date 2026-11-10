@@ -13,7 +13,7 @@ export default function CondoDashboard({ building }) {
   const buildingId = building.id
   const { isCondoAdmin } = useCondoRole(buildingId)
   const { events, loading: eventsLoading, approveEvent } = useEvents(buildingId)
-  const { polls, loading: pollsLoading, createPoll, castVote } = usePolls(buildingId)
+  const { polls, loading: pollsLoading, castVote } = usePolls(buildingId)
   const { messages, loading: chatLoading, sendMessage, hideMessage } = useCondoChat(buildingId)
 
   return (
@@ -34,7 +34,7 @@ export default function CondoDashboard({ building }) {
       {pollsLoading ? (
         <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Caricamento decisioni...</p>
       ) : (
-        <PollsCard polls={polls} onVote={castVote} onCreate={createPoll} />
+        <PollsCard buildingId={buildingId} polls={polls} onVote={castVote} />
       )}
 
       {chatLoading ? (

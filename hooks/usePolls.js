@@ -25,6 +25,7 @@ export function usePolls(buildingId) {
       .order('created_at', { ascending: false })
 
     if (error) {
+      console.error('[usePolls] load failed', error)
       setError(error.message)
     } else {
       setPolls(
@@ -38,7 +39,8 @@ export function usePolls(buildingId) {
             yesVotes: yes,
             noVotes: total - yes,
             yesPct: total ? Math.round((yes / total) * 100) : 0,
-            noPct: total ? Math.round(((total - yes) / total) * 100) : 0,
+            // complemento, non arrotondamento separato: altrimenti 37.5/62.5 -> 38% + 63%
+            noPct: total ? 100 - Math.round((yes / total) * 100) : 0,
             hasVoted: !!myVote,
             myVote: myVote?.vote ?? null,
             isOpen: p.status === 'open' && new Date(p.closes_at) > new Date(),

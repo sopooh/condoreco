@@ -15,18 +15,22 @@ import FundingAnalytics from '@/components/admin/FundingAnalytics.jsx'
 import ExportData from '@/components/admin/ExportData.jsx'
 import AdminLogs from '@/components/admin/AdminLogs.jsx'
 import PhotoModeration from '@/components/admin/PhotoModeration.jsx'
+import { AdminIcon } from '@/components/admin/AdminIcons'
 
 const SECTIONS = [
-  { id: 'overview', label: 'Overview', icon: '◉' },
-  { id: 'utenti', label: 'Utenti', icon: '👤' },
-  { id: 'condomini', label: 'Condomini', icon: '🏢' },
-  { id: 'recensioni', label: 'Recensioni', icon: '⭐' },
-  { id: 'foto', label: 'Foto', icon: '📷' },
-  { id: 'segnalazioni', label: 'Segnalazioni', icon: '🚩' },
-  { id: 'analytics', label: 'Analytics', icon: '📊' },
-  { id: 'export', label: 'Export', icon: '⬇' },
-  { id: 'log', label: 'Log', icon: '📋' },
+  { id: 'overview', label: 'Dashboard', icon: 'home' },
+  { id: 'condomini', label: 'Abitazioni', icon: 'building' },
+  { id: 'utenti', label: 'Utenti', icon: 'users' },
+  { id: 'segnalazioni', label: 'Segnalazioni', icon: 'flag' },
+  { id: 'analytics', label: 'Statistiche', icon: 'chart' },
+  { id: 'recensioni', label: 'Recensioni', icon: 'star' },
+  { id: 'foto', label: 'Foto', icon: 'camera' },
+  { id: 'export', label: 'Export', icon: 'download' },
+  { id: 'log', label: 'Log', icon: 'list' },
 ]
+// barra in basso su mobile: le 5 sezioni principali; le altre si aprono
+// dalla dashboard (riquadro strumenti)
+const BOTTOM_NAV = SECTIONS.slice(0, 5)
 
 function Unauthorized() {
   return (
@@ -79,10 +83,11 @@ export default function AdminDashboard() {
   if (role !== 'admin') return <Unauthorized />
 
   const adminId = session.user.id
+  const go = (id) => { setSection(id); window.scrollTo(0, 0) }
 
   const content = (
     <>
-      {section === 'overview' && <OverviewSection adminId={adminId} />}
+      {section === 'overview' && <OverviewSection adminId={adminId} onNavigate={go} />}
       {section === 'utenti' && <UsersAdminTable adminId={adminId} />}
       {section === 'condomini' && <BuildingsAdminTable adminId={adminId} />}
       {section === 'recensioni' && <ReviewsModeration adminId={adminId} />}
@@ -95,35 +100,25 @@ export default function AdminDashboard() {
   )
 
   if (isMobile) {
+    const activeTab = BOTTOM_NAV.some(t => t.id === section) ? section : null
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 58px)' }}>
-        {/* Tab bar orizzontale scrollabile */}
-        <div className="admin-tabs" style={{
-          display: 'flex', overflowX: 'auto', background: 'var(--white)',
-          borderBottom: '1px solid var(--border)', flexShrink: 0,
-          position: 'sticky', top: 58, zIndex: 50,
-          scrollbarWidth: 'none', msOverflowStyle: 'none',
-          WebkitOverflowScrolling: 'touch',
-        }}>
-          {SECTIONS.map(s => (
-            <button
-              key={s.id}
-              onClick={() => setSection(s.id)}
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer',
-                flexShrink: 0, fontSize: 10, fontWeight: section === s.id ? 700 : 500,
-                color: section === s.id ? 'var(--teal)' : 'var(--text-3)',
-                borderBottom: section === s.id ? '2px solid var(--teal)' : '2px solid transparent',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <span style={{ fontSize: 16 }}>{s.icon}</span>
-              {s.label}
+      <div style={{ minHeight: 'calc(100vh - 58px)', background: 'var(--bg)' }}>
+        {section !== 'overview' && (
+          <button type="button" className="adm-back" onClick={() => go('overview')}>
+            <span style={{ display: 'inline-flex', transform: 'rotate(180deg)' }}><AdminIcon name="arrowRight" size={16} /></span>
+            Dashboard
+          </button>
+        )}
+        <main style={{ paddingBottom: 110 }}>{content}</main>
+        <nav className="adm-bottom-nav" aria-label="Sezioni admin">
+          {BOTTOM_NAV.map(t => (
+            <button key={t.id} type="button" onClick={() => go(t.id)}
+              className={activeTab === t.id ? 'is-active' : ''} aria-current={activeTab === t.id ? 'page' : undefined}>
+              <AdminIcon name={t.icon} size={24} />
+              <span>{t.label}</span>
             </button>
           ))}
-        </div>
-        <main style={{ flex: 1, background: 'var(--bg)' }}>{content}</main>
+        </nav>
       </div>
     )
   }

@@ -1191,6 +1191,14 @@ input, select, textarea { font-family: inherit; }
 .navbar { padding: 0 40px; }
 .navbar-desktop-nav { display: flex; }
 .navbar-hamburger { display: none; }
+.navbar-mobile-right { display: none; }
+.nav-bell { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; color: var(--teal-dk); }
+.nav-bell:hover { background: var(--teal-lt); }
+.nav-bell-badge {
+  position: absolute; top: 3px; right: 2px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+  background: #E8651A; color: #fff; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center;
+  border: 2px solid var(--white); box-sizing: content-box;
+}
 .navbar-mobile-drawer { display: none; }
 .navbar-mobile-drawer .menu-panel { animation: menuSlideDown 240ms cubic-bezier(.2,.8,.2,1); }
 .navbar-mobile-drawer .menu-backdrop { animation: menuFade 200ms ease; }
@@ -1358,6 +1366,7 @@ input, select, textarea { font-family: inherit; }
   .navbar { padding: 0 16px; }
   .navbar-desktop-nav { display: none; }
   .navbar-hamburger { display: flex; }
+  .navbar-mobile-right { display: flex; }
   .navbar-mobile-drawer { display: flex; }
 
   .building-layout-wrap { padding: 16px; }

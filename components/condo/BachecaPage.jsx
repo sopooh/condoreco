@@ -7,6 +7,7 @@ import { usePublicInterventions } from '@/hooks/usePublicInterventions'
 import { maintenanceCategoryLabel } from '@/lib/maintenanceCategories'
 import { toLocalISODate } from '@/lib/localDate'
 import TicketBoardCard from '@/components/condo/TicketBoardCard'
+import NoticesForMe from '@/components/condo/NoticesForMe'
 
 // Bacheca urgente: interventi programmati dai residenti (visibili a tutti,
 // solo i dati pubblici) dal giorno corrente in avanti + ticket aperti/chiusi.
@@ -41,6 +42,9 @@ export default function BachecaPage({ building }) {
         <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', margin: 0 }}>Bacheca urgente</h1>
         <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '4px 0 0' }}>{building.address}{building.street_number ? `, ${building.street_number}` : ''}</p>
       </div>
+
+      {/* avvisi dei vicini per me + piano */}
+      <NoticesForMe building={building} />
 
       {/* interventi programmati */}
       <section style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 18, padding: 20 }}>

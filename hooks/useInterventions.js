@@ -5,9 +5,9 @@ import { useSession } from '@/components/providers/SessionProvider'
 // "I tuoi interventi": interventi privati dell'utente (RLS: solo l'autore)
 // e rubrica manutentori del condominio (condivisa tra i membri).
 export const INTERVENTION_STATUS = {
-  requested: { label: 'Da programmare', bg: '#FDEBDD', tx: '#B4510F' },
-  scheduled: { label: 'Programmato', bg: 'var(--teal-lt)', tx: 'var(--teal-dk)' },
-  done:      { label: 'Completato', bg: '#E3F5E9', tx: '#15803D' },
+  requested: { label: 'Aperto', bg: 'var(--teal-lt)', tx: 'var(--teal-dk)' },
+  scheduled: { label: 'In programmazione', bg: '#FDF0D5', tx: '#9A5B00' },
+  done:      { label: 'Completato', bg: '#E3F5E9', tx: '#15803D', check: true },
   cancelled: { label: 'Annullato', bg: '#F1F3F4', tx: '#6B7280' },
 }
 export const isActiveIntervention = (i) => i.status === 'requested' || i.status === 'scheduled'
@@ -25,11 +25,11 @@ export function useInterventions(buildingId) {
     const supabase = createClient()
     const [ints, mans] = await Promise.all([
       supabase.from('condo_interventions')
-        .select('id, title, category, description, location, status, scheduled_date, time_start, time_end, maintainer_id, created_at')
+        .select('id, ref_number, title, category, description, location, status, scheduled_date, time_start, time_end, maintainer_id, created_at')
         .eq('building_id', buildingId).eq('created_by', userId)
         .order('created_at', { ascending: false }),
       supabase.from('condo_maintainers')
-        .select('id, name, company, category, phone, email, created_by')
+        .select('id, name, company, category, phone, email, notes, created_by')
         .eq('building_id', buildingId)
         .order('name', { ascending: true }),
     ])
@@ -89,6 +89,7 @@ export function useInterventions(buildingId) {
       category: values.category,
       phone: values.phone?.trim() || null,
       email: values.email?.trim() || null,
+      notes: values.notes?.trim() || null,
     }).select('id').single()
     if (error) { console.error('[useInterventions] maintainer insert failed', error); return { error: error.message } }
     await load()

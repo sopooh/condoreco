@@ -9,6 +9,7 @@ import { useTickets, isTicketOpen } from '@/hooks/useTickets'
 import { useInterventions, isActiveIntervention } from '@/hooks/useInterventions'
 import { usePublicInterventions } from '@/hooks/usePublicInterventions'
 import { toLocalISODate } from '@/lib/localDate'
+import { ToolboxArt } from '@/components/condo/CondoArt'
 
 // Home dell'area condominio: saluto + quattro sezioni.
 //  - I tuoi interventi (area personale, privata)
@@ -166,18 +167,6 @@ function HeroBuilding() {
         <rect key={`${r}-${c}`} x={80 + c * 17} y={42 + r * 24} width="10" height="14" rx="2" fill={r === 1 && c === 2 ? O : TM} />
       )))}
       <rect x="93" y="130" width="16" height="20" rx="2" fill={T} opacity="0.7" />
-    </svg>
-  )
-}
-function ToolboxArt() {
-  return (
-    <svg viewBox="0 0 84 84" width="100%" height="100%" aria-hidden="true">
-      <ellipse cx="42" cy="74" rx="30" ry="5" fill="rgba(13,103,111,0.12)" />
-      <path d="M30 22h24a4 4 0 014 4v6h-6v-4H32v4h-6v-6a4 4 0 014-4z" fill={T} />
-      <rect x="10" y="30" width="64" height="40" rx="9" fill={TL} />
-      <rect x="10" y="30" width="64" height="12" rx="6" fill="#E6F2F2" />
-      <path d="M50 46a7 7 0 00-9.5 8.5L30 65l4 4 10.5-10.5A7 7 0 0053 49l-4 4-3.5-3.5 4-4z" fill={T} />
-      <circle cx="66" cy="38" r="4" fill={O} />
     </svg>
   )
 }

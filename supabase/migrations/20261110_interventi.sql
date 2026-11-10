@@ -32,11 +32,12 @@ create table if not exists public.condo_maintainers (
   name text not null check (char_length(name) between 2 and 80),
   company text,
   category text not null default 'other' check (category in (
-    'noise', 'maintenance', 'security', 'infiltration', 'elevator',
-    'cleaning', 'heating', 'common_areas', 'pests', 'waste', 'admin', 'other'
+    'elevator', 'heating', 'electrical', 'plumbing', 'drains',
+    'locksmith', 'antenna', 'building_works', 'other'
   )),
   phone text,
   email text,
+  notes text, -- altri recapiti (es. referente, numero emergenze)
   created_at timestamptz not null default now(),
   check (phone is not null or email is not null)
 );
@@ -62,18 +63,19 @@ create policy "condo_maintainers: author or admin delete" on public.condo_mainta
 
 revoke all on public.condo_maintainers from anon;
 grant select, insert, delete on public.condo_maintainers to authenticated;
-grant update (name, company, category, phone, email) on public.condo_maintainers to authenticated;
+grant update (name, company, category, phone, email, notes) on public.condo_maintainers to authenticated;
 
 -- ---------------------------------------------------------------- interventi
 create table if not exists public.condo_interventions (
   id uuid primary key default gen_random_uuid(),
+  ref_number bigint generated always as identity (start with 1001), -- codice mostrato come #IT-1001
   building_id uuid not null references public.buildings (id) on delete cascade,
   created_by uuid not null default auth.uid() references auth.users (id) on delete cascade,
   maintainer_id uuid references public.condo_maintainers (id) on delete set null,
   title text not null check (char_length(title) between 3 and 140),
-  category text not null default 'maintenance' check (category in (
-    'noise', 'maintenance', 'security', 'infiltration', 'elevator',
-    'cleaning', 'heating', 'common_areas', 'pests', 'waste', 'admin', 'other'
+  category text not null default 'other' check (category in (
+    'elevator', 'heating', 'electrical', 'plumbing', 'drains',
+    'locksmith', 'antenna', 'building_works', 'other'
   )),
   description text,
   location text,

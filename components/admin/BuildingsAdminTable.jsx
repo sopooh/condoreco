@@ -1,5 +1,6 @@
 'use client'
 
+import { Check, X } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import AdminTable from './AdminTable.jsx'
 import { getAllBuildings, updateBuildingStatus } from '@/lib/adminQueries'
@@ -88,7 +89,7 @@ export default function BuildingsAdminTable({ adminId }) {
           </button>
           {(filterCity || draftCity) && (
             <button type="button" onClick={() => { setDraftCity(''); setFilterCity(''); setPage(0) }}
-              style={{ padding: '8px 12px', background: 'none', color: 'var(--text-3)', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}>✕</button>
+              style={{ padding: '8px 12px', background: 'none', color: 'var(--text-3)', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}><X size={18} strokeWidth={2} aria-hidden="true" /></button>
           )}
         </form>
         <select
@@ -106,7 +107,7 @@ export default function BuildingsAdminTable({ adminId }) {
 
       {feedback && (
         <div style={{ background: 'var(--green-bg)', color: 'var(--green-tx)', borderRadius: 8, padding: '10px 16px', marginBottom: 14, fontSize: 13, fontWeight: 600 }}>
-          ✓ {feedback}
+          <Check size={14} strokeWidth={2.6} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 4 }} />{feedback}
         </div>
       )}
 

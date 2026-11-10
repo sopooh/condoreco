@@ -1,5 +1,6 @@
 'use client'
 
+import { Check } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { feeBand, costPerSqm } from '@/lib/score'
@@ -205,7 +206,7 @@ export default function VivoQuiFlow({ open, onClose, building }) {
                       background: active ? 'var(--teal-lt)' : 'var(--white)',
                       color: active ? 'var(--teal-dk)' : 'var(--text-2)',
                       cursor: 'pointer', textAlign: 'left',
-                    }}>{active ? '✓ ' : ''}{l}</button>
+                    }}>{active && <Check size={14} strokeWidth={2.6} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 4 }} />}{l}</button>
                 )
               })}
             </div>

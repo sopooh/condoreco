@@ -1,5 +1,6 @@
 'use client'
 
+import { List, Map as MapIcon, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import AdminRow from '@/components/admins/AdminRow'
@@ -66,7 +67,7 @@ export default function AdminsResultsView({ admins, buildingsByAdmin, cities, fe
                 padding: '0 12px', height: 44, borderRadius: 8, border: '1px solid var(--border)',
                 background: showMap ? 'var(--teal-lt)' : 'var(--white)',
                 color: 'var(--teal-dk)', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-              }}>{showMap ? '📋' : '🗺️'}</button>
+              }} aria-label={showMap ? 'Mostra lista' : 'Mostra mappa'}>{showMap ? <List size={18} strokeWidth={2} aria-hidden="true" /> : <MapIcon size={18} strokeWidth={2} aria-hidden="true" />}</button>
             </div>
           ) : (
             <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
@@ -102,7 +103,7 @@ export default function AdminsResultsView({ admins, buildingsByAdmin, cities, fe
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <span style={{ fontSize: 16, fontWeight: 700 }}>Filtri</span>
-              <button onClick={() => setShowFilters(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-3)' }}>✕</button>
+              <button onClick={() => setShowFilters(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-3)' }}><X size={18} strokeWidth={2} aria-hidden="true" /></button>
             </div>
             <AdminFilterSidebar feeCounts={feeCounts} />
             <button onClick={() => setShowFilters(false)} style={{

@@ -1,5 +1,6 @@
 'use client'
 
+import { X } from 'lucide-react'
 import { useEffect } from 'react'
 
 export default function Modal({ open, onClose, title, subtitle, children }) {
@@ -29,7 +30,7 @@ export default function Modal({ open, onClose, title, subtitle, children }) {
           position: 'absolute', top: 16, right: 16, background: 'var(--bg)',
           border: 'none', borderRadius: '50%', width: 28, height: 28,
           fontSize: 14, color: 'var(--text-3)',
-        }}>✕</button>
+        }}><X size={18} strokeWidth={2} aria-hidden="true" /></button>
         {title && <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px' }}>{title}</div>}
         {subtitle && <div style={{ fontSize: 13, color: 'var(--text-4)', marginBottom: 24, fontWeight: 500 }}>{subtitle}</div>}
         {children}

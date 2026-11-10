@@ -1,5 +1,6 @@
 'use client'
 
+import { Search } from 'lucide-react'
 import { useState } from 'react'
 import { scoreColor } from '@/lib/score'
 import { photoUrl } from '@/lib/photos'
@@ -157,7 +158,7 @@ export default function ReviewSummary({ reviews, photos = [], subScores, onFilte
             <span style={{
               position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',
               fontSize: 14, color: 'var(--text-4)', pointerEvents: 'none',
-            }}>🔍</span>
+            }}><Search size={16} strokeWidth={2} aria-hidden="true" /></span>
             <input
               type="text"
               value={search}

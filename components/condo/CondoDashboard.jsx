@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronRight, MapPin, UserRound, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from '@/components/providers/SessionProvider'
@@ -239,7 +240,7 @@ function ChatArt() {
 
 /* ---- icone ---- */
 const ico = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', viewBox: '0 0 24 24', 'aria-hidden': true }
-function ChevronIcon() { return <svg {...ico} width={18} height={18} strokeWidth={2.4}><path d="M9 6l6 6-6 6" /></svg> }
-function PersonIcon() { return <svg {...ico} width={15} height={15}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0116 0" /></svg> }
-function GroupIcon() { return <svg {...ico} width={16} height={16}><circle cx="12" cy="8" r="3" /><path d="M6 20v-1a6 6 0 0112 0v1" /><circle cx="5" cy="10" r="2" /><circle cx="19" cy="10" r="2" /></svg> }
-function PinIcon() { return <svg {...ico} width={14} height={14}><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg> }
+function ChevronIcon({ size = 18 } = {}) { return <ChevronRight size={size} strokeWidth={2.4} aria-hidden="true" /> }
+function PersonIcon({ size = 15 } = {}) { return <UserRound size={size} strokeWidth={2} aria-hidden="true" /> }
+function GroupIcon({ size = 16 } = {}) { return <Users size={size} strokeWidth={2} aria-hidden="true" /> }
+function PinIcon({ size = 14 } = {}) { return <MapPin size={size} strokeWidth={2} aria-hidden="true" /> }

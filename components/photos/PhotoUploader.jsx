@@ -1,5 +1,6 @@
 'use client'
 
+import { Camera } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { processImageFile } from '@/lib/imageUtils'
 
@@ -87,7 +88,7 @@ export default function PhotoUploader({ files = [], onChange, maxFiles = 5 }) {
             <div style={{ fontSize: 13, color: 'var(--text-3)' }}>Elaborazione in corso...</div>
           ) : (
             <>
-              <div style={{ fontSize: 22, marginBottom: 4 }}>📷</div>
+              <div style={{ marginBottom: 4, display: 'flex', justifyContent: 'center', color: 'var(--teal)' }}><Camera size={22} strokeWidth={1.8} aria-hidden="true" /></div>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>
                 Aggiungi foto
               </div>

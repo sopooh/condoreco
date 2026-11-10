@@ -1,5 +1,6 @@
 'use client'
 
+import { X } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import AdminTable from './AdminTable.jsx'
 import { getAllUsers, updateUserStatus } from '@/lib/adminQueries'
@@ -90,7 +91,7 @@ export default function UsersAdminTable({ adminId }) {
           {(search || draftSearch) && (
             <button type="button" onClick={() => { setDraftSearch(''); setSearch(''); setPage(0) }}
               style={{ padding: '8px 14px', background: 'none', color: 'var(--text-3)', border: '1px solid var(--border)', borderRadius: 6, fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>
-              ✕
+              <X size={16} strokeWidth={2} aria-hidden="true" />
             </button>
           )}
         </form>

@@ -1,3 +1,4 @@
+import { Mail, Lock, Flag } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata = {
@@ -29,7 +30,7 @@ export default function Contacts() {
         <div className="legal-card">
 
           <section className="legal-section">
-            <div className="contacts-section-icon">✉</div>
+            <div className="contacts-section-icon"><Mail size={20} strokeWidth={1.9} aria-hidden="true" /></div>
             <h2 className="legal-section-title">Richieste generali</h2>
             <p className="legal-paragraph">
               Per informazioni, collaborazioni, problemi tecnici o domande sul funzionamento della piattaforma:
@@ -41,7 +42,7 @@ export default function Contacts() {
           </section>
 
           <section className="legal-section">
-            <div className="contacts-section-icon">🔒</div>
+            <div className="contacts-section-icon"><Lock size={20} strokeWidth={1.9} aria-hidden="true" /></div>
             <h2 className="legal-section-title">Privacy e dati personali</h2>
             <p className="legal-paragraph">
               Per richieste relative al trattamento dei dati personali, cancellazione account, esercizio dei diritti privacy o informazioni GDPR:
@@ -53,7 +54,7 @@ export default function Contacts() {
           </section>
 
           <section className="legal-section">
-            <div className="contacts-section-icon">⚑</div>
+            <div className="contacts-section-icon"><Flag size={20} strokeWidth={1.9} aria-hidden="true" /></div>
             <h2 className="legal-section-title">Segnalazioni contenuti</h2>
             <p className="legal-paragraph">
               Per contenuti potenzialmente falsi, offensivi, diffamatori, non pertinenti o lesivi della privacy:

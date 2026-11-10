@@ -1,5 +1,6 @@
 'use client'
 
+import { TriangleAlert, X } from 'lucide-react'
 import { useState } from 'react'
 import Link from 'next/link'
 import { REPORT_CATEGORIES, reportCategoryLabel } from '@/lib/reviewOptions'
@@ -181,7 +182,7 @@ function TicketForm({ onClose, onSubmit, onDone }) {
         <div style={{ width: 40, height: 5, borderRadius: 3, background: 'var(--border)', margin: '0 auto' }} />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: 19, fontWeight: 800 }}>Apri un ticket</div>
-          <button onClick={onClose} aria-label="Chiudi" style={{ width: 36, height: 36, minHeight: 0, borderRadius: '50%', border: 'none', background: 'var(--bg)', color: 'var(--text-3)', cursor: 'pointer' }}>✕</button>
+          <button onClick={onClose} aria-label="Chiudi" style={{ width: 36, height: 36, minHeight: 0, borderRadius: '50%', border: 'none', background: 'var(--bg)', color: 'var(--text-3)', cursor: 'pointer' }}><X size={18} strokeWidth={2} aria-hidden="true" /></button>
         </div>
         <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Es. Luce delle scale rotta al 3° piano" style={{ ...field, fontWeight: 600 }} />
         <div>
@@ -232,11 +233,4 @@ const reopenBtn = { ...smallPrimary, height: 40, background: 'var(--white)', col
 const field = { width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '11px 12px', fontSize: 15, fontFamily: 'inherit', boxSizing: 'border-box' }
 const fieldLabel = { fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginBottom: 6 }
 
-function AlertIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M10.3 3.9L2.4 17.6A2 2 0 004.1 20.6h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z" />
-      <path d="M12 9v4M12 17h.01" />
-    </svg>
-  )
-}
+function AlertIcon({ size = 20 } = {}) { return <TriangleAlert size={size} strokeWidth={2} aria-hidden="true" /> }

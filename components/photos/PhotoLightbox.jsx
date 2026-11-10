@@ -1,5 +1,6 @@
 'use client'
 
+import { X } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { photoUrl } from '@/lib/photos'
 
@@ -55,7 +56,7 @@ export default function PhotoLightbox({ photos, startIndex = 0, onClose }) {
           width: 44, height: 44, color: '#fff', fontSize: 20, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
-      >✕</button>
+      ><X size={18} strokeWidth={2} aria-hidden="true" /></button>
 
       {/* Contatore */}
       <div style={{

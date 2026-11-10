@@ -1,5 +1,6 @@
 'use client'
 
+import { Check } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { scoreColor, TRUST_BADGE } from '@/lib/score'
@@ -127,7 +128,7 @@ export default function ReviewCard({ review: r, categories, photos = [], table, 
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap', marginBottom: 4 }}>
               <Tag label={displayLabel} tone={verified ? 'teal' : badge.tone} />
               <TrustBars bars={verified ? 3 : badge.bars} tone={verified ? 'teal' : badge.tone} />
-              {verified && <span style={{ fontSize: 11, color: 'var(--teal)', fontWeight: 700 }}>✓ Verificato</span>}
+              {verified && <span style={{ fontSize: 11, color: 'var(--teal)', fontWeight: 700 }}><Check size={12} strokeWidth={2.6} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 4 }} />Verificato</span>}
               {isOwn && isPending && (
                 <span style={{
                   fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 4, display: 'inline-block',

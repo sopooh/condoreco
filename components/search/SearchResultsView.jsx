@@ -1,5 +1,6 @@
 'use client'
 
+import { EyeOff, Map as LMap, Maximize2, Minimize2, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import SearchBar from '@/components/search/SearchBar'
@@ -293,7 +294,7 @@ function FiltersDrawer({ feeCounts, onClose }) {
         <div className="fsheet-head">
           <h2>Filtri</h2>
           <button type="button" onClick={onClose} aria-label="Chiudi filtri" className="fsheet-close">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            <X size={26} strokeWidth={1.8} aria-hidden="true" />
           </button>
         </div>
         <FilterSidebar feeCounts={feeCounts} instant={false} onApplied={onClose} />
@@ -317,35 +318,10 @@ const floatingBtn = {
   display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
 }
 
-function ExpandIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
-    </svg>
-  )
-}
+function ExpandIcon({ size = 14 } = {}) { return <Maximize2 size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function CollapseIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 9h5V4M20 9h-5V4M4 15h5v5M20 15h-5v5" />
-    </svg>
-  )
-}
+function CollapseIcon({ size = 14 } = {}) { return <Minimize2 size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function EyeOffIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M17.94 17.94A10.94 10.94 0 0112 20c-6 0-10-6-10-6a19.6 19.6 0 015.06-5.94M9.9 4.24A10.4 10.4 0 0112 4c6 0 10 6 10 6a19.6 19.6 0 01-2.22 2.9M14.12 14.12a3 3 0 11-4.24-4.24M1 1l22 22" />
-    </svg>
-  )
-}
+function EyeOffIcon({ size = 14 } = {}) { return <EyeOff size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function MapIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z" />
-      <path d="M9 3v15M15 6v15" />
-    </svg>
-  )
-}
+function MapIcon({ size = 14 } = {}) { return <LMap size={size} strokeWidth={2} aria-hidden="true" /> }

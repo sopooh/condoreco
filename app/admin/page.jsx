@@ -1,5 +1,6 @@
 'use client'
 
+import { Lock } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -35,7 +36,7 @@ const BOTTOM_NAV = SECTIONS.slice(0, 5)
 function Unauthorized() {
   return (
     <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-      <div style={{ fontSize: 48, marginBottom: 20 }}>🔒</div>
+      <div style={{ marginBottom: 20, color: 'var(--teal)', display: 'flex', justifyContent: 'center' }}><Lock size={44} strokeWidth={1.6} aria-hidden="true" /></div>
       <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>Accesso non autorizzato</h1>
       <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24, textAlign: 'center', maxWidth: 360 }}>
         Non hai i permessi per accedere a questa pagina.

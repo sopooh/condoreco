@@ -1,5 +1,6 @@
 'use client'
 
+import { Star, Building2, UserRound, Flag, ClipboardList } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { getAdminLogs } from '@/lib/adminQueries'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -42,8 +43,9 @@ function fmtDateTime(iso) {
 }
 
 function ContentTypeIcon({ type }) {
-  const map = { review: '⭐', admin_review: '⭐', building: '🏢', user: '👤', report: '🚩' }
-  return <span>{map[type] || '·'}</span>
+  const map = { review: Star, admin_review: Star, building: Building2, user: UserRound, report: Flag }
+  const Icon = map[type]
+  return Icon ? <Icon size={16} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--teal)' }} /> : <span>·</span>
 }
 
 export default function AdminLogs() {
@@ -74,7 +76,7 @@ export default function AdminLogs() {
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-4)' }}>Caricamento log...</div>
       ) : rows.length === 0 ? (
         <div style={{ padding: 60, textAlign: 'center' }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>📋</div>
+          <div style={{ marginBottom: 12, color: 'var(--text-4)', display: 'flex', justifyContent: 'center' }}><ClipboardList size={36} strokeWidth={1.6} aria-hidden="true" /></div>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>Nessuna azione registrata</div>
           <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
             Le azioni di moderazione (approva, rifiuta, sospendi, ecc.) vengono registrate qui automaticamente.

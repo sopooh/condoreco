@@ -1,5 +1,6 @@
 'use client'
 
+import { Check, TriangleAlert, X } from 'lucide-react'
 import Link from 'next/link'
 import { scoreColor } from '@/lib/score'
 import BuildingRow from '@/components/buildings/BuildingRow'
@@ -55,7 +56,7 @@ export default function AdminRow({ admin: a, buildings = [], expanded, onToggle 
                 color: '#10B981', fontSize: 13, fontWeight: 700,
                 background: '#ECFDF5', borderRadius: '50%', width: 18, height: 18,
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }} title="Verificato">✓</span>
+              }} title="Verificato"><Check size={12} strokeWidth={3} aria-hidden="true" /></span>
             )}
           </div>
           <button
@@ -125,7 +126,7 @@ export default function AdminRow({ admin: a, buildings = [], expanded, onToggle 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {tags.map((t, i) => (
                   <span key={i} className={`tag ${t.tone}`}>
-                    {t.tone === 'green' ? '✓ ' : t.tone === 'amber' ? '⚠ ' : '✕ '}
+                    {t.tone === 'green' ? <Check size={12} strokeWidth={2.6} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 3 }} /> : t.tone === 'amber' ? <TriangleAlert size={12} strokeWidth={2.4} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 3 }} /> : <X size={12} strokeWidth={2.6} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 3 }} />}
                     {t.label}
                   </span>
                 ))}

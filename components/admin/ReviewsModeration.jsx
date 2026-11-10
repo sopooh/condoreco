@@ -1,5 +1,6 @@
 'use client'
 
+import { Star, Check } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import {
   getAllReviews, moderateReview, deleteReview,
@@ -75,7 +76,7 @@ function Stars({ score }) {
   return (
     <span>
       {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ color: i <= score ? '#F59E0B' : 'var(--border)', fontSize: 14 }}>★</span>
+        <Star key={i} size={14} aria-hidden="true" color={i <= score ? '#F59E0B' : 'var(--border)'} fill={i <= score ? '#F59E0B' : 'none'} />
       ))}
     </span>
   )
@@ -156,7 +157,7 @@ function ReviewCard({ review, source, onAction, busy }) {
           {review.moderation_status !== 'approved' && (
             <button onClick={() => onAction(review.id, 'approve', note)} disabled={busy}
               style={{ padding: '6px 12px', fontSize: 12, fontWeight: 700, background: 'var(--green-bg)', color: 'var(--green-tx)', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
-              ✓ Approva
+              <Check size={14} strokeWidth={2.6} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 4 }} />Approva
             </button>
           )}
           {review.moderation_status !== 'hidden' && (
@@ -266,7 +267,7 @@ export default function ReviewsModeration({ adminId }) {
 
       {feedback && (
         <div style={{ background: 'var(--green-bg)', color: 'var(--green-tx)', borderRadius: 8, padding: '10px 16px', marginBottom: 16, fontSize: 13, fontWeight: 600 }}>
-          ✓ {feedback}
+          <Check size={14} strokeWidth={2.6} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 4 }} />{feedback}
         </div>
       )}
 

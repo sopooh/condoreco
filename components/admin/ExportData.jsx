@@ -1,5 +1,6 @@
 'use client'
 
+import { Users, Building2, Star, Flag, Check } from 'lucide-react'
 import { useState } from 'react'
 import { exportUsers, exportBuildings, exportReviews, exportReports, downloadCSV } from '@/lib/adminQueries'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -11,7 +12,7 @@ function ExportCard({ title, description, icon, onExport, busy }) {
       padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 12,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span style={{ fontSize: 28 }}>{icon}</span>
+        <span style={{ color: 'var(--teal)', display: 'inline-flex' }}>{icon}</span>
         <div>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{title}</div>
           <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{description}</div>
@@ -61,7 +62,7 @@ export default function ExportData() {
       key: 'users',
       title: 'Utenti',
       description: 'ID, nome, email, ruolo, stato, data iscrizione',
-      icon: '👥',
+      icon: <Users size={28} strokeWidth={1.7} aria-hidden="true" />,
       fn: exportUsers,
       filename: `condoreco_utenti_${new Date().toISOString().slice(0, 10)}.csv`,
     },
@@ -69,7 +70,7 @@ export default function ExportData() {
       key: 'buildings',
       title: 'Condomini',
       description: 'ID, indirizzo, città, stato, visite, data aggiunta',
-      icon: '🏢',
+      icon: <Building2 size={28} strokeWidth={1.7} aria-hidden="true" />,
       fn: exportBuildings,
       filename: `condoreco_condomini_${new Date().toISOString().slice(0, 10)}.csv`,
     },
@@ -77,7 +78,7 @@ export default function ExportData() {
       key: 'reviews',
       title: 'Recensioni',
       description: 'ID, edificio, utente, punteggio, testo, stato moderazione',
-      icon: '⭐',
+      icon: <Star size={28} strokeWidth={1.7} aria-hidden="true" />,
       fn: exportReviews,
       filename: `condoreco_recensioni_${new Date().toISOString().slice(0, 10)}.csv`,
     },
@@ -85,7 +86,7 @@ export default function ExportData() {
       key: 'reports',
       title: 'Segnalazioni',
       description: 'ID, tipo contenuto, motivo, stato, data',
-      icon: '🚩',
+      icon: <Flag size={28} strokeWidth={1.7} aria-hidden="true" />,
       fn: exportReports,
       filename: `condoreco_segnalazioni_${new Date().toISOString().slice(0, 10)}.csv`,
     },
@@ -103,7 +104,7 @@ export default function ExportData() {
 
       {done && (
         <div style={{ background: 'var(--green-bg)', color: 'var(--green-tx)', borderRadius: 8, padding: '10px 16px', marginBottom: 20, fontSize: 13, fontWeight: 600 }}>
-          ✓ {done}
+          <Check size={14} strokeWidth={2.6} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 4 }} />{done}
         </div>
       )}
 

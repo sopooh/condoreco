@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowRight } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout'
@@ -146,7 +147,7 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540 })
             minWidth: isMobile ? 52 : 'auto',
           }}
         >
-          {isMobile ? '→' : 'Cerca'}
+          {isMobile ? <ArrowRight size={22} strokeWidth={2} aria-hidden="true" /> : 'Cerca'}
         </button>
       </form>
 

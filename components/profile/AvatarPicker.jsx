@@ -1,5 +1,6 @@
 'use client'
 
+import { TriangleAlert, Check, PawPrint, Camera, UserRound, FolderOpen } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { ANIMAL_AVATARS } from '@/lib/avatars'
 import Modal from '@/components/ui/Modal'
@@ -103,7 +104,7 @@ function CameraModal({ onCapture, onClose }) {
     }}>
       {error ? (
         <div style={{ color: '#FCA5A5', fontSize: 14, textAlign: 'center', maxWidth: 320 }}>
-          ⚠ {error}
+          <TriangleAlert size={14} strokeWidth={2.2} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 4 }} />{error}
           <br />
           <button onClick={handleClose} style={{ marginTop: 16, padding: '8px 20px', borderRadius: 8, border: 'none', background: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Chiudi</button>
         </div>
@@ -117,7 +118,7 @@ function CameraModal({ onCapture, onClose }) {
               Ritenta
             </button>
             <button onClick={confirm} style={{ padding: '11px 28px', borderRadius: 10, border: 'none', background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
-              ✓ Usa questa foto
+              <Check size={14} strokeWidth={2.6} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 4 }} />Usa questa foto
             </button>
           </div>
         </>
@@ -194,12 +195,13 @@ export default function AvatarPicker({ open, onClose, current, onSelect, onSelec
 
         {/* Tab selector */}
         <div style={{ display: 'flex', borderRadius: 8, border: '1px solid var(--border)', overflow: 'hidden', marginBottom: 20 }}>
-          {[['animals', '🐾 Animali'], ['photo', '📷 Foto personale']].map(([key, label]) => (
+          {[['animals', 'Animali', PawPrint], ['photo', 'Foto personale', Camera]].map(([key, label, TabIcon]) => (
             <button key={key} onClick={() => setTab(key)} style={{
               flex: 1, padding: '10px 0', fontSize: 13, fontWeight: 600, cursor: 'pointer',
               border: 'none', background: tab === key ? 'var(--teal)' : 'var(--white)',
               color: tab === key ? '#fff' : 'var(--text-3)',
-            }}>{label}</button>
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}><TabIcon size={16} strokeWidth={2} aria-hidden="true" />{label}</button>
           ))}
         </div>
 
@@ -238,7 +240,7 @@ export default function AvatarPicker({ open, onClose, current, onSelect, onSelec
                   <button onClick={confirmPhoto} style={{
                     padding: '9px 24px', borderRadius: 8, border: 'none',
                     background: 'var(--teal)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                  }}>✓ Usa questa foto</button>
+                  }}><Check size={14} strokeWidth={2.6} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 4 }} />Usa questa foto</button>
                 </div>
               </>
             ) : (
@@ -248,7 +250,7 @@ export default function AvatarPicker({ open, onClose, current, onSelect, onSelec
                   background: 'var(--bg)', display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center', gap: 6, color: 'var(--text-4)',
                 }}>
-                  <span style={{ fontSize: 32 }}>👤</span>
+                  <UserRound size={32} strokeWidth={1.6} aria-hidden="true" />
                   <span style={{ fontSize: 11 }}>Nessuna foto</span>
                 </div>
 
@@ -259,7 +261,7 @@ export default function AvatarPicker({ open, onClose, current, onSelect, onSelec
                     background: 'var(--teal-lt)', color: 'var(--teal-dk)', fontSize: 13,
                     fontWeight: 600, cursor: 'pointer',
                   }}>
-                    {loading ? 'Caricamento...' : '📁 Carica foto'}
+                    {loading ? 'Caricamento...' : <><FolderOpen size={16} strokeWidth={2} aria-hidden="true" style={{ verticalAlign: '-3px', marginRight: 6 }} />Carica foto</>}
                     <input type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
                   </label>
 
@@ -269,7 +271,7 @@ export default function AvatarPicker({ open, onClose, current, onSelect, onSelec
                     background: '#fff', color: 'var(--text-2)', fontSize: 13,
                     fontWeight: 600, cursor: 'pointer',
                   }}>
-                    📷 Scatta foto
+                    <Camera size={16} strokeWidth={2} aria-hidden="true" style={{ verticalAlign: '-3px', marginRight: 6 }} />Scatta foto
                   </button>
                 </div>
 

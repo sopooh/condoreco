@@ -1,5 +1,6 @@
 'use client'
 
+import { Building2, Camera, ChevronRight, History, House, Map as LMap, MessageSquare, Pencil, Plus, ShieldCheck, Sparkles, UserRound, Users, Zap } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Avatar from '@/components/ui/Avatar'
@@ -289,55 +290,17 @@ export default function ProfileClient() {
   )
 }
 
-function ShieldCheckIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z" />
-      <path d="M9 12l2 2 4-4" />
-    </svg>
-  )
-}
+function ShieldCheckIcon({ size = 14 } = {}) { return <ShieldCheck size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function StarIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z" />
-    </svg>
-  )
-}
+function StarIcon({ size = 14 } = {}) { return <Sparkles size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function ReviewIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-    </svg>
-  )
-}
+function ReviewIcon({ size = 14 } = {}) { return <MessageSquare size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function CameraIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M4 8a2 2 0 012-2h1l1.5-2h7L17 6h1a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8z" />
-      <circle cx="12" cy="13" r="3.5" />
-    </svg>
-  )
-}
+function CameraIcon({ size = 14 } = {}) { return <Camera size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function ChevronRightIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M9 6l6 6-6 6" />
-    </svg>
-  )
-}
+function ChevronRightIcon({ size = 16 } = {}) { return <ChevronRight size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function HouseIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M4 10l8-6 8 6v9a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9z" />
-    </svg>
-  )
-}
+function HouseIcon({ size = 16 } = {}) { return <House size={size} strokeWidth={2} aria-hidden="true" /> }
 
 function SectionTitle({ children, icon }) {
   return (
@@ -366,36 +329,11 @@ function ActionRow({ href, icon, label, last = false }) {
   )
 }
 
-function BuildingIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="4" y="3" width="11" height="18" rx="1" />
-      <path d="M15 9h4a1 1 0 011 1v11h-5" />
-      <path d="M8 7h1M11 7h1M8 11h1M11 11h1M8 15h1M11 15h1M9 21v-3h2v3" />
-    </svg>
-  )
-}
+function BuildingIcon({ size = 18 } = {}) { return <Building2 size={size} strokeWidth={1.8} aria-hidden="true" /> }
 
-function MapIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" />
-      <path d="M9 4v14M15 6v14" />
-    </svg>
-  )
-}
+function MapIcon({ size = 18 } = {}) { return <LMap size={size} strokeWidth={1.8} aria-hidden="true" /> }
 
-function UsersIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="8" r="3" />
-      <path d="M6 20v-1a6 6 0 0112 0v1" />
-      <circle cx="5" cy="10" r="2" />
-      <circle cx="19" cy="10" r="2" />
-      <path d="M2 19v-.5A3.5 3.5 0 015 15M22 19v-.5A3.5 3.5 0 0019 15" />
-    </svg>
-  )
-}
+function UsersIcon({ size = 18 } = {}) { return <Users size={size} strokeWidth={1.8} aria-hidden="true" /> }
 
 function InfoRow({ label, value, last = false }) {
   return (
@@ -409,45 +347,12 @@ function InfoRow({ label, value, last = false }) {
   )
 }
 
-function PencilIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 20h4L19 9l-4-4L4 16v4z" />
-      <path d="M14 6l4 4" />
-    </svg>
-  )
-}
+function PencilIcon({ size = 14 } = {}) { return <Pencil size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function PlusIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true">
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  )
-}
+function PlusIcon({ size = 12 } = {}) { return <Plus size={size} strokeWidth={3} aria-hidden="true" /> }
 
-function HistoryIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M3 12a9 9 0 103-6.7L3 8" />
-      <path d="M3 3v5h5M12 7v5l3 2" />
-    </svg>
-  )
-}
+function HistoryIcon({ size = 16 } = {}) { return <History size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function BoltIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" />
-    </svg>
-  )
-}
+function BoltIcon({ size = 16 } = {}) { return <Zap size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function PersonIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21v-1a7 7 0 0114 0v1" />
-    </svg>
-  )
-}
+function PersonIcon({ size = 16 } = {}) { return <UserRound size={size} strokeWidth={2} aria-hidden="true" /> }

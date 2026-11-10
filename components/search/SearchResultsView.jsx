@@ -8,7 +8,7 @@ import FilterSidebar from '@/components/search/FilterSidebar'
 import BuildingRow from '@/components/buildings/BuildingRow'
 import ResultsMap from '@/components/map/ResultsMap'
 import MapLegend from '@/components/map/MapLegend'
-import { DesktopMapPreview, MobileMapPreview } from '@/components/map/BuildingMapPreview'
+import { DesktopMapPreview } from '@/components/map/BuildingMapPreview'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
 const NAVBAR_HEIGHT = 58 // components/nav/Navbar.jsx
@@ -49,13 +49,24 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
     }
   }, [mapState])
 
+  // Pin toccato: si porta in vista la scheda di quella casa nella lista sotto,
+  // tenendo conto del blocco sticky (navbar + ricerca + mappa) che la coprirebbe.
+  const [focusTick, setFocusTick] = useState(0)
   useEffect(() => {
     if (!highlightedId || mapState !== 'compact') return
     const el = document.getElementById(`building-row-${highlightedId}`)
-    // scroll programmatico verso la scheda del pin cliccato: non deve chiudere la mappa
+    if (!el) return
+    // scroll programmatico: non deve chiudere la mappa
     ignoreScrollUntilRef.current = Date.now() + 1200
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }, [highlightedId, mapState])
+    // in fullscreen -> compact il blocco sticky si sta ancora ridimensionando
+    const t = setTimeout(() => {
+      const stickyH = stickyRef.current?.getBoundingClientRect().height || 0
+      const top = el.getBoundingClientRect().top + window.scrollY - NAVBAR_HEIGHT - stickyH - 12
+      ignoreScrollUntilRef.current = Date.now() + 1200
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+    }, 320)
+    return () => clearTimeout(t)
+  }, [highlightedId, mapState, focusTick])
 
   // Chiusura automatica: ogni volta che la mappa è compatta e si scorre
   // verso il basso di almeno AUTO_HIDE_AFTER_PX rispetto al punto in cui
@@ -82,8 +93,15 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
   }, [mapState])
 
   function handleMarkerClick(building) {
-    setSelectedBuilding(building)
     setHighlightedId(building.id)
+    setFocusTick(t => t + 1)
+    if (isMobile) {
+      // su mobile niente popup sopra la mappa: si mostra la scheda nella lista
+      setSelectedBuilding(null)
+      if (mapState === 'fullscreen') setMapState('compact')
+    } else {
+      setSelectedBuilding(building)
+    }
   }
 
   const showFiltriButton = isMobile || mapState === 'fullscreen'
@@ -177,10 +195,8 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
                 </div>
               )}
 
-              {selectedBuilding && (
-                isMobile
-                  ? <MobileMapPreview building={selectedBuilding} onClose={() => setSelectedBuilding(null)} />
-                  : <DesktopMapPreview building={selectedBuilding} onClose={() => setSelectedBuilding(null)} />
+              {selectedBuilding && !isMobile && (
+                <DesktopMapPreview building={selectedBuilding} onClose={() => setSelectedBuilding(null)} />
               )}
             </>
           )}

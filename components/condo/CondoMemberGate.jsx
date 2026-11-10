@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession } from '@/components/providers/SessionProvider'
+import { useSession, useSessionReady } from '@/components/providers/SessionProvider'
 import { useCondoRole } from '@/hooks/useCondoRole'
 import { getVerification } from '@/lib/residenceVerification'
 import ResidenceVerificationPrompt from '@/components/condo/ResidenceVerificationPrompt'
@@ -16,6 +16,7 @@ export default function CondoMemberGate({ building, children }) {
   const buildingId = building.id
   const router = useRouter()
   const session = useSession()
+  const sessionReady = useSessionReady()
   const userId = session?.user?.id
   const { isMember, loading } = useCondoRole(buildingId)
 
@@ -39,6 +40,14 @@ export default function CondoMemberGate({ building, children }) {
       router.replace(`/edificio/${buildingId}/condominio/verifica`)
     }
   }, [loading, isMember, mockStatus, buildingId, router])
+
+  if (!sessionReady) {
+    return (
+      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-4)', fontSize: 14 }}>
+        Verifica accesso...
+      </div>
+    )
+  }
 
   if (!session) {
     return (

@@ -72,6 +72,7 @@ export const config = {
     '/edificio/:id/condominio/decisioni/:path*',
     '/edificio/:id/condominio/interventi',
     '/edificio/:id/condominio/bacheca',
+    '/edificio/:id/condominio/archivio',
     '/edificio/:id/condominio/chat',
   ],
 }

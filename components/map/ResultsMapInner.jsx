@@ -4,11 +4,50 @@ import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { scoreColor } from '@/lib/score'
+import { scoreHex } from '@/lib/score'
 import { addBaseTileLayer } from '@/lib/mapTiles'
 
 const DEFAULT_CENTER = [45.4642, 9.19] // Milano
 const DEFAULT_ZOOM = 12
+const CLUSTER_RADIUS_PX = 56
+
+// Raggruppa i risultati i cui pin, allo zoom corrente, cadrebbero a meno di
+// CLUSTER_RADIUS_PX l'uno dall'altro (greedy, sufficiente per decine di pin).
+function clusterByPixel(map, pts) {
+  const groups = []
+  pts.forEach((r) => {
+    const p = map.latLngToLayerPoint([r.lat, r.lng])
+    const near = groups.find((g) => g.anchor.distanceTo(p) < CLUSTER_RADIUS_PX)
+    if (near) near.items.push(r)
+    else groups.push({ anchor: p, items: [r] })
+  })
+  return groups.map((g) => g.items)
+}
+
+// Pin singolo: pallino colorato col voto (stessi colori della legenda) e,
+// se nota, la quota mensile in chiaro accanto. Mai due etichette sovrapposte.
+function pinIcon(r) {
+  const score = r.score == null ? null : Number(r.score)
+  const color = scoreHex(score)
+  const scoreText = score == null ? 'N/D' : score.toFixed(1)
+  const fee = Number(r.monthly_fee)
+  const feeText = Number.isFinite(fee) && fee > 0 ? `€${Math.round(fee)}/mese` : ''
+  const pending = r.status === 'pending'
+  const html = `
+    <div style="position:absolute;left:0;top:0;transform:translate(-50%,-100%);display:inline-flex;align-items:center;gap:6px;background:#fff;border:2px solid ${color};${pending ? 'border-style:dashed;' : ''}border-radius:999px;padding:2px ${feeText ? 10 : 2}px 2px 2px;box-shadow:0 2px 8px rgba(0,0,0,.22);white-space:nowrap;font-family:inherit;cursor:pointer">
+      <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 6px;border-radius:999px;background:${color};color:#fff;font-size:12px;font-weight:800">${scoreText}</span>
+      ${feeText ? `<span style="font-size:12px;font-weight:700;color:#1F2937">${feeText}</span>` : ''}
+    </div>`
+  return L.divIcon({ className: '', html, iconSize: [0, 0] })
+}
+
+// Gruppo di pin vicini: cerchio teal con il numero di edifici; al click zooma.
+function clusterIcon(count) {
+  const size = count < 10 ? 36 : 42
+  const html = `
+    <div style="position:absolute;left:0;top:0;transform:translate(-50%,-50%);width:${size}px;height:${size}px;border-radius:50%;background:#0D676F;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;border:3px solid #fff;box-shadow:0 0 0 4px rgba(13,103,111,.25),0 2px 8px rgba(0,0,0,.25);cursor:pointer">${count}</div>`
+  return L.divIcon({ className: '', html, iconSize: [0, 0] })
+}
 
 // Mappa condivisa per le liste di risultati (Esplora, Amministratori): stesso
 // container/altezza, tile layer, logica di fit-bounds e stile dei pin per
@@ -40,21 +79,43 @@ export default function ResultsMapInner({
     const map = L.map(containerRef.current, {
       scrollWheelZoom: interactiveInitRef.current,
       zoomControl: false,
+      zoomSnap: 0.25,
     }).setView(DEFAULT_CENTER, DEFAULT_ZOOM)
     L.control.zoom({ position: 'bottomright' }).addTo(map)
-    addBaseTileLayer(map)
+    addBaseTileLayer(map, 'minimal')
     mapRef.current = map
     layerRef.current = L.layerGroup().addTo(map)
     return () => { map.remove(); mapRef.current = null }
   }, [])
 
+  // Inquadratura sugli edifici in elenco. Finché l'utente non ha spostato o
+  // zoomato la mappa a mano, viene ricalcolata a ogni resize del container:
+  // su mobile il primo fit avveniva prima che il container avesse la misura
+  // definitiva (o con altezza 0 se la mappa era chiusa), e la mappa finiva
+  // fuori dai pin.
+  const fitRef = useRef(() => {})
+  const userMovedRef = useRef(false)
+  const programmaticRef = useRef(false)
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const markUser = () => { if (!programmaticRef.current) userMovedRef.current = true }
+    map.on('dragstart', markUser)
+    map.on('zoomstart', markUser)
+    return () => { map.off('dragstart', markUser); map.off('zoomstart', markUser) }
+  }, [])
+
   // riadatta i tile quando il container cambia dimensione (transizione
-  // compact/fullscreen/hidden), senza toccare centro/zoom/marker.
+  // compact/fullscreen/hidden) e, se l'utente non ha mosso la mappa, rifà il fit.
   useEffect(() => {
     const map = mapRef.current
     const el = containerRef.current
     if (!map || !el || typeof ResizeObserver === 'undefined') return
-    const ro = new ResizeObserver(() => map.invalidateSize())
+    const ro = new ResizeObserver(() => {
+      map.invalidateSize()
+      if (el.clientHeight > 40 && !userMovedRef.current) fitRef.current()
+    })
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
@@ -68,46 +129,82 @@ export default function ResultsMapInner({
     else map.scrollWheelZoom.disable()
   }, [interactive])
 
-  // aggiorna i pin quando cambiano i risultati
+  // I genitori ricreano l'array results a ogni render (es. click su un pin):
+  // l'effetto dipende da una firma dei dati, non dall'identità dell'array,
+  // cosi l'inquadratura non viene rifatta senza un vero cambio di risultati.
+  const resultsRef = useRef(results)
+  useEffect(() => { resultsRef.current = results })
+  const resultsSig = results
+    .map((r) => `${r.id}:${r.lat}:${r.lng}:${r.score}:${r.monthly_fee}:${r.status}`)
+    .join('|')
+
+  // aggiorna i pin quando cambiano i risultati, e li ri-raggruppa a ogni zoom
   useEffect(() => {
     const map = mapRef.current
     const layer = layerRef.current
     if (!map || !layer) return
-    layer.clearLayers()
 
-    const pts = results.filter((r) => r.lat && r.lng)
-    pts.forEach((r) => {
-      const pending = r.status === 'pending'
-      const monthlyFee = Number(r.monthly_fee)
-      const hasFee = Number.isFinite(monthlyFee) && monthlyFee > 0
-      const label = hasFee ? `€${Math.round(monthlyFee)}` : (pending ? 'In verifica' : (r.score?.toFixed(1) ?? 'N'))
-      const color = hasFee || pending ? '#E8651A' : scoreColor(r.score)
-      const icon = L.divIcon({
-        className: '',
-        html: `<div style="display:inline-flex;align-items:center;gap:6px;background:${color};color:#fff;border-radius:14px;padding:4px 10px;font-size:12px;font-weight:800;white-space:nowrap;box-shadow:0 2px 10px rgba(0,0,0,.28);border:2px solid #fff">${label}${hasFee ? '<span style=\"opacity:.9;font-weight:700\">/mese</span>' : ''}</div>`,
-        iconSize: [0, 0],
-      })
-      const m = L.marker([r.lat, r.lng], { icon }).addTo(layer)
-      m.on('click', () => {
-        if (onResultSelectRef.current) onResultSelectRef.current(r)
-        else if (r.href) router.push(r.href)
-      })
-    })
+    const pts = resultsRef.current.filter((r) => Number.isFinite(Number(r.lat)) && Number.isFinite(Number(r.lng)) && r.lat && r.lng)
 
-    // Con più edifici (tipicamente una ricerca città: "Milano", "Roma"...) la
-    // mappa si adatta a tutti i risultati — è quello che rende una ricerca
-    // città un vero fitBounds sull'area, non uno zoom fisso su un punto.
-    // Il punto OSM cercato (focusLat/focusLng) resta solo un fallback per i
-    // casi con 0-1 risultato, dove non c'è un gruppo di pin su cui adattarsi.
-    if (pts.length > 1) {
-      const group = L.featureGroup(pts.map((r) => L.marker([r.lat, r.lng])))
-      map.fitBounds(group.getBounds().pad(0.25))
-    } else if (pts.length === 1) {
-      map.setView([pts[0].lat, pts[0].lng], 15)
-    } else if (focusLat && focusLng) {
-      map.setView([focusLat, focusLng], 13)
+    const select = (r) => {
+      if (onResultSelectRef.current) onResultSelectRef.current(r)
+      else if (r.href) router.push(r.href)
     }
-  }, [results, router, focusLat, focusLng])
+
+    const render = () => {
+      layer.clearLayers()
+      clusterByPixel(map, pts).forEach((group) => {
+        if (group.length === 1) {
+          const r = group[0]
+          L.marker([r.lat, r.lng], { icon: pinIcon(r), riseOnHover: true })
+            .on('click', () => select(r))
+            .addTo(layer)
+          return
+        }
+        const bounds = L.latLngBounds(group.map((r) => [r.lat, r.lng]))
+        L.marker(bounds.getCenter(), { icon: clusterIcon(group.length), riseOnHover: true })
+          .on('click', () => {
+            // stesso indirizzo (o gia' al massimo zoom): niente da separare,
+            // si apre il primo edificio del gruppo
+            const sameSpot = bounds.getNorthEast().equals(bounds.getSouthWest())
+            if (sameSpot || map.getZoom() >= map.getMaxZoom() - 1) select(group[0])
+            else map.fitBounds(bounds, { padding: [60, 60], maxZoom: 17 })
+          })
+          .addTo(layer)
+      })
+    }
+
+    // Con più edifici la mappa si adatta a tutti i risultati. Padding in pixel
+    // + zoomSnap frazionario: niente salti a uno zoom intero troppo largo.
+    // Il punto cercato (focusLat/focusLng) resta un fallback per 0 risultati.
+    fitRef.current = () => {
+      const el = containerRef.current
+      if (!el || el.clientHeight <= 40) return // mappa chiusa: si rifà al resize
+      programmaticRef.current = true
+      if (pts.length > 1) {
+        // in alto c'e' la fascia dei bottoni flottanti (Nascondi/Apri mappa):
+        // margine extra perche' nessun pin finisca sotto
+        const pad = Math.min(40, Math.round(Math.min(el.clientWidth, el.clientHeight) / 7))
+        map.fitBounds(L.latLngBounds(pts.map((r) => [r.lat, r.lng])), {
+          paddingTopLeft: [pad, pad + 56], paddingBottomRight: [pad, pad], maxZoom: 16, animate: false,
+        })
+      } else if (pts.length === 1) {
+        map.setView([pts[0].lat, pts[0].lng], 15, { animate: false })
+      } else if (focusLat && focusLng) {
+        map.setView([focusLat, focusLng], 13, { animate: false })
+      }
+      programmaticRef.current = false
+    }
+
+    // nuovi risultati (cambio città/filtri): si torna a inquadrare l'elenco
+    userMovedRef.current = false
+    map.invalidateSize()
+    fitRef.current()
+
+    render()
+    map.on('zoomend', render)
+    return () => { map.off('zoomend', render) }
+  }, [resultsSig, router, focusLat, focusLng])
 
   return (
     <div

@@ -14,14 +14,16 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 const NAVBAR_HEIGHT = 58 // components/nav/Navbar.jsx
 const COMPACT_MAP_HEIGHT = 280
 const TRANSITION = '280ms ease'
+const AUTO_HIDE_AFTER_PX = 24   // scroll verso il basso oltre cui la mappa si chiude (solo la prima volta)
 
 // Esplora: preview mappa in alto (sticky sotto navbar+search) + schede sotto,
 // stile Booking. Un'unica istanza Leaflet resta sempre montata — mapState
 // ('compact' | 'fullscreen' | 'hidden') ridimensiona solo il container, non
 // la ricrea mai: centro/zoom/marker restano intatti a ogni cambio stato
-// (vedi ResizeObserver in ResultsMapInner). Il cambio di stato avviene solo
-// via bottoni ("Apri mappa" / "Riduci mappa" / "Nascondi mappa" / "Mostra
-// mappa"), niente gesti di scroll/touch sopra la mappa.
+// (vedi ResizeObserver in ResultsMapInner). Si cambia stato con i bottoni
+// ("Apri mappa" / "Riduci mappa" / "Nascondi mappa" / "Mostra mappa"); in
+// più, solo la prima volta, scorrendo la lista verso il basso la mappa
+// compatta si chiude da sola. Riaprirla è sempre e solo col bottone.
 export default function SearchResultsView({ buildings, cities, feeCounts, query, city, focusLat, focusLng }) {
   const isMobile = useIsMobile()
   const [mapState, setMapState] = useState('compact')
@@ -29,6 +31,8 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
   const [selectedBuilding, setSelectedBuilding] = useState(null)
   const [highlightedId, setHighlightedId] = useState(null)
   const stickyRef = useRef(null)
+  const autoCollapseUsedRef = useRef(false)
+  const ignoreScrollUntilRef = useRef(0)
 
   const results = buildings.map((b) => ({ ...b, href: `/edificio/${b.id}` }))
 
@@ -49,8 +53,31 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
   useEffect(() => {
     if (!highlightedId || mapState !== 'compact') return
     const el = document.getElementById(`building-row-${highlightedId}`)
+    // scroll programmatico verso la scheda del pin cliccato: non deve chiudere la mappa
+    ignoreScrollUntilRef.current = Date.now() + 1200
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [highlightedId, mapState])
+
+  // Chiusura automatica: solo la prima volta che si scorre la lista verso il
+  // basso. Dopo, mappa aperta/chiusa solo con i bottoni, nessun gesto la
+  // riapre o la richiude.
+  useEffect(() => {
+    if (mapState !== 'compact' || autoCollapseUsedRef.current) return
+    let lastY = window.scrollY
+    const onScroll = () => {
+      const y = window.scrollY
+      const goingDown = y > lastY
+      lastY = y
+      if (Date.now() < ignoreScrollUntilRef.current) return
+      if (goingDown && y > AUTO_HIDE_AFTER_PX) {
+        autoCollapseUsedRef.current = true
+        setSelectedBuilding(null)
+        setMapState('hidden')
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [mapState])
 
   function handleMarkerClick(building) {
     setSelectedBuilding(building)
@@ -114,7 +141,7 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
             <>
               <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 500, display: 'flex', gap: 8 }}>
                 {mapState === 'compact' && (
-                  <button onClick={() => setMapState('hidden')} style={floatingBtn}>
+                  <button onClick={() => { autoCollapseUsedRef.current = true; setMapState('hidden') }} style={floatingBtn}>
                     <EyeOffIcon /> Nascondi mappa
                   </button>
                 )}

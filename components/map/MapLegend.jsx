@@ -1,13 +1,15 @@
-// Legenda condivisa tra la mappa di Esplora e quella di Amministratori: stessi
-// 4 colori usati da MapViewInner per colorare i pin (scoreColor + arancio per
-// quota/in verifica), cosi le due pagine mostrano la mappa nello stesso modo.
+import { SCORE_TIERS, NO_SCORE_COLOR } from '@/lib/score'
+
+// Legenda condivisa tra la mappa di Esplora e quella di Amministratori.
+// Colori e soglie arrivano da SCORE_TIERS (lib/score.js), gli stessi usati
+// da ResultsMapInner per colorare i pin.
 export default function MapLegend() {
   return (
     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-      <MapLegendDot color="#0D676F" label="Ottima (4.3+)" />
-      <MapLegendDot color="#F59E0B" label="Media (3.5–4.2)" />
-      <MapLegendDot color="#EF4444" label="Da migliorare" />
-      <MapLegendDot color="#9CA3AF" label="Nessun rating" />
+      {SCORE_TIERS.map((t) => (
+        <MapLegendDot key={t.label} color={t.color} label={t.label} />
+      ))}
+      <MapLegendDot color={NO_SCORE_COLOR} label="Nessun rating" />
     </div>
   )
 }

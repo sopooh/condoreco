@@ -56,7 +56,8 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // Area condominio: /edificio/[id]/condominio, calendario e decisioni.
+  // Area condominio: /edificio/[id]/condominio e le sue sezioni (calendario,
+  // decisioni, interventi, bacheca, chat).
   // Il check di login sopra (righe 38-40) è già sufficiente qui — la verifica
   // dell'appartenenza è delegata a CondoMemberGate lato client (vedi commento
   // in testa al file).
@@ -69,5 +70,8 @@ export const config = {
     '/edificio/:id/condominio',
     '/edificio/:id/condominio/calendario',
     '/edificio/:id/condominio/decisioni/:path*',
+    '/edificio/:id/condominio/interventi',
+    '/edificio/:id/condominio/bacheca',
+    '/edificio/:id/condominio/chat',
   ],
 }

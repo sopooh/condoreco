@@ -33,7 +33,7 @@ export function FloorPicker({ building, value, onChange, counts }) {
               color: on ? '#fff' : 'var(--text)', fontWeight: 800, fontSize: 15,
             }}>
               {f}
-              {counts && <span style={{ fontSize: 10, fontWeight: 600, opacity: 0.8 }}>{c ? `${c} res.` : '·'}</span>}
+              {c > 0 && <span style={{ fontSize: 10, fontWeight: 600, opacity: 0.8 }}>{c} res.</span>}
             </button>
           )
         })}
@@ -175,9 +175,11 @@ export function NoticeForm({ building, myFloor, floorCounts, saveFloor, sendNoti
         {target === 'floor' && (
           <>
             <FloorPicker building={building} value={floor} onChange={pickFloor} counts={floorCounts} />
-            <p style={{ fontSize: 12.5, color: 'var(--text-3)', margin: '8px 0 0' }}>
-              Sotto ogni piano: quanti residenti l&apos;hanno indicato su Condoreco.
-            </p>
+            {Object.keys(floorCounts || {}).length > 0 && (
+              <p style={{ fontSize: 12.5, color: 'var(--text-3)', margin: '8px 0 0' }}>
+                Sotto il piano: quanti residenti l&apos;hanno indicato su Condoreco.
+              </p>
+            )}
           </>
         )}
       </div>

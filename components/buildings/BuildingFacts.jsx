@@ -25,7 +25,7 @@ export default function BuildingFacts({ building }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', columnGap: 16, rowGap: 20 }}>
         {FACTS.map(({ key, label, icon: Icon, get }) => (
           <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-            <div style={{ width: 26, height: 26, color: 'var(--teal-dk)', flexShrink: 0 }}><Icon /></div>
+            <div style={{ width: 26, height: 26, color: 'var(--teal-dk)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={24} /></div>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 500, marginBottom: 2, whiteSpace: 'nowrap' }}>{label}</div>
               <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-2)' }}>{get(building) ?? 'N/D'}</div>
@@ -42,24 +42,24 @@ function boolLabel(v) {
   return v ? 'Sì' : 'No'
 }
 
-function CoinsIcon({ size = 100 } = {}) { return <Coins size={size} strokeWidth={2} aria-hidden="true" /> }
+function CoinsIcon({ size = 24 } = {}) { return <Coins size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function BuildingIcon({ size = 100 } = {}) { return <House size={size} strokeWidth={2} aria-hidden="true" /> }
+function BuildingIcon({ size = 24 } = {}) { return <House size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function StairsIcon({ size = 100 } = {}) { return <ChartNoAxesColumnIncreasing size={size} strokeWidth={2} aria-hidden="true" /> }
+function StairsIcon({ size = 24 } = {}) { return <ChartNoAxesColumnIncreasing size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function UnitsIcon({ size = 100 } = {}) { return <LayoutGrid size={size} strokeWidth={2} aria-hidden="true" /> }
+function UnitsIcon({ size = 24 } = {}) { return <LayoutGrid size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function ElevatorIcon({ size = 100 } = {}) { return <ArrowUpDown size={size} strokeWidth={2} aria-hidden="true" /> }
+function ElevatorIcon({ size = 24 } = {}) { return <ArrowUpDown size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function ConciergeIcon({ size = 100 } = {}) { return <ConciergeBell size={size} strokeWidth={2} aria-hidden="true" /> }
+function ConciergeIcon({ size = 24 } = {}) { return <ConciergeBell size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function ParkingIcon({ size = 100 } = {}) { return <SquareParking size={size} strokeWidth={2} aria-hidden="true" /> }
+function ParkingIcon({ size = 24 } = {}) { return <SquareParking size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function GardenIcon({ size = 100 } = {}) { return <Sprout size={size} strokeWidth={2} aria-hidden="true" /> }
+function GardenIcon({ size = 24 } = {}) { return <Sprout size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function TerraceIcon({ size = 100 } = {}) { return <Sun size={size} strokeWidth={2} aria-hidden="true" /> }
+function TerraceIcon({ size = 24 } = {}) { return <Sun size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function HeatingIcon({ size = 100 } = {}) { return <Flame size={size} strokeWidth={2} aria-hidden="true" /> }
+function HeatingIcon({ size = 24 } = {}) { return <Flame size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function BroomIcon({ size = 100 } = {}) { return <Brush size={size} strokeWidth={2} aria-hidden="true" /> }
+function BroomIcon({ size = 24 } = {}) { return <Brush size={size} strokeWidth={2} aria-hidden="true" /> }

@@ -1,3 +1,5 @@
+import { AdminIcon } from './AdminIcons'
+
 // Le sezioni arrivano come prop dal genitore (app/admin/page.jsx), che è
 // l'unica fonte di verità: nel progetto sorgente questo file duplicava un
 // proprio SECTIONS a 8 voci, disallineato da quello a 9 voci della pagina
@@ -15,7 +17,7 @@ export default function AdminSidebar({ sections, active, onSelect, adminEmail })
     }}>
       <div style={{ padding: '20px 16px 12px', borderBottom: '1px solid var(--border-2)' }}>
         <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--teal)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-          Admin Dashboard
+          Area Admin
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>CondoReco</div>
       </div>
@@ -35,7 +37,7 @@ export default function AdminSidebar({ sections, active, onSelect, adminEmail })
               borderLeft: active === s.id ? '3px solid var(--teal)' : '3px solid transparent',
             }}
           >
-            <span style={{ fontSize: 14, width: 18, textAlign: 'center' }}>{s.icon}</span>
+            <AdminIcon name={s.icon} size={18} />
             {s.label}
           </button>
         ))}

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useSession } from '@/components/providers/SessionProvider'
+import { useSession, useSessionReady } from '@/components/providers/SessionProvider'
 
 // Ruolo condominiale dell'utente corrente per un building.
 // Cache a livello di modulo: piu' componenti possono usare questo hook
 // sullo stesso building senza ripetere la query.
 const roleCache = new Map() // chiave: `${buildingId}:${userId}` -> 'admin' | 'resident' | null
 const pending = new Map()   // richieste in corso, per non duplicarle
+const ERROR = Symbol('role-error')
 
 async function fetchRole(buildingId, userId) {
   const cacheKey = `${buildingId}:${userId}`
@@ -27,12 +28,15 @@ async function fetchRole(buildingId, userId) {
       // errore di query altrimenti si confonderebbe silenziosamente con
       // "non e' membro" per un utente che invece ha una riga in condo_members
       // (vedi stesso pattern in middleware.ts).
+      pending.delete(cacheKey)
       if (error) {
+        // errore di rete/sessione: NON e' "non membro". Non si mette in cache
+        // e si segnala, cosi' il gate non manda alla verifica per sbaglio.
         console.error('[useCondoRole] condo_members check failed', error.message)
+        return ERROR
       }
       const role = data?.role ?? null // null = non membro
       roleCache.set(cacheKey, role)
-      pending.delete(cacheKey)
       return role
     })
 
@@ -42,27 +46,42 @@ async function fetchRole(buildingId, userId) {
 
 export function useCondoRole(buildingId) {
   const session = useSession()
+  const ready = useSessionReady()
   const userId = session?.user?.id ?? null
-  const [role, setRole] = useState(undefined) // undefined = in caricamento
+  // il ruolo e' legato alla coppia building+utente per cui e' stato letto:
+  // finche' non corrisponde a quella attuale si e' ancora "in caricamento"
+  // (evita che un null letto prima del login sembri "non membro").
+  const key = `${buildingId}:${userId}`
+  const [state, setState] = useState({ key: null, role: undefined })
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
-    if (!buildingId) return
-    if (!userId) { setRole(null); return }
+    if (!buildingId || !ready) return
+    if (!userId) { setState({ key, role: null }); return }
 
     let active = true
+    let retry
     fetchRole(buildingId, userId).then((role) => {
-      if (active) setRole(role)
+      if (!active) return
+      if (role === ERROR) {
+        setState({ key, role: 'error' })
+        retry = setTimeout(() => setAttempt((n) => n + 1), 2000)
+        return
+      }
+      setState({ key, role })
     })
 
-    return () => { active = false }
-  }, [buildingId, userId])
+    return () => { active = false; clearTimeout(retry) }
+  }, [buildingId, userId, ready, key, attempt])
 
+  const role = state.key === key && ready ? state.role : undefined
   return {
-    role,                              // 'admin' | 'resident' | null | undefined
+    role: role === 'error' ? undefined : role,  // 'admin' | 'resident' | null | undefined
     userId,
     isCondoAdmin: role === 'admin',
     isMember: role === 'admin' || role === 'resident',
-    loading: role === undefined,
+    loading: role === undefined || role === 'error',
+    error: role === 'error',
   }
 }
 

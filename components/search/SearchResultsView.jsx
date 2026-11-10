@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import SearchBar from '@/components/search/SearchBar'
 import SearchFilters from '@/components/search/SearchFilters'
@@ -28,6 +28,7 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
   const isMobile = useIsMobile()
   const [mapState, setMapState] = useState('compact')
   const [showFilters, setShowFilters] = useState(false)
+  const closeFilters = useCallback(() => setShowFilters(false), [])
   const [selectedBuilding, setSelectedBuilding] = useState(null)
   const [highlightedId, setHighlightedId] = useState(null)
   const stickyRef = useRef(null)
@@ -212,7 +213,7 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
       </div>
 
       {showFilters && (
-        <FiltersDrawer feeCounts={feeCounts} onClose={() => setShowFilters(false)} />
+        <FiltersDrawer feeCounts={feeCounts} onClose={closeFilters} />
       )}
 
       {/* Risultati: dissolvenza in/out quando la mappa passa a fullscreen */}
@@ -267,24 +268,35 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
 }
 
 function FiltersDrawer({ feeCounts, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prev }
+  }, [onClose])
+
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 600 }} />
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 601,
-        background: 'var(--white)', borderRadius: '16px 16px 0 0',
-        padding: '20px 20px 40px', maxHeight: '80vh', overflowY: 'auto',
-        boxShadow: '0 -8px 32px rgba(0,0,0,0.15)',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>Filtri</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-3)' }}>✕</button>
+      <div onClick={onClose} className="fsheet-backdrop" />
+      <div role="dialog" aria-modal="true" aria-label="Filtri" className="fsheet">
+        <svg className="fsheet-wave" viewBox="0 0 390 70" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="fsheetWave" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stopColor="#0D676F" stopOpacity="0.03" />
+              <stop offset="1" stopColor="#0D676F" stopOpacity="0.22" />
+            </linearGradient>
+          </defs>
+          <path d="M0 0h390v8c-60 18-110 46-190 44C120 50 60 30 0 34z" fill="url(#fsheetWave)" />
+        </svg>
+        <div className="fsheet-handle" />
+        <div className="fsheet-head">
+          <h2>Filtri</h2>
+          <button type="button" onClick={onClose} aria-label="Chiudi filtri" className="fsheet-close">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
         </div>
-        <FilterSidebar feeCounts={feeCounts} />
-        <button onClick={onClose} style={{
-          width: '100%', marginTop: 20, padding: '14px', borderRadius: 8, border: 'none',
-          background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer',
-        }}>Applica filtri</button>
+        <FilterSidebar feeCounts={feeCounts} instant={false} onApplied={onClose} />
       </div>
     </>
   )

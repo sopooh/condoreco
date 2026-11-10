@@ -18,6 +18,7 @@ async function getSearchData(searchParams) {
   const focusLng = searchParams.lng ? Number(searchParams.lng) : null
   const feeMin = searchParams.feeMin ? Number(searchParams.feeMin) : 0
   const feeMax = searchParams.feeMax ? Number(searchParams.feeMax) : 3000
+  const sort = searchParams.sort || 'recent'
 
   function applyCommonFilters(req) {
     if (city) req = req.eq('city', city)
@@ -53,7 +54,8 @@ async function getSearchData(searchParams) {
   // Foto caricate dagli utenti in thumbnail al posto della mappa statica
   // (priorità già gestita da getBuildingPreviewImage, manca solo il dato):
   // una per edificio, preferendo la cover e poi il quality_score migliore.
-  const buildingsWithPhotos = await attachCoverPhotos(supabase, buildings || [])
+  const sorted = await sortBuildings(supabase, buildings || [], sort)
+  const buildingsWithPhotos = await attachCoverPhotos(supabase, sorted)
 
   return {
     buildings: buildingsWithPhotos,
@@ -81,4 +83,24 @@ export default async function SearchPage({ searchParams }) {
       focusLng={focusLng}
     />
   )
+}
+
+// Ordinamento scelto in "Ordina per". I valori mancanti (null) finiscono in fondo.
+async function sortBuildings(supabase, list, sort) {
+  if (!list.length) return list
+  const byNum = (key, dir) => (a, b) => {
+    const x = a[key], y = b[key]
+    if (x == null && y == null) return 0
+    if (x == null) return 1
+    if (y == null) return -1
+    return dir * (Number(x) - Number(y))
+  }
+  if (sort === 'rating') return [...list].sort(byNum('score', -1))
+  if (sort === 'fee_asc') return [...list].sort(byNum('monthly_fee', 1))
+  if (sort === 'fee_desc') return [...list].sort(byNum('monthly_fee', -1))
+  if (sort === 'reviews') return [...list].sort(byNum('review_count', -1))
+  // 'recent': building_scores non espone created_at, si legge da buildings
+  const { data } = await supabase.from('buildings').select('id, created_at').in('id', list.map((b) => b.id))
+  const at = Object.fromEntries((data || []).map((r) => [r.id, new Date(r.created_at).getTime()]))
+  return [...list].sort((a, b) => (at[b.id] || 0) - (at[a.id] || 0))
 }

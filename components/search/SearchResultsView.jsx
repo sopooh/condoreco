@@ -14,7 +14,7 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 const NAVBAR_HEIGHT = 58 // components/nav/Navbar.jsx
 const COMPACT_MAP_HEIGHT = 280
 const TRANSITION = '280ms ease'
-const AUTO_HIDE_AFTER_PX = 24   // scroll verso il basso oltre cui la mappa si chiude (solo la prima volta)
+const AUTO_HIDE_AFTER_PX = 24   // scroll verso il basso oltre cui la mappa compatta si chiude
 
 // Esplora: preview mappa in alto (sticky sotto navbar+search) + schede sotto,
 // stile Booking. Un'unica istanza Leaflet resta sempre montata — mapState
@@ -22,8 +22,8 @@ const AUTO_HIDE_AFTER_PX = 24   // scroll verso il basso oltre cui la mappa si c
 // la ricrea mai: centro/zoom/marker restano intatti a ogni cambio stato
 // (vedi ResizeObserver in ResultsMapInner). Si cambia stato con i bottoni
 // ("Apri mappa" / "Riduci mappa" / "Nascondi mappa" / "Mostra mappa"); in
-// più, solo la prima volta, scorrendo la lista verso il basso la mappa
-// compatta si chiude da sola. Riaprirla è sempre e solo col bottone.
+// più, ogni volta che la mappa è compatta e si scorre la lista verso il
+// basso, si chiude da sola. Riaprirla è sempre e solo col bottone.
 export default function SearchResultsView({ buildings, cities, feeCounts, query, city, focusLat, focusLng }) {
   const isMobile = useIsMobile()
   const [mapState, setMapState] = useState('compact')
@@ -31,7 +31,6 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
   const [selectedBuilding, setSelectedBuilding] = useState(null)
   const [highlightedId, setHighlightedId] = useState(null)
   const stickyRef = useRef(null)
-  const autoCollapseUsedRef = useRef(false)
   const ignoreScrollUntilRef = useRef(0)
 
   const results = buildings.map((b) => ({ ...b, href: `/edificio/${b.id}` }))
@@ -58,19 +57,22 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [highlightedId, mapState])
 
-  // Chiusura automatica: solo la prima volta che si scorre la lista verso il
-  // basso. Dopo, mappa aperta/chiusa solo con i bottoni, nessun gesto la
-  // riapre o la richiude.
+  // Chiusura automatica: ogni volta che la mappa è compatta e si scorre
+  // verso il basso di almeno AUTO_HIDE_AFTER_PX rispetto al punto in cui
+  // è stata aperta. Nessun gesto la riapre: solo "Mostra mappa".
   useEffect(() => {
-    if (mapState !== 'compact' || autoCollapseUsedRef.current) return
-    let lastY = window.scrollY
+    if (mapState !== 'compact') return
+    let startY = window.scrollY
+    let lastY = startY
+    // appena riaperta (anche a pagina già scrollata) si lascia un attimo di tregua
+    ignoreScrollUntilRef.current = Math.max(ignoreScrollUntilRef.current, Date.now() + 400)
     const onScroll = () => {
       const y = window.scrollY
       const goingDown = y > lastY
       lastY = y
-      if (Date.now() < ignoreScrollUntilRef.current) return
-      if (goingDown && y > AUTO_HIDE_AFTER_PX) {
-        autoCollapseUsedRef.current = true
+      if (Date.now() < ignoreScrollUntilRef.current) { startY = y; return }
+      if (!goingDown) { startY = Math.min(startY, y); return }
+      if (y - startY > AUTO_HIDE_AFTER_PX) {
         setSelectedBuilding(null)
         setMapState('hidden')
       }
@@ -125,7 +127,11 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
           position: 'relative',
           height: mapState === 'compact' ? COMPACT_MAP_HEIGHT : mapState === 'hidden' ? 0 : undefined,
           overflow: 'hidden',
-          transition: `height ${TRANSITION}`,
+          transition: `height ${TRANSITION}, margin ${TRANSITION}, border-radius ${TRANSITION}`,
+          // compatta: card arrotondata con bordo teal, staccata dai bordi
+          ...(mapState === 'compact'
+            ? { margin: isMobile ? '12px 16px 4px' : '16px 40px 4px', borderRadius: 16, border: '1.5px solid rgba(13,103,111,0.45)' }
+            : { margin: 0, borderRadius: 0, border: 'none' }),
         }}>
           <ResultsMap
             results={results}
@@ -141,7 +147,7 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
             <>
               <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 500, display: 'flex', gap: 8 }}>
                 {mapState === 'compact' && (
-                  <button onClick={() => { autoCollapseUsedRef.current = true; setMapState('hidden') }} style={floatingBtn}>
+                  <button onClick={() => setMapState('hidden')} style={floatingBtn}>
                     <EyeOffIcon /> Nascondi mappa
                   </button>
                 )}

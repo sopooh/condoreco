@@ -8,6 +8,7 @@ import { usePolls } from '@/hooks/usePolls'
 import { useTickets, isTicketOpen } from '@/hooks/useTickets'
 import { useInterventions, isActiveIntervention } from '@/hooks/useInterventions'
 import { usePublicInterventions } from '@/hooks/usePublicInterventions'
+import { useCalendarEvents } from '@/hooks/useCalendarEvents'
 import { toLocalISODate } from '@/lib/localDate'
 import { ToolboxArt } from '@/components/condo/CondoArt'
 
@@ -49,6 +50,12 @@ export default function CondoDashboard({ building }) {
   const openPolls = polls.filter((p) => p.isOpen)
   const toVote = openPolls.filter((p) => !p.hasVoted).length
   const scheduledToday = todayInterventions.filter((i) => i.status === 'scheduled').length
+
+  // appuntamenti del calendario da oggi in poi (griglia del mese corrente)
+  const now = new Date()
+  const { events: monthEvents } = useCalendarEvents(buildingId, now.getFullYear(), now.getMonth())
+  const upcomingEvents = monthEvents.filter((e) => e.approved && e.event_date >= today)
+  const eventsToday = upcomingEvents.filter((e) => e.event_date === today).length
 
   const address = `${building.address}${building.street_number ? `, ${building.street_number}` : ''}`
 
@@ -98,6 +105,19 @@ export default function CondoDashboard({ building }) {
           art={<MegaphoneArt />}
         />
         <HubCard
+          href={`${base}/calendario`}
+          tag="Area condominiale"
+          title="Calendario del condominio"
+          text="Assemblee, manutenzioni e appuntamenti del condominio."
+          status={eventsToday
+            ? `${eventsToday} ${eventsToday === 1 ? 'appuntamento' : 'appuntamenti'} oggi`
+            : upcomingEvents.length
+              ? `${upcomingEvents.length} in arrivo questo mese`
+              : 'Nessun appuntamento in arrivo'}
+          highlight={eventsToday > 0}
+          art={<CalendarArt />}
+        />
+        <HubCard
           href={`${base}/decisioni`}
           tag="Area condominiale"
           title="Decisioni del condominio"
@@ -113,9 +133,6 @@ export default function CondoDashboard({ building }) {
           text="Confrontati con gli altri residenti in modo semplice e sicuro."
           art={<ChatArt />}
         />
-        <Link href={`${base}/calendario`} style={{ alignSelf: 'center', display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: 15, fontWeight: 700, color: 'var(--teal)' }}>
-          <CalendarIcon /> Calendario del condominio ›
-        </Link>
       </div>
     </div>
   )
@@ -194,6 +211,20 @@ function BallotArt() {
     </svg>
   )
 }
+function CalendarArt() {
+  return (
+    <svg viewBox="0 0 84 84" width="100%" height="100%" aria-hidden="true">
+      <ellipse cx="42" cy="77" rx="30" ry="4" fill="rgba(13,103,111,0.12)" />
+      <rect x="10" y="16" width="64" height="56" rx="10" fill={TL} />
+      <path d="M10 26a10 10 0 0110-10h44a10 10 0 0110 10v8H10z" fill={T} />
+      <rect x="24" y="8" width="6" height="16" rx="3" fill="#0A4F55" />
+      <rect x="54" y="8" width="6" height="16" rx="3" fill="#0A4F55" />
+      {[0, 1, 2].map((r) => [0, 1, 2, 3].map((c) => (
+        <rect key={`${r}-${c}`} x={18 + c * 13} y={41 + r * 10} width="9" height="6" rx="2" fill={r === 1 && c === 2 ? O : '#FFFFFF'} />
+      )))}
+    </svg>
+  )
+}
 function ChatArt() {
   return (
     <svg viewBox="0 0 84 84" width="100%" height="100%" aria-hidden="true">
@@ -212,4 +243,3 @@ function ChevronIcon() { return <svg {...ico} width={18} height={18} strokeWidth
 function PersonIcon() { return <svg {...ico} width={15} height={15}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0116 0" /></svg> }
 function GroupIcon() { return <svg {...ico} width={16} height={16}><circle cx="12" cy="8" r="3" /><path d="M6 20v-1a6 6 0 0112 0v1" /><circle cx="5" cy="10" r="2" /><circle cx="19" cy="10" r="2" /></svg> }
 function PinIcon() { return <svg {...ico} width={14} height={14}><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg> }
-function CalendarIcon() { return <svg {...ico} width={18} height={18}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg> }

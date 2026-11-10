@@ -1,4 +1,4 @@
-import { ArrowUpDown, Brush, ChartNoAxesColumnIncreasing, Coins, ConciergeBell, Flame, House, LayoutGrid, Sprout, SquareParking, Sun } from 'lucide-react'
+import { ArrowUpDown, Broom, ChartNoAxesColumnIncreasing, Coins, ConciergeBell, Flame, House, LayoutGrid, Sprout, SquareParking, Sun } from 'lucide-react'
 // Sezione "Spese condominiali + caratteristiche del palazzo": riga di
 // icone in stile Booking/Stoop, sostituisce la vecchia lista testuale
 // "Info edificio" in sidebar — stessi dati, più in vista. Mai un valore
@@ -62,4 +62,4 @@ function TerraceIcon({ size = 24 } = {}) { return <Sun size={size} strokeWidth={
 
 function HeatingIcon({ size = 24 } = {}) { return <Flame size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function BroomIcon({ size = 24 } = {}) { return <Brush size={size} strokeWidth={2} aria-hidden="true" /> }
+function BroomIcon({ size = 24 } = {}) { return <Broom size={size} strokeWidth={2} aria-hidden="true" /> }

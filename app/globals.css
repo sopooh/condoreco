@@ -1612,7 +1612,7 @@ input, select, textarea { font-family: inherit; }
 }
 .fpanel-chip.is-on .fpanel-box { background: var(--teal); border-color: var(--teal); }
 .fpanel-chip-icon { display: inline-flex; color: var(--teal-dk); }
-.fpanel-chip-label { font-size: 13.5px; line-height: 1.2; color: var(--text); min-width: 0; overflow-wrap: break-word; hyphens: auto; }
+.fpanel-chip-label { font-size: 13.5px; line-height: 1.2; color: var(--text); min-width: 0; overflow-wrap: break-word; hyphens: manual; }
 .fpanel-actions { display: flex; flex-direction: column; gap: 12px; }
 .fpanel-apply {
   width: 100%; padding: 16px; border: none; border-radius: 12px; min-height: 0;

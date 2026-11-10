@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from '@/components/providers/SessionProvider'
 import { getProfile } from '@/lib/profile'
-import { REPORT_CATEGORIES, reportCategoryLabel } from '@/lib/reviewOptions'
+import { MAINTENANCE_CATEGORIES, maintenanceCategory, maintenanceCategoryLabel } from '@/lib/maintenanceCategories'
+import MaintenanceIcon from '@/components/condo/MaintenanceIcon'
+import { ToolboxArt } from '@/components/condo/CondoArt'
 import { useInterventions, INTERVENTION_STATUS, isActiveIntervention } from '@/hooks/useInterventions'
 import { contactMessage, telLink, waLink, mailLink } from '@/lib/contact'
 import { toLocalISODate } from '@/lib/localDate'
@@ -30,97 +32,134 @@ export default function InterventionsPage({ building }) {
     getProfile(id).then(({ data }) => setSenderName(data?.display_name || null))
   }, [session?.user?.id])
 
-  const [tab, setTab] = useState('active')
+  const [filter, setFilter] = useState(null)        // categoria selezionata (null = tutte)
   const [creating, setCreating] = useState(false)
+  const [detail, setDetail] = useState(null)
   const [scheduling, setScheduling] = useState(null)
   const [contacting, setContacting] = useState(null)
   const [addingMaintainer, setAddingMaintainer] = useState(false)
 
-  const active = interventions.filter(isActiveIntervention)
-  const closed = interventions.filter((i) => !isActiveIntervention(i))
-  const list = tab === 'active' ? active : closed
   const byId = useMemo(() => Object.fromEntries(maintainers.map((m) => [m.id, m])), [maintainers])
-
+  // in corso prima, poi conclusi; dentro, i piu' recenti prima
+  const list = interventions
+    .filter((i) => !filter || i.category === filter)
+    .sort((a, b) => (isActiveIntervention(b) - isActiveIntervention(a)) || (b.created_at > a.created_at ? 1 : -1))
+  const current = detail ? interventions.find((i) => i.id === detail) : null
   const msgFor = (intervention) => contactMessage({ maintainer: byId[intervention.maintainer_id], intervention, senderName, address })
 
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', padding: '20px 16px 64px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Link href={`/edificio/${buildingId}/condominio`} style={backLink}>‹ Torna al condominio</Link>
-
-      <div>
-        <span style={tag}><PersonIcon /> Area personale</span>
-        <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', margin: '10px 0 6px' }}>I tuoi interventi</h1>
-        <p style={{ display: 'flex', gap: 8, fontSize: 14, color: 'var(--text-3)', lineHeight: 1.5, margin: 0 }}>
-          <span style={{ color: 'var(--teal)', flexShrink: 0, marginTop: 2 }}><LockIcon /></span>
-          Visibili solo a te. Quando fissi una data, titolo, giorno e luogo compaiono in bacheca per tutti i residenti.
-        </p>
+    <div style={{ background: 'var(--bg)' }}>
+      {/* ---- hero ---- */}
+      <div style={{ position: 'relative', overflow: 'hidden', color: '#fff', background: 'linear-gradient(160deg, #0D676F 0%, #0A5258 70%, #08464B 100%)', padding: '18px 20px 30px', borderRadius: '0 0 30px 30px' }}>
+        <div style={{ position: 'absolute', right: -50, top: -20, width: 230, height: 230, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
+        <div style={{ maxWidth: 720, margin: '0 auto', position: 'relative' }}>
+          <Link href={`/edificio/${buildingId}/condominio`} style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>‹ Torna al condominio</Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 14 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 15, opacity: 0.92 }}><PersonIcon /> Area personale</div>
+              <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.6px', margin: '6px 0 8px', lineHeight: 1.1 }}>I tuoi interventi</h1>
+              <p style={{ fontSize: 15, lineHeight: 1.45, margin: 0, opacity: 0.92 }}>Le tue segnalazioni, gli appuntamenti e lo stato degli interventi.</p>
+            </div>
+            <div style={{ width: 92, height: 92, flexShrink: 0, background: 'rgba(255,255,255,0.92)', borderRadius: 24, padding: 10 }}><ToolboxArt /></div>
+          </div>
+        </div>
       </div>
 
-      <button onClick={() => setCreating(true)} style={{ ...primaryBtn, height: 52 }}>+ Nuovo intervento</button>
-
-      <div role="tablist" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, padding: 4, borderRadius: 12, background: '#EBEFEF' }}>
-        <Tab active={tab === 'active'} onClick={() => setTab('active')} label="In corso" count={active.length} />
-        <Tab active={tab === 'closed'} onClick={() => setTab('closed')} label="Conclusi" count={closed.length} />
-      </div>
-
-      {error && <p style={errText}>Non riesco a caricare gli interventi. Riprova tra poco.</p>}
-
-      {loading ? (
-        <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Caricamento...</p>
-      ) : list.length === 0 ? (
-        <div style={{ ...card, textAlign: 'center', padding: '28px 20px' }}>
-          <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
-            {tab === 'active' ? 'Nessun intervento in corso' : 'Nessun intervento concluso'}
-          </div>
-          <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0 }}>
-            {tab === 'active' ? 'Hai un problema in casa o nelle parti comuni? Apri un intervento e contatta subito un manutentore.' : 'Qui trovi gli interventi completati o annullati.'}
-          </p>
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '18px 16px 64px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* ---- categorie ---- */}
+        <div style={{ display: 'flex', gap: 10, overflowX: 'auto', margin: '0 -16px', padding: '2px 16px 6px', scrollbarWidth: 'none' }}>
+          {MAINTENANCE_CATEGORIES.map((c) => {
+            const on = filter === c.value
+            return (
+              <button key={c.value} onClick={() => setFilter(on ? null : c.value)} aria-pressed={on} style={{
+                flex: '0 0 auto', width: 96, minHeight: 0, padding: '14px 6px 12px', borderRadius: 18, cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                border: `1.5px solid ${on ? 'var(--teal)' : 'var(--border)'}`, background: on ? 'var(--teal-lt)' : 'var(--white)',
+                color: 'var(--teal-dk)', boxShadow: on ? '0 4px 14px rgba(13,103,111,0.15)' : 'none',
+              }}>
+                <MaintenanceIcon name={c.icon} size={30} />
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', lineHeight: 1.2, textAlign: 'center' }}>{c.label}</span>
+              </button>
+            )
+          })}
         </div>
-      ) : (
-        list.map((i) => (
-          <InterventionCard
-            key={i.id}
-            intervention={i}
-            maintainer={byId[i.maintainer_id]}
-            onContact={() => setContacting(i)}
-            onSchedule={() => setScheduling(i)}
-            onUpdate={(patch) => updateIntervention(i.id, patch)}
-            onDelete={() => deleteIntervention(i.id)}
-          />
-        ))
-      )}
 
-      {/* rubrica manutentori */}
-      <section style={{ marginTop: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
-          <div>
-            <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Manutentori del condominio</h2>
-            <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '2px 0 0' }}>Rubrica condivisa tra i residenti verificati.</p>
-          </div>
-          <button onClick={() => setAddingMaintainer(true)} style={{ ...ghostBtn, height: 40, padding: '0 12px', flexShrink: 0 }}>+ Aggiungi</button>
+        {/* ---- segnalazioni ---- */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.4px', margin: 0, minWidth: 0 }}>
+            {filter ? maintenanceCategoryLabel(filter) : 'Le mie segnalazioni'}
+          </h2>
+          <button onClick={() => setCreating(true)} aria-label="Nuova segnalazione" style={{ ...ghostBtn, height: 42, padding: '0 14px', fontSize: 14, borderRadius: 999, border: '1.5px solid var(--teal)', color: 'var(--teal-dk)', flexShrink: 0, whiteSpace: 'nowrap' }}>
+            <PlusIcon /> Nuova
+          </button>
         </div>
-        {maintainers.length === 0 ? (
-          <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0 }}>Nessun manutentore ancora. Aggiungi il primo: idraulico, elettricista, ascensorista...</p>
+
+        {error && <p style={errText}>Non riesco a caricare gli interventi. Riprova tra poco.</p>}
+
+        {loading ? (
+          <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Caricamento...</p>
+        ) : list.length === 0 ? (
+          <div style={{ ...card, textAlign: 'center', padding: '26px 20px' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{filter ? 'Nessuna segnalazione in questa categoria' : 'Nessuna segnalazione'}</div>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0 }}>Hai un problema in casa o nelle parti comuni? Apri una segnalazione e contatta subito il fornitore giusto.</p>
+          </div>
         ) : (
-          <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
-            {maintainers.map((m, idx) => (
-              <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderTop: idx ? '1px solid var(--border)' : 'none' }}>
-                <span style={{ ...iconTile, width: 40, height: 40 }}><WrenchIcon /></span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</div>
-                  <div style={{ fontSize: 12.5, color: 'var(--text-3)' }}>{reportCategoryLabel(m.category)}{m.company ? ` · ${m.company}` : ''}</div>
-                </div>
-                {m.phone && <a href={telLink(m.phone)} aria-label={`Chiama ${m.name}`} style={roundIcon}><PhoneIcon /></a>}
-                {m.email && <a href={`mailto:${m.email}`} aria-label={`Scrivi a ${m.name}`} style={roundIcon}><MailIcon /></a>}
-              </div>
-            ))}
-          </div>
+          list.map((i) => <InterventionCard key={i.id} intervention={i} maintainer={byId[i.maintainer_id]} onOpen={() => setDetail(i.id)} />)
         )}
-      </section>
 
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '14px 16px', borderRadius: 16, background: '#E6F1F1', color: 'var(--teal-dk)', fontSize: 14.5, lineHeight: 1.45 }}>
+          <span style={{ flexShrink: 0, marginTop: 1 }}><InfoIcon /></span>
+          <span><strong>Tutti gli interventi sono visibili solo a te.</strong> Quando fissi una data, titolo, giorno e luogo compaiono in bacheca per gli altri residenti.</span>
+        </div>
+
+        {/* ---- fornitori ---- */}
+        <section style={{ marginTop: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
+            <div>
+              <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Fornitori del condominio</h2>
+              <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '2px 0 0' }}>Rubrica condivisa tra i residenti verificati.</p>
+            </div>
+            <button onClick={() => setAddingMaintainer(true)} style={{ ...ghostBtn, height: 40, padding: '0 12px', flexShrink: 0 }}>+ Aggiungi</button>
+          </div>
+          {maintainers.length === 0 ? (
+            <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0 }}>Nessun fornitore ancora: aggiungi ascensorista, idraulico, elettricista...</p>
+          ) : (
+            <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
+              {MAINTENANCE_CATEGORIES.flatMap((c) => maintainers.filter((m) => m.category === c.value)).map((m, idx) => (
+                <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderTop: idx ? '1px solid var(--border)' : 'none' }}>
+                  <span style={{ ...iconTile, width: 42, height: 42 }}><MaintenanceIcon name={maintenanceCategory(m.category).icon} size={22} /></span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700 }}>{m.name}</div>
+                    <div style={{ fontSize: 12.5, color: 'var(--text-3)' }}>{maintenanceCategoryLabel(m.category)}{m.company ? ` · ${m.company}` : ''}</div>
+                    {m.notes && <div style={{ fontSize: 12.5, color: 'var(--text-3)' }}>{m.notes}</div>}
+                  </div>
+                  {m.phone && <a href={telLink(m.phone)} aria-label={`Chiama ${m.name}`} style={roundIcon}><PhoneIcon /></a>}
+                  {m.email && <a href={`mailto:${m.email}`} aria-label={`Scrivi a ${m.name}`} style={roundIcon}><MailIcon /></a>}
+                </div>
+              ))}
+            </div>
+          )}
+          <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '10px 2px 0' }}>
+            Emergenze per persone o cose: <a href="tel:112" style={{ color: '#B42318', fontWeight: 700 }}>112</a>
+          </p>
+        </section>
+      </div>
+
+      {current && !contacting && !scheduling && (
+        <DetailSheet
+          intervention={current}
+          maintainer={byId[current.maintainer_id]}
+          onClose={() => setDetail(null)}
+          onContact={() => setContacting(current)}
+          onSchedule={() => setScheduling(current)}
+          onUpdate={(patch) => updateIntervention(current.id, patch)}
+          onDelete={async () => { const r = await deleteIntervention(current.id); if (!r.error) setDetail(null); return r }}
+        />
+      )}
       {creating && (
         <NewInterventionSheet
           maintainers={maintainers}
+          defaultCategory={filter || 'elevator'}
           onClose={() => setCreating(false)}
           onAddMaintainer={addMaintainer}
           onCreate={createIntervention}
@@ -148,8 +187,8 @@ export default function InterventionsPage({ building }) {
         />
       )}
       {addingMaintainer && (
-        <Sheet onClose={() => setAddingMaintainer(false)} title="Aggiungi manutentore">
-          <MaintainerForm onCancel={() => setAddingMaintainer(false)} onSave={async (v) => {
+        <Sheet onClose={() => setAddingMaintainer(false)} title="Aggiungi fornitore">
+          <MaintainerForm defaultCategory={filter || 'elevator'} onCancel={() => setAddingMaintainer(false)} onSave={async (v) => {
             const { error } = await addMaintainer(v)
             if (!error) setAddingMaintainer(false)
             return error
@@ -160,67 +199,93 @@ export default function InterventionsPage({ building }) {
   )
 }
 
-function InterventionCard({ intervention: i, maintainer, onContact, onSchedule, onUpdate, onDelete }) {
-  const [open, setOpen] = useState(false)
+function relDate(isoTs) {
+  const d = new Date(isoTs)
+  const today = new Date()
+  const time = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+  if (d.toDateString() === today.toDateString()) return `Oggi, ${time}`
+  const s = d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })
+  return s.replace(/(^|\s)\S/g, (m) => m.toUpperCase())
+}
+const capDay = (iso) => fmtDay(iso).replace(/(^|\s)\S/g, (m) => m.toUpperCase())
+
+function InterventionCard({ intervention: i, maintainer, onOpen }) {
+  const st = INTERVENTION_STATUS[i.status]
+  const cat = maintenanceCategory(i.category)
+  return (
+    <button onClick={onOpen} style={{ ...card, padding: 0, width: '100%', textAlign: 'left', cursor: 'pointer', boxShadow: '0 4px 14px rgba(13,103,111,0.06)', opacity: i.status === 'cancelled' ? 0.6 : 1 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '16px 16px 14px' }}>
+        <span style={{ ...iconTile, width: 50, height: 50, borderRadius: 15 }}><MaintenanceIcon name={cat.icon} size={27} /></span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: 'block', fontSize: 16.5, fontWeight: 800, color: 'var(--text)', lineHeight: 1.25 }}>{i.title}</span>
+          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 13.5, color: 'var(--text-3)' }}>{i.ref_number ? `#IT-${i.ref_number} · ` : ''}{relDate(i.created_at)}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 999, fontSize: 12.5, fontWeight: 700, background: st.bg, color: st.tx, whiteSpace: 'nowrap' }}>
+              {st.check && <CheckIcon size={14} />}{st.label}
+            </span>
+          </span>
+        </span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderTop: '1px solid var(--border)', fontSize: 14, color: 'var(--text-2)' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+          <span style={{ color: 'var(--teal)', flexShrink: 0 }}><PersonIcon /></span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: maintainer ? 'var(--text-2)' : '#B4510F', fontWeight: maintainer ? 500 : 600 }}>
+            {maintainer ? maintainer.name : 'Scegli il fornitore'}
+          </span>
+        </span>
+        {i.scheduled_date && i.status !== 'cancelled' && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            <span style={{ color: 'var(--teal)' }}><CalendarIcon /></span>
+            {capDay(i.scheduled_date)}{i.time_start ? ` · ${i.time_start.slice(0, 5)}${i.time_end ? `-${i.time_end.slice(0, 5)}` : ''}` : ''}
+          </span>
+        )}
+        <span style={{ color: 'var(--text-3)', flexShrink: 0 }}><ChevronIcon /></span>
+      </div>
+    </button>
+  )
+}
+
+function DetailSheet({ intervention: i, maintainer, onClose, onContact, onSchedule, onUpdate, onDelete }) {
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState(null)
   const st = INTERVENTION_STATUS[i.status]
   const active = isActiveIntervention(i)
-
   const run = async (fn) => { setBusy(true); const { error } = await fn(); setErr(error); setBusy(false) }
-
   return (
-    <div style={{ ...card, padding: 0, borderColor: i.status === 'scheduled' ? 'rgba(13,103,111,0.35)' : 'var(--border)' }}>
-      <button onClick={() => setOpen((o) => !o)} aria-expanded={open} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, width: '100%', padding: 16, background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', minHeight: 0 }}>
-        <span style={iconTile}><WrenchIcon /></span>
-        <span style={{ flex: 1, minWidth: 0 }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-            <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 12, fontWeight: 700, background: st.bg, color: st.tx }}>{st.label}</span>
-            {i.scheduled_date && i.status !== 'cancelled' && (
-              <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--teal-dk)', textTransform: 'capitalize' }}>
-                {fmtDay(i.scheduled_date)}{i.time_start ? ` · ${i.time_start.slice(0, 5)}` : ''}
-              </span>
-            )}
-          </span>
-          <span style={{ display: 'block', fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>{i.title}</span>
-          <span style={{ display: 'block', fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>
-            {reportCategoryLabel(i.category)}{i.location ? ` · ${i.location}` : ''}
-          </span>
-          <span style={{ display: 'block', fontSize: 13, color: maintainer ? 'var(--text-2)' : '#B4510F', marginTop: 4, fontWeight: 600 }}>
-            {maintainer ? `Manutentore: ${maintainer.name}` : 'Nessun manutentore scelto'}
-          </span>
-        </span>
-        <span style={{ color: 'var(--text-3)', transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 150ms ease', marginTop: 4 }}><ChevronIcon /></span>
-      </button>
-
-      {open && (
-        <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {i.description && <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap' }}>{i.description}</p>}
-          {active && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <button onClick={onContact} disabled={!maintainer} style={{ ...primaryBtn, opacity: maintainer ? 1 : 0.5 }}><PhoneIcon /> Contatta</button>
-              <button onClick={onSchedule} style={ghostBtn}><CalendarIcon /> {i.status === 'scheduled' ? 'Cambia data' : 'Fissa data'}</button>
-            </div>
+    <Sheet onClose={onClose} title={i.title} subtitle={`${i.ref_number ? `#IT-${i.ref_number} · ` : ''}${maintenanceCategoryLabel(i.category)}${i.location ? ` · ${i.location}` : ''}`}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 11px', borderRadius: 999, fontSize: 13, fontWeight: 700, background: st.bg, color: st.tx }}>{st.check && <CheckIcon size={15} />}{st.label}</span>
+          {i.scheduled_date && i.status !== 'cancelled' && (
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--teal-dk)' }}>{capDay(i.scheduled_date)}{i.time_start ? ` · ${i.time_start.slice(0, 5)}${i.time_end ? `-${i.time_end.slice(0, 5)}` : ''}` : ''}</span>
           )}
-          {active && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <button disabled={busy} onClick={() => run(() => onUpdate({ status: 'done', scheduled_date: i.scheduled_date || toLocalISODate(new Date()) }))} style={ghostBtn}>Completato</button>
-              <button disabled={busy} onClick={() => run(() => onUpdate({ status: 'cancelled' }))} style={{ ...ghostBtn, color: '#B42318' }}>Annulla</button>
-            </div>
-          )}
-          {!active && (
-            <button disabled={busy} onClick={() => { if (confirm('Eliminare definitivamente questo intervento?')) run(onDelete) }} style={{ ...ghostBtn, color: '#B42318' }}>Elimina</button>
-          )}
-          {err && <p style={errText}>{err}</p>}
         </div>
-      )}
-    </div>
+        {i.description && <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap' }}>{i.description}</p>}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14, background: '#F5F7F7' }}>
+          <span style={{ color: 'var(--teal)' }}><PersonIcon /></span>
+          <span style={{ flex: 1, fontSize: 14.5, fontWeight: 600 }}>{maintainer ? maintainer.name : 'Nessun fornitore scelto'}</span>
+          {maintainer?.phone && <span style={{ fontSize: 13, color: 'var(--text-3)' }}>{maintainer.phone}</span>}
+        </div>
+        {active && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <button onClick={onContact} disabled={!maintainer} style={{ ...primaryBtn, opacity: maintainer ? 1 : 0.5 }}><PhoneIcon /> Contatta</button>
+            <button onClick={onSchedule} style={ghostBtn}><CalendarIcon /> {i.status === 'scheduled' ? 'Cambia data' : 'Fissa data'}</button>
+            <button disabled={busy} onClick={() => run(() => onUpdate({ status: 'done', scheduled_date: i.scheduled_date || toLocalISODate(new Date()) }))} style={ghostBtn}><CheckIcon size={18} /> Completato</button>
+            <button disabled={busy} onClick={() => run(() => onUpdate({ status: 'cancelled' }))} style={{ ...ghostBtn, color: '#B42318' }}>Annulla</button>
+          </div>
+        )}
+        {!active && (
+          <button disabled={busy} onClick={() => { if (confirm('Eliminare definitivamente questa segnalazione?')) run(onDelete) }} style={{ ...ghostBtn, color: '#B42318' }}>Elimina</button>
+        )}
+        {err && <p style={errText}>{err}</p>}
+      </div>
+    </Sheet>
   )
 }
 
-function NewInterventionSheet({ maintainers, onClose, onAddMaintainer, onCreate, onCreated }) {
+function NewInterventionSheet({ maintainers, defaultCategory, onClose, onAddMaintainer, onCreate, onCreated }) {
   const [step, setStep] = useState(0)
-  const [v, setV] = useState({ title: '', category: 'maintenance', location: '', description: '', maintainerId: null })
+  const [v, setV] = useState({ title: '', category: defaultCategory, location: '', description: '', maintainerId: null })
   const [addingNew, setAddingNew] = useState(false)
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState(null)
@@ -237,7 +302,7 @@ function NewInterventionSheet({ maintainers, onClose, onAddMaintainer, onCreate,
   }
 
   return (
-    <Sheet onClose={onClose} title="Nuovo intervento" subtitle={`Passo ${step + 1} di 2 · ${step === 0 ? 'Il problema' : 'Il manutentore'}`}>
+    <Sheet onClose={onClose} title="Nuova segnalazione" subtitle={`Passo ${step + 1} di 2 · ${step === 0 ? 'Il problema' : 'Il fornitore'}`}>
       <div style={{ display: 'flex', gap: 6, marginBottom: 18 }}>
         {[0, 1].map((s) => <div key={s} style={{ flex: 1, height: 6, borderRadius: 99, background: s <= step ? 'var(--teal)' : '#E5E7EB' }} />)}
       </div>
@@ -245,7 +310,7 @@ function NewInterventionSheet({ maintainers, onClose, onAddMaintainer, onCreate,
       {step === 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <label><div style={label}>Cosa succede?</div>
-            <input autoFocus style={field} placeholder="Es. Perdita d'acqua sotto il lavello" value={v.title} onChange={set('title')} />
+            <input autoFocus style={field} placeholder="Es. Ascensore bloccato al 3° piano" value={v.title} onChange={set('title')} />
           </label>
           <div><div style={label}>Categoria</div><CategoryPills value={v.category} onChange={(c) => setV((x) => ({ ...x, category: c }))} /></div>
           <label><div style={label}>Dove</div>
@@ -268,7 +333,7 @@ function NewInterventionSheet({ maintainers, onClose, onAddMaintainer, onCreate,
             }} />
           ) : (
             <>
-              <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '0 0 4px' }}>Scegli chi contattare. Ti prepariamo il messaggio da inviare.</p>
+              <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '0 0 4px' }}>Scegli il fornitore da contattare. Ti prepariamo il messaggio da inviare.</p>
               {sorted.map((m) => {
                 const on = v.maintainerId === m.id
                 return (
@@ -277,18 +342,18 @@ function NewInterventionSheet({ maintainers, onClose, onAddMaintainer, onCreate,
                     border: `${on ? 2 : 1}px solid ${on ? 'var(--teal)' : 'var(--border)'}`, margin: on ? 0 : 1,
                     background: on ? 'rgba(13,103,111,0.05)' : 'var(--white)',
                   }}>
-                    <span style={{ ...iconTile, width: 40, height: 40 }}><WrenchIcon /></span>
+                    <span style={{ ...iconTile, width: 40, height: 40 }}><MaintenanceIcon name={maintenanceCategory(m.category).icon} size={22} /></span>
                     <span style={{ flex: 1, minWidth: 0 }}>
                       <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>{m.name}</span>
                       <span style={{ display: 'block', fontSize: 12.5, color: 'var(--text-3)' }}>
-                        {reportCategoryLabel(m.category)}{m.company ? ` · ${m.company}` : ''}{m.category === v.category ? ' · consigliato' : ''}
+                        {maintenanceCategoryLabel(m.category)}{m.company ? ` · ${m.company}` : ''}{m.category === v.category ? ' · consigliato' : ''}
                       </span>
                     </span>
                     {on && <span style={{ color: 'var(--teal)' }}><CheckIcon /></span>}
                   </button>
                 )
               })}
-              <button onClick={() => setAddingNew(true)} style={{ ...ghostBtn, borderStyle: 'dashed' }}>+ Aggiungi un manutentore</button>
+              <button onClick={() => setAddingNew(true)} style={{ ...ghostBtn, borderStyle: 'dashed' }}>+ Aggiungi un fornitore</button>
               {err && <p style={errText}>{err}</p>}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 8, marginTop: 6 }}>
                 <button onClick={() => setStep(0)} style={ghostBtn}>Indietro</button>
@@ -309,6 +374,7 @@ function ContactSheet({ intervention, maintainer, message, onClose, onSchedule }
   const subject = `Richiesta intervento: ${intervention.title}`
   return (
     <Sheet onClose={onClose} title={`Contatta ${maintainer.name}`} subtitle="Direttamente, senza passare dall'amministratore">
+      {maintainer.notes && <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '0 0 10px' }}>{maintainer.notes}</p>}
       <div style={{ background: '#F5F7F7', borderRadius: 14, padding: 14, fontSize: 14, color: 'var(--text-2)', lineHeight: 1.5, whiteSpace: 'pre-wrap', marginBottom: 14 }}>{message}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {maintainer.phone && <a href={waLink(maintainer.phone, message)} target="_blank" rel="noopener noreferrer" style={{ ...primaryBtn, height: 50 }}><ChatIcon /> Scrivi su WhatsApp</a>}
@@ -351,19 +417,20 @@ function ScheduleSheet({ intervention, onClose, onSave }) {
   )
 }
 
-function MaintainerForm({ defaultCategory = 'maintenance', onCancel, onSave }) {
-  const [m, setM] = useState({ name: '', company: '', category: defaultCategory, phone: '', email: '' })
+function MaintainerForm({ defaultCategory = 'other', onCancel, onSave }) {
+  const [m, setM] = useState({ name: '', company: '', category: defaultCategory, phone: '', email: '', notes: '' })
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState(null)
   const set = (k) => (e) => setM((x) => ({ ...x, [k]: e.target.value }))
   const ok = m.name.trim().length >= 2 && (m.phone.trim() || m.email.trim()) && !saving
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <input autoFocus style={field} placeholder="Nome (es. Mario Rossi)" value={m.name} onChange={set('name')} />
-      <input style={field} placeholder="Azienda (facoltativo)" value={m.company} onChange={set('company')} />
+      <input autoFocus style={field} placeholder="Nome o ditta (es. Consorzio del Bo)" value={m.name} onChange={set('name')} />
+      <input style={field} placeholder="Referente (facoltativo)" value={m.company} onChange={set('company')} />
       <div><div style={label}>Si occupa di</div><CategoryPills value={m.category} onChange={(c) => setM((x) => ({ ...x, category: c }))} /></div>
       <input type="tel" style={field} placeholder="Telefono / WhatsApp" value={m.phone} onChange={set('phone')} />
       <input type="email" style={field} placeholder="Email" value={m.email} onChange={set('email')} />
+      <input style={field} placeholder="Altri recapiti (es. referente, numero emergenze)" value={m.notes} onChange={set('notes')} />
       <p style={{ fontSize: 12, color: 'var(--text-4)', margin: 0 }}>Serve almeno un telefono o un&apos;email. Il contatto sarà visibile ai residenti verificati del condominio.</p>
       {err && <p style={errText}>{err}</p>}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -377,7 +444,7 @@ function MaintainerForm({ defaultCategory = 'maintenance', onCancel, onSave }) {
 function CategoryPills({ value, onChange }) {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-      {REPORT_CATEGORIES.map((c) => {
+      {MAINTENANCE_CATEGORIES.map((c) => {
         const on = value === c.value
         return (
           <button key={c.value} type="button" onClick={() => onChange(c.value)} style={{
@@ -387,18 +454,6 @@ function CategoryPills({ value, onChange }) {
         )
       })}
     </div>
-  )
-}
-
-function Tab({ active, onClick, label: text, count }) {
-  return (
-    <button role="tab" aria-selected={active} onClick={onClick} style={{
-      height: 40, minHeight: 0, borderRadius: 9, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-      background: active ? 'var(--white)' : 'transparent', boxShadow: active ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-      fontSize: 14, fontWeight: 700, color: active ? 'var(--text)' : 'var(--text-3)',
-    }}>
-      {text}<span style={{ fontSize: 12, padding: '1px 8px', borderRadius: 999, background: active ? '#EEF3F3' : 'rgba(0,0,0,0.05)' }}>{count}</span>
-    </button>
   )
 }
 
@@ -421,8 +476,6 @@ export function Sheet({ title, subtitle, onClose, children }) {
 }
 
 /* ---- stili ---- */
-const backLink = { fontSize: 14, fontWeight: 600, color: 'var(--teal)', alignSelf: 'flex-start' }
-const tag = { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 999, background: 'var(--teal-lt)', color: 'var(--teal-dk)', fontSize: 12.5, fontWeight: 600 }
 const card = { background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 18, padding: 16 }
 const iconTile = { width: 44, height: 44, borderRadius: 13, background: '#EEF3F3', color: 'var(--teal)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
 const roundIcon = { width: 40, height: 40, borderRadius: '50%', border: '1px solid var(--border)', color: 'var(--teal)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
@@ -434,13 +487,13 @@ const errText = { fontSize: 13, color: '#B42318', margin: 0 }
 
 /* ---- icone ---- */
 const ico = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', viewBox: '0 0 24 24', 'aria-hidden': true }
-function WrenchIcon() { return <svg {...ico} width={20} height={20}><path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.1 2.1-2-2z" /></svg> }
 function PhoneIcon() { return <svg {...ico} width={18} height={18}><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2" /></svg> }
 function MailIcon() { return <svg {...ico} width={18} height={18}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg> }
 function ChatIcon() { return <svg {...ico} width={18} height={18}><path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z" /></svg> }
 function CalendarIcon() { return <svg {...ico} width={18} height={18}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg> }
 function ChevronIcon() { return <svg {...ico} width={18} height={18}><path d="M9 6l6 6-6 6" /></svg> }
-function CheckIcon() { return <svg {...ico} width={22} height={22} strokeWidth={2.4}><path d="M5 12.5l4.5 4.5L19 7.5" /></svg> }
+function CheckIcon({ size = 22 }) { return <svg {...ico} width={size} height={size} strokeWidth={2.4}><path d="M5 12.5l4.5 4.5L19 7.5" /></svg> }
 function PersonIcon() { return <svg {...ico} width={15} height={15}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0116 0" /></svg> }
-function LockIcon() { return <svg {...ico} width={16} height={16}><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 018 0v3" /></svg> }
+function PlusIcon() { return <svg {...ico} width={20} height={20} strokeWidth={2.2}><path d="M12 5v14M5 12h14" /></svg> }
+function InfoIcon() { return <svg {...ico} width={20} height={20}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></svg> }
 function MegaphoneIcon() { return <svg {...ico} width={18} height={18}><path d="M3 11v2a1 1 0 001 1h2l5 4V6L6 10H4a1 1 0 00-1 1z" /><path d="M15 9a4 4 0 010 6M18 6a8 8 0 010 12" /></svg> }

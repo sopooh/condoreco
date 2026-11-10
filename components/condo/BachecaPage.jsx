@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useCondoRole } from '@/hooks/useCondoRole'
 import { useTickets } from '@/hooks/useTickets'
 import { usePublicInterventions } from '@/hooks/usePublicInterventions'
-import { reportCategoryLabel } from '@/lib/reviewOptions'
+import { maintenanceCategoryLabel } from '@/lib/maintenanceCategories'
 import { toLocalISODate } from '@/lib/localDate'
 import TicketBoardCard from '@/components/condo/TicketBoardCard'
 
@@ -75,7 +75,7 @@ export default function BachecaPage({ building }) {
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.title}</div>
                           <div style={{ fontSize: 12.5, color: 'var(--text-3)', marginTop: 2 }}>
-                            {reportCategoryLabel(i.category)}{i.location ? ` · ${i.location}` : ''}
+                            {maintenanceCategoryLabel(i.category)}{i.location ? ` · ${i.location}` : ''}
                           </div>
                         </div>
                         <span style={{ fontSize: 13, fontWeight: 700, color: isToday ? '#C2410C' : 'var(--teal-dk)', whiteSpace: 'nowrap' }}>

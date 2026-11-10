@@ -5,10 +5,13 @@ import { useRouter } from 'next/navigation'
 import { feeBand, costPerSqm } from '@/lib/score'
 import PhotoUploader from '@/components/photos/PhotoUploader'
 import { uploadPhoto } from '@/lib/photos'
+import { saveResidence } from '@/lib/profile'
+import { useSession } from '@/components/providers/SessionProvider'
 
 // Flusso "Vivo qui": raccoglie spese condominiali (numero esatto -> fascia),
 // servizi, metratura. Usato quando l'utente dichiara di abitare in un edificio.
-// TODO: salvare i contributi su Supabase (tabella building_contributions).
+// Alla fine salva l'abitazione attuale e i dati in public.user_residences:
+// e' cio' che fa comparire l'edificio in "Ora abiti qui" nel profilo.
 
 const STEPS = ['fee', 'sqm', 'amenities', 'confirm', 'photos']
 
@@ -51,7 +54,9 @@ const AMENITIES = AMENITY_GROUPS.flatMap((g) => g.items)
 
 export default function VivoQuiFlow({ open, onClose, building }) {
   const router = useRouter()
+  const session = useSession()
   const [step, setStep] = useState(0)
+  const [saveError, setSaveError] = useState(null)
   const [feeBuilding, setFeeBuilding] = useState('')
   const [isSuperCondo, setIsSuperCondo] = useState(false)
   const [feeSuper, setFeeSuper] = useState('')
@@ -72,23 +77,32 @@ export default function VivoQuiFlow({ open, onClose, building }) {
   const perSqm = costPerSqm(totalFee, Number(sqm))
 
   async function next() {
-    if (isLast) {
-      setUploadingPhotos(true)
-      if (photos.length > 0) {
-        await Promise.all(photos.map((f) => uploadPhoto(f.blob, building.id, null))).catch(console.warn)
-        router.refresh()
-      }
+    if (!isLast) { setStep((s) => s + 1); return }
+    const userId = session?.user?.id
+    if (!userId) { setSaveError('Accedi per salvare dove abiti.'); return }
+
+    setUploadingPhotos(true)
+    setSaveError(null)
+    const { data, error } = await saveResidence(userId, building.id, {
+      monthly_fee: totalFee || null,
+      monthly_fee_building: buildingFeeNum || null,
+      is_supercondominio: isSuperCondo,
+      monthly_fee_super: superFeeNum || null,
+      avg_sqm: Number(sqm) || null,
+      amenities,
+    })
+    if (error || !data?.length) {
+      console.error('[VivoQuiFlow] saveResidence failed', error)
       setUploadingPhotos(false)
-      console.log('Vivo qui contributo:', {
-        monthly_fee: totalFee || null,
-        monthly_fee_building: buildingFeeNum || null,
-        is_supercondominio: isSuperCondo,
-        monthly_fee_super: superFeeNum || null,
-        avg_sqm: Number(sqm) || null,
-        amenities,
-      })
-      onClose()
-    } else setStep((s) => s + 1)
+      setSaveError('Non sono riuscito a salvare. Riprova tra poco.')
+      return
+    }
+    if (photos.length > 0) {
+      await Promise.all(photos.map((f) => uploadPhoto(f.blob, building.id, null))).catch(console.warn)
+    }
+    setUploadingPhotos(false)
+    router.refresh()
+    onClose()
   }
   function toggle(id) {
     setAmenities((a) => a.includes(id) ? a.filter((x) => x !== id) : [...a, id])
@@ -216,7 +230,7 @@ export default function VivoQuiFlow({ open, onClose, building }) {
         {current === 'photos' && (
           <>
             <H>Aggiungi foto del condominio</H>
-            <P>Opzionale — le foto aiutano chi cerca casa. Vengono revisionate prima di essere pubblicate.</P>
+            <P>Opzionale: le foto aiutano chi cerca casa. Vengono revisionate prima di essere pubblicate.</P>
             <PhotoUploader files={photos} onChange={setPhotos} maxFiles={5} />
           </>
         )}
@@ -227,9 +241,10 @@ export default function VivoQuiFlow({ open, onClose, building }) {
           )}
           <button onClick={next} disabled={!canProceed}
             style={{ ...btnPrimary, opacity: canProceed ? 1 : 0.5, cursor: canProceed ? 'pointer' : 'not-allowed' }}>
-            {uploadingPhotos ? 'Caricamento...' : isLast ? 'Invia contributo' : 'Continua'}
+            {uploadingPhotos ? 'Salvataggio...' : isLast ? 'Invia contributo' : 'Continua'}
           </button>
         </div>
+        {saveError && <p style={{ fontSize: 13, color: '#B42318', margin: '10px 0 0' }}>{saveError}</p>}
         <button onClick={onClose} style={btnSkip}>Annulla</button>
       </div>
     </div>

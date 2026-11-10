@@ -13,33 +13,43 @@ export function useUserBuildings(userId) {
     try {
       const supabase = createClient()
 
-      const { data: reviews } = await supabase
-        .from('reviews')
-        .select('resident_type, building_id')
-        .eq('user_id', userId)
-
-      if (!reviews?.length) {
-        setCurrent([])
-        setPast([])
-        setReviewCount(0)
-        return
-      }
-
-      const ids = [...new Set(reviews.map(r => r.building_id).filter(Boolean))]
-      const { data: buildings } = await supabase
-        .from('building_scores')
-        .select('*')
-        .in('id', ids)
-
-      const buildingMap = Object.fromEntries(buildings?.map(b => [b.id, b]) || [])
+      // Due fonti: le abitazioni dichiarate con "Vivo qui" (user_residences)
+      // e le recensioni (resident_type). Lo stato in user_residences vince,
+      // perche' e' quello che l'utente aggiorna esplicitamente.
+      const [{ data: reviews, error: reviewsError }, { data: residences, error: residencesError }] = await Promise.all([
+        supabase.from('reviews').select('resident_type, building_id').eq('user_id', userId),
+        supabase.from('user_residences').select('building_id, status').eq('user_id', userId),
+      ])
+      if (reviewsError) console.error('[useUserBuildings] reviews failed', reviewsError)
+      if (residencesError) console.error('[useUserBuildings] user_residences failed', residencesError)
 
       // Se per un edificio esiste almeno una recensione "former_resident" → ex-abitazione
-      // altrimenti → attuale. L'azione "Lascio" aggiorna la recensione esistente.
+      // altrimenti → attuale. Poi user_residences sovrascrive.
       const statusMap = {}
-      reviews.forEach(r => {
+      ;(reviews || []).forEach(r => {
+        if (!r.building_id) return
         if (!statusMap[r.building_id]) statusMap[r.building_id] = 'current'
         if (r.resident_type === 'former_resident') statusMap[r.building_id] = 'past'
       })
+      ;(residences || []).forEach(r => {
+        statusMap[r.building_id] = r.status === 'past' ? 'past' : 'current'
+      })
+
+      const ids = Object.keys(statusMap)
+      if (!ids.length) {
+        setCurrent([])
+        setPast([])
+        setReviewCount(reviews?.length || 0)
+        return
+      }
+
+      const { data: buildings, error: buildingsError } = await supabase
+        .from('building_scores')
+        .select('*')
+        .in('id', ids)
+      if (buildingsError) console.error('[useUserBuildings] building_scores failed', buildingsError)
+
+      const buildingMap = Object.fromEntries(buildings?.map(b => [b.id, b]) || [])
 
       const currentList = []
       const pastList = []
@@ -52,7 +62,7 @@ export function useUserBuildings(userId) {
 
       setCurrent(currentList)
       setPast(pastList)
-      setReviewCount(reviews.length)
+      setReviewCount(reviews?.length || 0)
     } finally {
       // finally, non solo dopo il "return" felice: se una query lancia
       // un'eccezione, loading non deve restare bloccato a true per sempre

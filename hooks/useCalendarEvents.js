@@ -2,9 +2,10 @@ import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
 import { useCondoRole } from '@/hooks/useCondoRole'
+import { toLocalISODate, monthGridRange } from '@/lib/localDate'
 
-// Eventi di un mese specifico per la vista calendario.
-// month e' 0-11 (convenzione Date di JS).
+// Eventi visibili nella griglia di un mese (inclusi i giorni del mese
+// prima/dopo mostrati in griglia). month e' 0-11 (convenzione Date di JS).
 export function useCalendarEvents(buildingId, year, month) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -12,8 +13,9 @@ export function useCalendarEvents(buildingId, year, month) {
   const session = useSession()
   const { isCondoAdmin } = useCondoRole(buildingId)
 
-  const from = new Date(year, month, 1).toISOString().slice(0, 10)
-  const to = new Date(year, month + 1, 0).toISOString().slice(0, 10) // ultimo giorno del mese
+  const { start, end } = monthGridRange(year, month)
+  const from = toLocalISODate(start)
+  const to = toLocalISODate(end)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -27,8 +29,13 @@ export function useCalendarEvents(buildingId, year, month) {
       .order('event_date', { ascending: true })
       .order('time_start', { ascending: true, nullsFirst: false })
 
-    if (error) setError(error.message)
-    else setEvents(data)
+    if (error) {
+      console.error('[useCalendarEvents] load failed', error)
+      setError(error.message)
+    } else {
+      setError(null)
+      setEvents(data)
+    }
     setLoading(false)
   }, [buildingId, from, to])
 

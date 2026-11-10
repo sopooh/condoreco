@@ -11,6 +11,7 @@ import { useInterventions, isActiveIntervention } from '@/hooks/useInterventions
 import { usePublicInterventions } from '@/hooks/usePublicInterventions'
 import { useCalendarEvents } from '@/hooks/useCalendarEvents'
 import { toLocalISODate } from '@/lib/localDate'
+import MyUnitBanner from '@/components/condo/MyUnitBanner'
 import { ToolboxArt } from '@/components/condo/CondoArt'
 
 // Home dell'area condominio: saluto + quattro sezioni.
@@ -90,6 +91,7 @@ export default function CondoDashboard({ building }) {
 
       {/* ---- sezioni ---- */}
       <div style={{ maxWidth: 720, margin: '-36px auto 0', padding: '0 16px 48px', position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <MyUnitBanner building={building} />
         <HubCard
           href={`${base}/interventi`}
           personal

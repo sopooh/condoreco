@@ -125,7 +125,7 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540 })
           onChange={e => { touchedRef.current = true; setQ(e.target.value) }}
           onFocus={() => results.length > 0 && setOpen(true)}
           onKeyDown={e => e.key === 'Escape' && setOpen(false)}
-          placeholder={isMobile ? 'Cerca via, città...' : 'Cerca via, quartiere, città — es. Via Manzoni 14, Milano'}
+          placeholder={isMobile ? 'Cerca via, città...' : 'Cerca via, quartiere, città (es. Via Manzoni 14, Milano)'}
           style={{ flex: 1, border: 'none', outline: 'none', padding: pad, fontSize: fs, fontFamily: 'Inter, sans-serif', minWidth: 0 }}
         />
         {loading && (

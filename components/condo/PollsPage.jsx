@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { usePolls } from '@/hooks/usePolls'
+import AnonymityToggle from '@/components/condo/AnonymityToggle'
 import PollCard from '@/components/condo/PollCard'
 
 // Elenco di tutte le decisioni del condominio (in corso e concluse) e
@@ -14,7 +15,7 @@ export default function PollsPage({ building }) {
   const buildingId = building.id
   const base = `/edificio/${buildingId}/condominio`
   const searchParams = useSearchParams()
-  const { polls, loading, error, createPoll, castVote } = usePolls(buildingId)
+  const { polls, loading, error, createPoll, castVote, changeVote } = usePolls(buildingId)
   const [formOpen, setFormOpen] = useState(searchParams.get('nuova') === '1')
 
   const open = polls.filter((p) => p.isOpen)
@@ -45,12 +46,12 @@ export default function PollsPage({ building }) {
           <SectionTitle>In corso</SectionTitle>
           {open.length === 0
             ? <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0 }}>Nessuna decisione in corso.</p>
-            : open.map((p) => <PollCard key={p.id} poll={p} onVote={castVote} href={`${base}/decisioni/${p.id}`} showLabel={false} />)}
+            : open.map((p) => <PollCard key={p.id} poll={p} onVote={castVote} onChangeVote={changeVote} href={`${base}/decisioni/${p.id}`} showLabel={false} />)}
 
           {closed.length > 0 && (
             <>
               <SectionTitle>Concluse</SectionTitle>
-              {closed.map((p) => <PollCard key={p.id} poll={p} onVote={castVote} href={`${base}/decisioni/${p.id}`} showLabel={false} />)}
+              {closed.map((p) => <PollCard key={p.id} poll={p} onVote={castVote} onChangeVote={changeVote} href={`${base}/decisioni/${p.id}`} showLabel={false} />)}
             </>
           )}
         </>
@@ -65,6 +66,7 @@ function NewPollForm({ onCancel, onCreate, onDone }) {
   const [question, setQuestion] = useState('')
   const [days, setDays] = useState(7)
   const [minVotes, setMinVotes] = useState(10)
+  const [anonymous, setAnonymous] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const canSave = question.trim().length > 3 && minVotes > 0 && !saving
@@ -96,6 +98,10 @@ function NewPollForm({ onCancel, onCreate, onDone }) {
         <div style={fieldLabel}>Quorum (voti minimi perche&apos; la decisione sia valida)</div>
         <input type="number" min={1} value={minVotes} onChange={(e) => setMinVotes(Number(e.target.value))} style={{ ...field, maxWidth: 120 }} />
       </div>
+      <div>
+        <div style={fieldLabel}>Come si vota</div>
+        <AnonymityToggle value={anonymous} onChange={setAnonymous} />
+      </div>
       {error && <p style={{ fontSize: 13, color: '#B42318', margin: 0 }}>{error}</p>}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         <button onClick={onCancel} style={secondaryBtn}>Annulla</button>
@@ -103,7 +109,7 @@ function NewPollForm({ onCancel, onCreate, onDone }) {
           disabled={!canSave}
           onClick={async () => {
             setSaving(true)
-            const { error } = await onCreate({ question, minVotes, durationDays: days })
+            const { error } = await onCreate({ question, minVotes, durationDays: days, isAnonymous: anonymous })
             setSaving(false)
             if (error) setError(error)
             else onDone()

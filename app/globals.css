@@ -1650,19 +1650,6 @@ input, select, textarea { font-family: inherit; }
 .fpanel.is-side .fpanel-chip { min-height: 0; padding: 6px 10px; }
 .fpanel.is-side .fpanel-amen { gap: 6px; }
 
-/* ── Bacheca: schede Bacheca / Archivio / Fornitori ─────────────────── */
-.bacheca-tabs {
-  display: grid; grid-template-columns: 1fr 1.35fr 1fr; background: var(--white);
-  border: 1px solid var(--border); border-radius: 18px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.bacheca-tabs a {
-  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-  padding: 14px 6px 12px; color: var(--text-3); font-size: 13.5px; font-weight: 600; text-align: center; line-height: 1.2;
-}
-.bacheca-tabs a + a { border-left: 1px solid var(--border); }
-.bacheca-tabs a.is-on { background: var(--teal-lt); color: var(--teal-dk); font-weight: 800; }
-.bacheca-tabs a.is-on::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--teal); }
-
 /* ── Archivio documenti ─────────────────────────────────────────────── */
 .docs-cats { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 .docs-cat {
@@ -1699,5 +1686,4 @@ input, select, textarea { font-family: inherit; }
 @media (max-width: 380px) {
   .docs-cat { padding: 12px 10px; gap: 10px; }
   .docs-cat-icon { width: 40px; height: 40px; }
-  .bacheca-tabs a { font-size: 12.5px; }
 }

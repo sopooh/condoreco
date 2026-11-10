@@ -7,7 +7,6 @@ import {
 } from 'lucide-react'
 import { useDocuments, MAX_DOC_BYTES } from '@/hooks/useDocuments'
 import { DOCUMENT_CATEGORIES, documentCategory } from '@/lib/documentCategories'
-import BachecaTabs from '@/components/condo/BachecaTabs'
 import { fuzzyFilter } from '@/lib/fuzzySearch'
 import { Sheet } from '@/components/condo/InterventionsPage'
 
@@ -62,8 +61,6 @@ export default function ArchivePage({ building }) {
         <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', margin: 0 }}>Archivio documenti</h1>
         <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '4px 0 0' }}>Tutti i documenti del condominio, organizzati per categoria.</p>
       </div>
-
-      <BachecaTabs buildingId={buildingId} active="archivio" />
 
       <div style={{ display: 'flex', gap: 10 }}>
         <label style={{ flex: 1, position: 'relative', display: 'block' }}>

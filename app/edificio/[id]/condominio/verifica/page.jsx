@@ -15,10 +15,10 @@ const STEP_LABELS = {
 }
 
 const DOCUMENT_TYPES = [
-  { id: 'certificato', label: 'Certificato di residenza' },
-  { id: 'affitto', label: 'Contratto di affitto' },
-  { id: 'rogito', label: 'Rogito' },
-  { id: 'bolletta', label: 'Bolletta (luce, gas, internet)' },
+  { id: 'certificato', label: 'Certificato di residenza', Icon: HomeIcon },
+  { id: 'affitto', label: 'Contratto di affitto', Icon: KeyIcon },
+  { id: 'rogito', label: 'Rogito', Icon: DeedIcon },
+  { id: 'bolletta', label: 'Bolletta', sub: '(luce, gas, internet)', Icon: BoltIcon },
 ]
 
 // Prima implementazione: nessun upload reale (nessun bucket di storage, nessuna
@@ -91,21 +91,20 @@ export default function VerificaResidenzaPage({ params }) {
 
   if (done) {
     return (
-      <div style={{ maxWidth: 480, margin: '80px auto', padding: '0 24px', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', marginBottom: 10 }}>Residenza verificata</h1>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
-          <span className="profile-pill profile-pill-teal">Residente verificato</span>
+      <div style={{ maxWidth: 480, margin: '0 auto', padding: '40px 20px 60px' }}>
+        <div style={{ ...cardStyle, textAlign: 'center' }}>
+          <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--teal-lt)', color: 'var(--teal)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+            <CheckIcon size={36} />
+          </div>
+          <h1 style={titleStyle}>Residenza verificata</h1>
+          <p style={{ ...subStyle, marginBottom: 18 }}>Ora puoi accedere alla bacheca, alle decisioni e alla chat del tuo condominio.</p>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+            <span className="profile-pill profile-pill-teal">Residente verificato</span>
+          </div>
+          <button onClick={() => router.push(`/edificio/${condominiumId}/condominio`)} style={primaryBtn(true)}>
+            Entra nel condominio <ArrowRightIcon />
+          </button>
         </div>
-        <button
-          onClick={() => router.push(`/edificio/${condominiumId}/condominio`)}
-          style={{
-            width: '100%', padding: 14, borderRadius: 10, border: 'none',
-            background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer',
-          }}
-        >
-          Entra nel condominio
-        </button>
       </div>
     )
   }
@@ -117,21 +116,20 @@ export default function VerificaResidenzaPage({ params }) {
   }[current]
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', padding: '32px 24px 60px' }}>
+    <div style={{ maxWidth: 480, margin: '0 auto', padding: '28px 20px 60px' }}>
       {current !== 'verifica' && (
         <>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
-            <button onClick={prev}
-              style={{ background: 'none', border: 'none', fontSize: 14, fontWeight: 600, color: 'var(--text-3)', cursor: 'pointer' }}>
-              ← {step === 0 ? 'Annulla' : 'Indietro'}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 18 }}>
+            <button onClick={prev} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', padding: '6px 0', minHeight: 0, fontSize: 16, fontWeight: 600, color: 'var(--text-2)', cursor: 'pointer' }}>
+              <ArrowLeftIcon /> {step === 0 ? 'Annulla' : 'Indietro'}
             </button>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-4)' }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-3)', textAlign: 'right' }}>
               {STEP_LABELS[current]} · {step + 1} di {STEPS.length}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 6, marginBottom: 32 }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 28 }}>
             {STEPS.map((s, i) => (
-              <div key={s} style={{ flex: 1, height: 4, borderRadius: 100, background: i <= step ? 'var(--teal)' : 'var(--border)' }} />
+              <div key={s} style={{ flex: 1, height: 8, borderRadius: 100, background: i <= step ? 'var(--teal)' : '#E5E7EB', transition: 'background 200ms ease' }} />
             ))}
           </div>
         </>
@@ -140,22 +138,31 @@ export default function VerificaResidenzaPage({ params }) {
       <div style={cardStyle}>
         {current === 'documento' && (
           <>
-            <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>Quale documento vuoi usare?</h2>
-            <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 20 }}>
-              Ci serve solo per confermare che vivi in questo edificio.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <IconTile><DocsIcon /></IconTile>
+            <h2 style={titleStyle}>Quale documento vuoi usare?</h2>
+            <p style={subStyle}>Ci serve solo per confermare che vivi in questo edificio.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {DOCUMENT_TYPES.map(doc => {
                 const active = documentType === doc.id
+                const Icon = doc.Icon
                 return (
-                  <button key={doc.id} onClick={() => setDocumentType(doc.id)}
+                  <button key={doc.id} onClick={() => setDocumentType(doc.id)} aria-pressed={active}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 12, padding: 16,
-                      border: `2px solid ${active ? 'var(--teal)' : 'var(--border)'}`, borderRadius: 12,
-                      background: active ? 'var(--bg)' : 'var(--white)', cursor: 'pointer', textAlign: 'left',
+                      display: 'flex', alignItems: 'center', gap: 16, padding: '14px 16px', minHeight: 72,
+                      border: `${active ? 2 : 1}px solid ${active ? 'var(--teal)' : 'var(--border)'}`, borderRadius: 16,
+                      background: active ? 'rgba(13,103,111,0.05)' : 'var(--white)', cursor: 'pointer', textAlign: 'left',
+                      margin: active ? 0 : 1, transition: 'border-color 150ms ease, background 150ms ease',
                     }}>
-                    <div style={{ width: 14, height: 14, borderRadius: '50%', background: 'var(--teal)', flexShrink: 0, opacity: active ? 1 : 0 }} />
-                    <div style={{ fontSize: 15, fontWeight: 700 }}>{doc.label}</div>
+                    <span style={{ width: 48, height: 48, borderRadius: 14, background: active ? 'var(--teal-lt)' : '#EEF3F3', color: 'var(--teal)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon />
+                    </span>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>{doc.label}</span>
+                      {doc.sub && <span style={{ display: 'block', fontSize: 14, color: 'var(--text-3)', marginTop: 2 }}>{doc.sub}</span>}
+                    </span>
+                    <span style={{ color: active ? 'var(--teal)' : 'var(--text-2)', display: 'inline-flex', flexShrink: 0 }}>
+                      {active ? <CheckCircleIcon /> : <ChevronRightIcon />}
+                    </span>
                   </button>
                 )
               })}
@@ -165,64 +172,65 @@ export default function VerificaResidenzaPage({ params }) {
 
         {current === 'carica' && (
           <>
-            <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>Carica il documento</h2>
-            <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 20 }}>
-              Oscura pure i dati sensibili, ci serve solo l&apos;indirizzo.
-            </p>
+            <IconTile><UploadIcon /></IconTile>
+            <h2 style={titleStyle}>Carica il documento</h2>
+            <p style={subStyle}>Oscura pure i dati sensibili, ci serve solo l&apos;indirizzo.</p>
             <label
               onDragOver={e => { e.preventDefault(); setDragOver(true) }}
               onDragLeave={() => setDragOver(false)}
               onDrop={e => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files) }}
               style={{
-                display: 'block', border: `2px dashed ${dragOver ? 'var(--teal)' : 'var(--border)'}`, borderRadius: 10,
-                padding: 24, textAlign: 'center', cursor: 'pointer', background: 'var(--bg)', transition: 'border-color 0.15s',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+                border: `2px dashed ${dragOver || fileName ? 'var(--teal)' : 'var(--border)'}`, borderRadius: 16,
+                padding: '28px 20px', textAlign: 'center', cursor: 'pointer',
+                background: fileName ? 'rgba(13,103,111,0.05)' : '#FAFBFB', transition: 'border-color 150ms ease',
               }}
             >
               <input id="verifica-documento" name="verifica-documento" type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={e => handleFile(e.target.files)} />
-              <div style={{ fontSize: 24, marginBottom: 6 }}>📄</div>
+              <span style={{ width: 52, height: 52, borderRadius: '50%', background: fileName ? 'var(--teal)' : 'var(--teal-lt)', color: fileName ? '#fff' : 'var(--teal)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {fileName ? <CheckIcon size={26} /> : <UploadIcon />}
+              </span>
               {fileName ? (
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--teal-dk)' }}>{fileName}</div>
+                <>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--teal-dk)', wordBreak: 'break-all' }}>{fileName}</span>
+                  <span style={{ fontSize: 13, color: 'var(--text-3)' }}>Tocca per cambiare file</span>
+                </>
               ) : (
                 <>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>Trascina qui il file oppure scegli dal dispositivo</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 3 }}>JPG · PNG · PDF</div>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>Scegli un file o scatta una foto</span>
+                  <span style={{ fontSize: 13, color: 'var(--text-4)' }}>JPG · PNG · PDF</span>
                 </>
               )}
             </label>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 16, padding: '12px 14px', borderRadius: 12, background: '#F5F7F7', fontSize: 13, color: 'var(--text-3)', lineHeight: 1.45 }}>
+              <span style={{ color: 'var(--teal)', display: 'inline-flex', flexShrink: 0, marginTop: 1 }}><ShieldIcon /></span>
+              Il documento serve solo alla verifica e non viene mostrato agli altri residenti.
+            </div>
           </>
         )}
 
         {current === 'verifica' && !error && (
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div className="condo-spinner" style={{ margin: '0 auto 20px' }} />
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>Stiamo verificando il documento…</div>
+          <div style={{ textAlign: 'center', padding: '24px 0 8px' }}>
+            <div className="condo-spinner" style={{ margin: '0 auto 22px' }} />
+            <h2 style={{ ...titleStyle, fontSize: 22 }}>Stiamo verificando il documento</h2>
+            <p style={{ ...subStyle, marginBottom: 0 }}>Ci vuole solo qualche secondo.</p>
           </div>
         )}
 
         {current === 'verifica' && error && (
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>⚠️</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 20 }}>{error}</div>
-            <button
-              onClick={() => { setError(null); setRetryToken(t => t + 1) }}
-              style={{
-                width: '100%', padding: 14, borderRadius: 10, border: 'none',
-                background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer',
-              }}
-            >
-              Riprova
-            </button>
+          <div style={{ textAlign: 'center', padding: '12px 0 0' }}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#FDECEC', color: '#B42318', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <AlertIcon />
+            </div>
+            <h2 style={{ ...titleStyle, fontSize: 21 }}>Verifica non completata</h2>
+            <p style={subStyle}>{error}</p>
+            <button onClick={() => { setError(null); setRetryToken(t => t + 1) }} style={primaryBtn(true)}>Riprova</button>
           </div>
         )}
 
         {current !== 'verifica' && (
-          <button onClick={next} disabled={!canProceed}
-            style={{
-              width: '100%', marginTop: 28, padding: 14, borderRadius: 10, border: 'none',
-              background: canProceed ? 'var(--teal)' : 'var(--border)', color: '#fff',
-              fontWeight: 700, fontSize: 15, cursor: canProceed ? 'pointer' : 'not-allowed',
-            }}>
-            Continua
+          <button onClick={next} disabled={!canProceed} style={{ ...primaryBtn(canProceed), marginTop: 28 }}>
+            Continua <ArrowRightIcon />
           </button>
         )}
       </div>
@@ -230,4 +238,34 @@ export default function VerificaResidenzaPage({ params }) {
   )
 }
 
-const cardStyle = { background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 16, padding: 32 }
+function IconTile({ children }) {
+  return (
+    <div style={{ width: 64, height: 64, borderRadius: 18, background: '#EEF3F3', color: 'var(--teal)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+      {children}
+    </div>
+  )
+}
+
+const cardStyle = { background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 24, padding: '28px 22px', boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }
+const titleStyle = { fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', lineHeight: 1.2, margin: '0 0 8px' }
+const subStyle = { fontSize: 16, color: 'var(--text-3)', lineHeight: 1.5, margin: '0 0 22px' }
+const primaryBtn = (enabled) => ({
+  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', height: 56,
+  borderRadius: 16, border: 'none', background: enabled ? 'var(--teal)' : '#D5DCDC', color: '#fff',
+  fontWeight: 700, fontSize: 17, cursor: enabled ? 'pointer' : 'not-allowed',
+})
+
+const ico = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true, viewBox: '0 0 24 24' }
+function DocsIcon() { return <svg {...ico} width={30} height={30}><path d="M8 7V5a2 2 0 012-2h5l5 5v9a2 2 0 01-2 2h-2" /><path d="M15 3v5h5" /><rect x="4" y="7" width="12" height="14" rx="2" /></svg> }
+function HomeIcon() { return <svg {...ico} width={24} height={24}><path d="M3 11l9-7 9 7" /><path d="M5 10v10h14V10" /><path d="M10 20v-5h4v5" /></svg> }
+function KeyIcon() { return <svg {...ico} width={24} height={24}><circle cx="15" cy="9" r="4.5" /><path d="M11.8 12.2L4 20M7 17l2 2M5.5 18.5l1.5 1.5" /></svg> }
+function DeedIcon() { return <svg {...ico} width={24} height={24}><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z" /><path d="M14 3v5h5" /><path d="M8 16c1.2-1.6 2-1.6 2.6 0 .5 1.3 1.3 1.3 2.2 0l1.2-1.2" /></svg> }
+function BoltIcon() { return <svg {...ico} width={24} height={24}><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" /></svg> }
+function UploadIcon() { return <svg {...ico} width={28} height={28}><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" /></svg> }
+function ShieldIcon() { return <svg {...ico} width={18} height={18}><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6l8-3z" /><path d="M9 12l2 2 4-4" /></svg> }
+function AlertIcon() { return <svg {...ico} width={30} height={30} strokeWidth={2}><path d="M12 8v5M12 16.5h.01" /><circle cx="12" cy="12" r="9" /></svg> }
+function ChevronRightIcon() { return <svg {...ico} width={22} height={22} strokeWidth={2}><path d="M9 6l6 6-6 6" /></svg> }
+function CheckCircleIcon() { return <svg {...ico} width={26} height={26} strokeWidth={2}><circle cx="12" cy="12" r="9.5" /><path d="M8 12.5l2.7 2.7L16 9.8" /></svg> }
+function CheckIcon({ size = 22 }) { return <svg {...ico} width={size} height={size} strokeWidth={2.4}><path d="M5 12.5l4.5 4.5L19 7.5" /></svg> }
+function ArrowRightIcon() { return <svg {...ico} width={22} height={22} strokeWidth={2}><path d="M5 12h14M13 6l6 6-6 6" /></svg> }
+function ArrowLeftIcon() { return <svg {...ico} width={22} height={22} strokeWidth={2}><path d="M19 12H5M11 6l-6 6 6 6" /></svg> }

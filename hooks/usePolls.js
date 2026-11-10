@@ -17,7 +17,7 @@ export function usePolls(buildingId) {
     const { data, error } = await supabase
       .from('polls')
       .select(`
-        id, question, min_votes, closes_at, status, rejection_reason, created_at,
+        id, question, min_votes, closes_at, status, rejection_reason, created_at, created_by,
         profiles:created_by(display_name),
         poll_votes(user_id, vote)
       `)
@@ -42,6 +42,9 @@ export function usePolls(buildingId) {
             // complemento, non arrotondamento separato: altrimenti 37.5/62.5 -> 38% + 63%
             noPct: total ? 100 - Math.round((yes / total) * 100) : 0,
             hasVoted: !!myVote,
+            // voti di altri residenti: dopo il primo, il testo non e' piu' modificabile
+            othersVoted: p.poll_votes.some((v) => v.user_id !== userId),
+            isMine: !!userId && p.created_by === userId,
             myVote: myVote?.vote ?? null,
             isOpen: p.status === 'open' && new Date(p.closes_at) > new Date(),
           }
@@ -100,5 +103,38 @@ export function usePolls(buildingId) {
     [userId, loadPolls]
   )
 
-  return { polls, loading, error, userId, createPoll, castVote, reload: loadPolls }
+  // Modifica (solo autore, solo se aperta: RLS + trigger lato DB).
+  // .select(): se la RLS blocca, Supabase restituisce 0 righe senza errore.
+  const updatePoll = useCallback(
+    async (pollId, { question, minVotes, closesAt }) => {
+      const supabase = createClient()
+      const patch = {}
+      if (question !== undefined) patch.question = question.trim()
+      if (minVotes !== undefined) patch.min_votes = minVotes
+      if (closesAt !== undefined) patch.closes_at = closesAt
+      const { data, error } = await supabase.from('polls').update(patch).eq('id', pollId).select('id')
+      if (error) {
+        console.error('[usePolls] update failed', error)
+        return { error: error.message }
+      }
+      if (!data?.length) return { error: 'Non puoi modificare questa decisione' }
+      await loadPolls()
+      return { error: null }
+    },
+    [loadPolls]
+  )
+
+  // Eliminazione: autore o admin del condominio (funzione delete_poll)
+  const deletePoll = useCallback(async (pollId) => {
+    const supabase = createClient()
+    const { error } = await supabase.rpc('delete_poll', { p_poll_id: pollId })
+    if (error) {
+      console.error('[usePolls] delete failed', error)
+      return { error: error.message }
+    }
+    await loadPolls()
+    return { error: null }
+  }, [loadPolls])
+
+  return { polls, loading, error, userId, createPoll, castVote, updatePoll, deletePoll, reload: loadPolls }
 }

@@ -76,7 +76,7 @@ export default function InterventionsPage({ building }) {
             const on = filter === c.value
             return (
               <button key={c.value} onClick={() => setFilter(on ? null : c.value)} aria-pressed={on} style={{
-                flex: '0 0 auto', width: 96, minHeight: 0, padding: '14px 6px 12px', borderRadius: 18, cursor: 'pointer',
+                flex: '0 0 auto', minWidth: 96, minHeight: 0, padding: '14px 14px 12px', borderRadius: 18, cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                 border: `1.5px solid ${on ? 'var(--teal)' : 'var(--border)'}`, background: on ? 'var(--teal-lt)' : 'var(--white)',
                 color: 'var(--teal-dk)', boxShadow: on ? '0 4px 14px rgba(13,103,111,0.15)' : 'none',
@@ -292,11 +292,26 @@ function DetailSheet({ intervention: i, maintainer, onClose, onContact, onSchedu
 function NewInterventionSheet({ maintainers, defaultCategory, onClose, onAddMaintainer, onCreate, onCreated, building, notices }) {
   const [mode, setMode] = useState(null) // null = scelta, 'repair' = guasto, 'notice' = avviso ai vicini
   const [step, setStep] = useState(0)
-  const [v, setV] = useState({ title: '', category: defaultCategory, location: '', description: '', maintainerId: null })
+  const tpl = (c) => maintenanceCategory(c).template || { title: '', description: '' }
+  const [v, setV] = useState({ title: tpl(defaultCategory).title, category: defaultCategory, location: '', description: tpl(defaultCategory).description, maintainerId: null })
+  // testo precompilato per la categoria finche' l'utente non lo modifica
+  const [edited, setEdited] = useState({ title: false, description: false })
   const [addingNew, setAddingNew] = useState(false)
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState(null)
-  const set = (k) => (e) => setV((x) => ({ ...x, [k]: e.target.value }))
+  const set = (k) => (e) => {
+    const val = e.target.value
+    setV((x) => ({ ...x, [k]: val }))
+    if (k === 'title' || k === 'description') setEdited((x) => ({ ...x, [k]: true }))
+  }
+  function pickCategory(c) {
+    setV((x) => ({
+      ...x,
+      category: c,
+      title: edited.title && x.title.trim() ? x.title : tpl(c).title,
+      description: edited.description && x.description.trim() ? x.description : tpl(c).description,
+    }))
+  }
 
   const sorted = [...maintainers].sort((a, b) => (b.category === v.category) - (a.category === v.category))
 
@@ -350,9 +365,9 @@ function NewInterventionSheet({ maintainers, defaultCategory, onClose, onAddMain
       {step === 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <label><div style={label}>Cosa succede?</div>
-            <input autoFocus style={field} placeholder="Es. Ascensore bloccato al 3° piano" value={v.title} onChange={set('title')} />
+            <input style={field} placeholder="Es. Ascensore bloccato al 3° piano" value={v.title} onChange={set('title')} />
           </label>
-          <div><div style={label}>Categoria</div><CategoryPills value={v.category} onChange={(c) => setV((x) => ({ ...x, category: c }))} /></div>
+          <div><div style={label}>Categoria</div><CategoryPills value={v.category} onChange={pickCategory} /></div>
           <label><div style={label}>Dove</div>
             <input style={field} placeholder="Es. Scala B, 3° piano, cantina" value={v.location} onChange={set('location')} />
           </label>
@@ -468,7 +483,7 @@ function MaintainerForm({ defaultCategory = 'other', onCancel, onSave }) {
   const ok = m.name.trim().length >= 2 && (m.phone.trim() || m.email.trim()) && !saving
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <input autoFocus style={field} placeholder="Nome o ditta (es. Consorzio del Bo)" value={m.name} onChange={set('name')} />
+      <input style={field} placeholder="Nome o ditta (es. Consorzio del Bo)" value={m.name} onChange={set('name')} />
       <input style={field} placeholder="Referente (facoltativo)" value={m.company} onChange={set('company')} />
       <div><div style={label}>Si occupa di</div><CategoryPills value={m.category} onChange={(c) => setM((x) => ({ ...x, category: c }))} /></div>
       <input type="tel" style={field} placeholder="Telefono / WhatsApp" value={m.phone} onChange={set('phone')} />

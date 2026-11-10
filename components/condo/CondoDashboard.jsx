@@ -12,6 +12,7 @@ import { usePublicInterventions } from '@/hooks/usePublicInterventions'
 import { useCalendarEvents } from '@/hooks/useCalendarEvents'
 import { toLocalISODate } from '@/lib/localDate'
 import MyUnitBanner from '@/components/condo/MyUnitBanner'
+import { useDocuments } from '@/hooks/useDocuments'
 import { ToolboxArt } from '@/components/condo/CondoArt'
 
 // Home dell'area condominio: saluto + quattro sezioni.
@@ -65,6 +66,11 @@ export default function CondoDashboard({ building }) {
   ]
   const eventsToday = upcomingEvents.filter((e) => e.event_date === today).length
 
+  const { docs } = useDocuments(buildingId)
+  const docCount = docs.length
+  const [weekAgo] = useState(() => Date.now() - 7 * 86400000)
+  const newDocs = docs.filter((d) => new Date(d.created_at).getTime() > weekAgo).length
+
   const address = `${building.address}${building.street_number ? `, ${building.street_number}` : ''}`
 
   return (
@@ -105,7 +111,7 @@ export default function CondoDashboard({ building }) {
           href={`${base}/bacheca`}
           tag="Area condominiale"
           title="Bacheca urgente"
-          text="Avvisi, interventi programmati, segnalazioni e archivio documenti."
+          text="Avvisi, interventi programmati e segnalazioni importanti."
           status={[
             scheduledToday ? `${scheduledToday} ${scheduledToday === 1 ? 'intervento' : 'interventi'} oggi` : null,
             openTickets ? `${openTickets} ${openTickets === 1 ? 'ticket aperto' : 'ticket aperti'}` : null,
@@ -125,6 +131,16 @@ export default function CondoDashboard({ building }) {
               : 'Nessun appuntamento in arrivo'}
           highlight={eventsToday > 0}
           art={<CalendarArt />}
+        />
+        <HubCard
+          href={`${base}/archivio`}
+          tag="Area condominiale"
+          title="Documenti del condominio"
+          text="Verbali, avvisi, documenti catastali, bilanci, regolamento e certificazioni."
+          status={docCount
+            ? `${docCount} ${docCount === 1 ? 'documento' : 'documenti'}${newDocs ? ` · ${newDocs} ${newDocs === 1 ? 'nuovo' : 'nuovi'} questa settimana` : ''}`
+            : 'Archivio vuoto'}
+          art={<FolderArt />}
         />
         <HubCard
           href={`${base}/decisioni`}
@@ -231,6 +247,18 @@ function CalendarArt() {
       {[0, 1, 2].map((r) => [0, 1, 2, 3].map((c) => (
         <rect key={`${r}-${c}`} x={18 + c * 13} y={41 + r * 10} width="9" height="6" rx="2" fill={r === 1 && c === 2 ? O : '#FFFFFF'} />
       )))}
+    </svg>
+  )
+}
+function FolderArt() {
+  return (
+    <svg viewBox="0 0 84 84" width="100%" height="100%" aria-hidden="true">
+      <ellipse cx="42" cy="77" rx="30" ry="4" fill="rgba(13,103,111,0.12)" />
+      <path d="M8 22a8 8 0 018-8h16l7 7h29a8 8 0 018 8v6H8z" fill={T} />
+      <rect x="18" y="18" width="40" height="42" rx="4" fill="#FFFFFF" />
+      <rect x="24" y="26" width="26" height="4" rx="2" fill={TL} />
+      <rect x="24" y="34" width="20" height="4" rx="2" fill={O} />
+      <path d="M8 34a6 6 0 016-6h56a6 6 0 016 6v28a8 8 0 01-8 8H16a8 8 0 01-8-8z" fill={TL} />
     </svg>
   )
 }

@@ -8,6 +8,7 @@ import {
 import { useDocuments, MAX_DOC_BYTES } from '@/hooks/useDocuments'
 import { DOCUMENT_CATEGORIES, documentCategory } from '@/lib/documentCategories'
 import BachecaTabs from '@/components/condo/BachecaTabs'
+import { fuzzyFilter } from '@/lib/fuzzySearch'
 import { Sheet } from '@/components/condo/InterventionsPage'
 
 const fmtDate = (iso) => new Date(iso.length === 10 ? iso + 'T00:00:00' : iso).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -31,10 +32,17 @@ export default function ArchivePage({ building }) {
   }, [docs])
 
   const query = q.trim().toLowerCase()
-  const filtered = docs.filter((d) =>
-    (vis === 'all' || d.visibility === vis) &&
-    (!category || d.category === category) &&
-    (!query || `${d.title} ${d.file_name} ${documentCategory(d.category).label}`.toLowerCase().includes(query)))
+  // ricerca per corrispondenza o somiglianza (errori di battitura, sinonimi), risultati in ordine di pertinenza
+  const filtered = fuzzyFilter(
+    docs.filter((d) => (vis === 'all' || d.visibility === vis) && (!category || d.category === category)),
+    query,
+    (d) => [
+      { text: d.title, weight: 3 },
+      { text: d.file_name, weight: 1.5 },
+      { text: `${documentCategory(d.category).label} ${documentCategory(d.category).hint}`, weight: 1 },
+      { text: d.doc_date ? fmtDate(d.doc_date) : fmtDate(d.created_at), weight: 0.8 },
+    ],
+  )
   const showingList = category || query || vis !== 'all' || showAll
 
   async function open(doc, download) {
@@ -60,7 +68,7 @@ export default function ArchivePage({ building }) {
       <div style={{ display: 'flex', gap: 10 }}>
         <label style={{ flex: 1, position: 'relative', display: 'block' }}>
           <Search size={18} strokeWidth={2} aria-hidden="true" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)' }} />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cerca un documento..." aria-label="Cerca un documento"
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cerca un documento..." aria-label="Cerca un documento" type="search" enterKeyHint="search"
             style={{ width: '100%', height: 48, borderRadius: 14, border: '1px solid var(--border)', padding: '0 14px 0 42px', fontSize: 16, background: 'var(--white)', boxSizing: 'border-box' }} />
         </label>
         <button type="button" onClick={() => setUploading(true)} className="docs-btn primary" style={{ height: 48, borderRadius: 14, padding: '0 16px', fontSize: 15 }}>
@@ -68,7 +76,7 @@ export default function ArchivePage({ building }) {
         </button>
       </div>
 
-      {!category && (
+      {!category && !query && (
         <div className="docs-cats">
           {DOCUMENT_CATEGORIES.map((c) => {
             const Icon = c.icon
@@ -102,7 +110,7 @@ export default function ArchivePage({ building }) {
               <ChevronLeft size={22} strokeWidth={2.2} aria-hidden="true" style={{ color: 'var(--teal)' }} />{documentCategory(category).label}
             </button>
           ) : (
-            <h2 style={{ fontSize: 19, fontWeight: 800, margin: 0 }}>{showingList ? 'Risultati' : 'Documenti recenti'}</h2>
+            <h2 style={{ fontSize: 19, fontWeight: 800, margin: 0 }}>{query ? `Risultati per “${q.trim()}”` : showingList ? 'Risultati' : 'Documenti recenti'}</h2>
           )}
           <span style={{ fontSize: 13, color: 'var(--text-3)' }}>{filtered.length}</span>
         </div>
@@ -116,7 +124,7 @@ export default function ArchivePage({ building }) {
         ) : filtered.length === 0 ? (
           <div style={{ padding: '18px 0 6px', textAlign: 'center' }}>
             <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '0 0 12px' }}>
-              {docs.length === 0 ? "L'archivio è vuoto. Carica il primo documento del condominio." : 'Nessun documento trovato.'}
+              {docs.length === 0 ? "L'archivio è vuoto. Carica il primo documento del condominio." : query ? 'Nessun documento simile. Prova con un\'altra parola o controlla i filtri.' : 'Nessun documento trovato.'}
             </p>
             {docs.length === 0 && (
               <button type="button" className="docs-btn primary" onClick={() => setUploading(true)}><Upload size={16} strokeWidth={2} aria-hidden="true" /> Carica un documento</button>

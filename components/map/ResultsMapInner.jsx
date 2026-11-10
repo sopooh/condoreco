@@ -82,7 +82,7 @@ export default function ResultsMapInner({
       zoomSnap: 0.25,
     }).setView(DEFAULT_CENTER, DEFAULT_ZOOM)
     L.control.zoom({ position: 'bottomright' }).addTo(map)
-    addBaseTileLayer(map)
+    addBaseTileLayer(map, 'minimal')
     mapRef.current = map
     layerRef.current = L.layerGroup().addTo(map)
     return () => { map.remove(); mapRef.current = null }

@@ -1,5 +1,6 @@
 'use client'
 
+import { Check } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { getAllReports, updateReport, updateUserStatus, moderateReview, updateBuildingStatus } from '@/lib/adminQueries'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -103,7 +104,7 @@ function ReportRow({ report, onUpdate, adminId }) {
         {report.status !== 'resolved' && (
           <button onClick={() => doUpdate('resolved')} disabled={busy}
             style={{ padding: '5px 11px', fontSize: 11, fontWeight: 700, background: 'var(--green-bg)', color: 'var(--green-tx)', border: 'none', borderRadius: 5, cursor: 'pointer' }}>
-            ✓ Risolvi
+            <Check size={14} strokeWidth={2.6} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 4 }} />Risolvi
           </button>
         )}
         {report.status !== 'archived' && (

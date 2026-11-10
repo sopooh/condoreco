@@ -1,5 +1,6 @@
 'use client'
 
+import { Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { useCondoRole } from '@/hooks/useCondoRole'
 import { useTickets } from '@/hooks/useTickets'
@@ -111,10 +112,4 @@ export default function BachecaPage({ building }) {
   )
 }
 
-function WrenchIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.1 2.1-2-2z" />
-    </svg>
-  )
-}
+function WrenchIcon({ size = 20 } = {}) { return <Wrench size={size} strokeWidth={2} aria-hidden="true" /> }

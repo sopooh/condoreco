@@ -1,3 +1,4 @@
+import { ArrowUpDown, Brush, ChartNoAxesColumnIncreasing, Coins, ConciergeBell, Flame, House, LayoutGrid, Sprout, SquareParking, Sun } from 'lucide-react'
 // Sezione "Spese condominiali + caratteristiche del palazzo": riga di
 // icone in stile Booking/Stoop, sostituisce la vecchia lista testuale
 // "Info edificio" in sidebar — stessi dati, più in vista. Mai un valore
@@ -41,100 +42,24 @@ function boolLabel(v) {
   return v ? 'Sì' : 'No'
 }
 
-function CoinsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="100%" height="100%">
-      <ellipse cx="9" cy="7" rx="6" ry="3.5" />
-      <path d="M3 7v4c0 1.93 2.69 3.5 6 3.5s6-1.57 6-3.5V7" />
-      <path d="M9 14.5v2c0 1.93 2.69 3.5 6 3.5s6-1.57 6-3.5v-6c0-1.4-1.44-2.6-3.5-3.15" />
-    </svg>
-  )
-}
+function CoinsIcon({ size = 100 } = {}) { return <Coins size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function BuildingIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="100%" height="100%">
-      <path d="M3 21h18M4 21V10l8-6 8 6v11M9 21v-6h6v6" />
-    </svg>
-  )
-}
+function BuildingIcon({ size = 100 } = {}) { return <House size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function StairsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" width="100%" height="100%">
-      <path d="M3 21v-4h4v-4h4v-4h4V5h4" />
-    </svg>
-  )
-}
+function StairsIcon({ size = 100 } = {}) { return <ChartNoAxesColumnIncreasing size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function UnitsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="100%" height="100%">
-      <rect x="3" y="3" width="8" height="8" rx="1" />
-      <rect x="13" y="3" width="8" height="8" rx="1" />
-      <rect x="3" y="13" width="8" height="8" rx="1" />
-      <rect x="13" y="13" width="8" height="8" rx="1" />
-    </svg>
-  )
-}
+function UnitsIcon({ size = 100 } = {}) { return <LayoutGrid size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function ElevatorIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="100%" height="100%">
-      <rect x="4" y="3" width="16" height="18" rx="1.5" />
-      <path d="M10 8l2-2 2 2M10 15l2 2 2-2" />
-    </svg>
-  )
-}
+function ElevatorIcon({ size = 100 } = {}) { return <ArrowUpDown size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function ConciergeIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="100%" height="100%">
-      <path d="M3 18h18M5 18a7 7 0 0114 0M12 4v3" />
-    </svg>
-  )
-}
+function ConciergeIcon({ size = 100 } = {}) { return <ConciergeBell size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function ParkingIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="100%" height="100%">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <path d="M9 16V8h3.5a2.5 2.5 0 010 5H9" />
-    </svg>
-  )
-}
+function ParkingIcon({ size = 100 } = {}) { return <SquareParking size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function GardenIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="100%" height="100%">
-      <path d="M12 21V10M12 10C7 10 4 7 4 3c4 0 7 3 7 7zM12 10c0-4 3-7 7-7 0 4-3 7-7 7z" />
-    </svg>
-  )
-}
+function GardenIcon({ size = 100 } = {}) { return <Sprout size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function TerraceIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="100%" height="100%">
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4" />
-    </svg>
-  )
-}
+function TerraceIcon({ size = 100 } = {}) { return <Sun size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function HeatingIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="100%" height="100%">
-      <path d="M12 2c1 3-2 4-2 7a3 3 0 006 0c1.5 1.5 2 3 2 5a6 6 0 11-12 0c0-4 2-5 3-8 1 1 1 2 1 3 1-2 1-5 2-7z" />
-    </svg>
-  )
-}
+function HeatingIcon({ size = 100 } = {}) { return <Flame size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function BroomIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="100%" height="100%">
-      <path d="M19 3l-7 7" />
-      <path d="M12.5 9.5l2 2c.8.8.8 2 0 2.8L13 15.8 8.2 11 9.7 9.5c.8-.8 2-.8 2.8 0z" />
-      <path d="M8.2 11L4 15.2c-.6.6-.6 1.5 0 2.1l2.7 2.7c.6.6 1.5.6 2.1 0L13 15.8M7 14l3 3M5.5 16.5l2 2" />
-    </svg>
-  )
-}
+function BroomIcon({ size = 100 } = {}) { return <Brush size={size} strokeWidth={2} aria-hidden="true" /> }

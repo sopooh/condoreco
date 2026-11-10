@@ -1,5 +1,6 @@
 'use client'
 
+import { Check } from 'lucide-react'
 import { useState } from 'react'
 import { useAdminPhotos } from '@/lib/adminPhotos'
 import { photoUrl } from '@/lib/photos'
@@ -103,7 +104,7 @@ export default function PhotoModeration() {
                       background: 'var(--teal)', color: '#fff',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 13, fontWeight: 700,
-                    }}>✓</div>
+                    }}><Check size={14} strokeWidth={3} aria-hidden="true" /></div>
                   )}
                   {p.is_cover && (
                     <div style={{

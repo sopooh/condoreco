@@ -1,5 +1,6 @@
 'use client'
 
+import { Send } from 'lucide-react'
 import { useState } from 'react'
 import Card from '@/components/ui/Card'
 import Avatar from '@/components/ui/Avatar'
@@ -89,10 +90,4 @@ export default function ChatPreviewCard({ messages, isCondoAdmin, onSend, onHide
   )
 }
 
-function SendIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-    </svg>
-  )
-}
+function SendIcon({ size = 17 } = {}) { return <Send size={size} strokeWidth={2} aria-hidden="true" /> }

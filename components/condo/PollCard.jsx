@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronRight, CircleCheck, CircleX, Clock, Lightbulb } from 'lucide-react'
 import { useState } from 'react'
 import Link from 'next/link'
 
@@ -158,16 +159,8 @@ function VoteButton({ kind, selected, muted, unvoted, disabled, onClick }) {
 }
 
 const svg = { fill: 'none', stroke: 'currentColor', strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
-function BulbIcon() {
-  return (
-    <svg {...svg} width="28" height="28" viewBox="0 0 24 24" strokeWidth="1.7">
-      <path d="M9 18h6M10 21h4" />
-      <path d="M12 6a5 5 0 00-3 9c.6.5 1 1.2 1 2h4c0-.8.4-1.5 1-2a5 5 0 00-3-9z" />
-      <path d="M12 2v1.5M4.5 5l1 1M19.5 5l-1 1M3 11h1.5M19.5 11H21" />
-    </svg>
-  )
-}
-function ClockIcon() { return <svg {...svg} width="16" height="16" viewBox="0 0 24 24" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg> }
-function ChevronIcon() { return <svg {...svg} width="20" height="20" viewBox="0 0 24 24" strokeWidth="2.2"><path d="M9 6l6 6-6 6" /></svg> }
-function CheckCircleIcon() { return <svg {...svg} width="24" height="24" viewBox="0 0 24 24" strokeWidth="2"><circle cx="12" cy="12" r="9.5" /><path d="M8 12.5l2.7 2.7L16 9.8" /></svg> }
-function XCircleIcon() { return <svg {...svg} width="24" height="24" viewBox="0 0 24 24" strokeWidth="2"><circle cx="12" cy="12" r="9.5" /><path d="M9 9l6 6M15 9l-6 6" /></svg> }
+function BulbIcon({ size = 28 } = {}) { return <Lightbulb size={size} strokeWidth={1.7} aria-hidden="true" /> }
+function ClockIcon({ size = 16 } = {}) { return <Clock size={size} strokeWidth={2} aria-hidden="true" /> }
+function ChevronIcon({ size = 20 } = {}) { return <ChevronRight size={size} strokeWidth={2.2} aria-hidden="true" /> }
+function CheckCircleIcon({ size = 24 } = {}) { return <CircleCheck size={size} strokeWidth={2} aria-hidden="true" /> }
+function XCircleIcon({ size = 24 } = {}) { return <CircleX size={size} strokeWidth={2} aria-hidden="true" /> }

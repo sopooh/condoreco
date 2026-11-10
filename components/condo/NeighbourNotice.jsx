@@ -1,7 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { ArrowUpDown, DoorOpen, Droplet, Volume2, Flame, Megaphone, Wrench, Check } from 'lucide-react'
 import { NOTICE_KINDS, floorLabel, normalizeFloor } from '@/hooks/useNeighbourNotices'
+
+const NOTICE_ICONS = { elevator: ArrowUpDown, door: DoorOpen, drop: Droplet, sound: Volume2, flame: Flame, megaphone: Megaphone, wrench: Wrench }
 
 // Avviso ai vicini: chi segnala, ad esempio, le porte dell'ascensore aperte
 // non deve contattare un fornitore ma avvisare chi abita a quel piano.
@@ -107,7 +110,7 @@ export function NoticeForm({ building, myFloor, floorCounts, saveFloor, sendNoti
     return (
       <div style={{ textAlign: 'center', padding: '10px 4px 4px' }}>
         <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--teal-lt)', color: 'var(--teal)', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+          <Check size={30} strokeWidth={2.4} aria-hidden="true" />
         </div>
         <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 6 }}>Avviso inviato</div>
         <p style={{ fontSize: 14.5, color: 'var(--text-3)', margin: '0 0 18px', lineHeight: 1.45 }}>
@@ -204,20 +207,8 @@ export function NoticeForm({ building, myFloor, floorCounts, saveFloor, sendNoti
 }
 
 export function NoticeIcon({ name, size = 22 }) {
-  const p = {
-    elevator: <><rect x="4" y="3" width="16" height="18" rx="1.5" /><path d="M12 3v18M7.5 9l1.5-1.5L10.5 9M13.5 15l1.5 1.5 1.5-1.5" /></>,
-    door: <><path d="M5 21V4a1 1 0 011-1h9l4 2v16" /><path d="M3 21h18M12 12h.01" /></>,
-    drop: <path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z" />,
-    sound: <path d="M4 10v4h4l5 4V6L8 10H4zM16 9a4 4 0 010 6M19 6a8 8 0 010 12" />,
-    flame: <path d="M12 3c1 4 5 5 5 10a5 5 0 01-10 0c0-2.5 1.5-4 2.5-5 .3 1.6 1 2.5 2 3 0-3 0-5.5.5-8z" />,
-    megaphone: <path d="M3 11v2a1 1 0 001 1h2l5 4V6L6 10H4a1 1 0 00-1 1zM15 9a4 4 0 010 6M18 6a8 8 0 010 12" />,
-    wrench: <path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.6 2.6-2.4-.6-.6-2.4 2.6-2.6z" />,
-  }
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {p[name]}
-    </svg>
-  )
+  const Icon = NOTICE_ICONS[name] || Megaphone
+  return <Icon size={size} strokeWidth={1.9} aria-hidden="true" />
 }
 
 const primaryBtn = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, minHeight: 0, padding: '0 16px', borderRadius: 14, border: 'none', background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }

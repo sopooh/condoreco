@@ -1,5 +1,6 @@
 'use client'
 
+import { X } from 'lucide-react'
 import Link from 'next/link'
 import { scoreColor } from '@/lib/score'
 
@@ -43,7 +44,7 @@ export function MobileMapPreview({ building: b, onClose }) {
             width: 30, height: 30, cursor: 'pointer', fontSize: 14, color: 'var(--text-3)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}
-        >✕</button>
+        ><X size={18} strokeWidth={2} aria-hidden="true" /></button>
       </div>
       <Link
         href={`/edificio/${b.id}`}
@@ -79,7 +80,7 @@ export function DesktopMapPreview({ building: b, onClose }) {
             background: 'none', border: 'none', cursor: 'pointer',
             fontSize: 16, color: 'var(--text-3)', padding: '0 4px', flexShrink: 0,
           }}
-        >✕</button>
+        ><X size={18} strokeWidth={2} aria-hidden="true" /></button>
       </div>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10 }}>
         {b.score != null && (

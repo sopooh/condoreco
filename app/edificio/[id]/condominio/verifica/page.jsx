@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowLeft, ArrowRight, Check, ChevronRight, CircleAlert, CircleCheck, FileSignature, Files, House, KeyRound, ShieldCheck, Upload, Zap } from 'lucide-react'
 import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/components/providers/SessionProvider'
@@ -256,16 +257,16 @@ const primaryBtn = (enabled) => ({
 })
 
 const ico = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true, viewBox: '0 0 24 24' }
-function DocsIcon() { return <svg {...ico} width={30} height={30}><path d="M8 7V5a2 2 0 012-2h5l5 5v9a2 2 0 01-2 2h-2" /><path d="M15 3v5h5" /><rect x="4" y="7" width="12" height="14" rx="2" /></svg> }
-function HomeIcon() { return <svg {...ico} width={24} height={24}><path d="M3 11l9-7 9 7" /><path d="M5 10v10h14V10" /><path d="M10 20v-5h4v5" /></svg> }
-function KeyIcon() { return <svg {...ico} width={24} height={24}><circle cx="15" cy="9" r="4.5" /><path d="M11.8 12.2L4 20M7 17l2 2M5.5 18.5l1.5 1.5" /></svg> }
-function DeedIcon() { return <svg {...ico} width={24} height={24}><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z" /><path d="M14 3v5h5" /><path d="M8 16c1.2-1.6 2-1.6 2.6 0 .5 1.3 1.3 1.3 2.2 0l1.2-1.2" /></svg> }
-function BoltIcon() { return <svg {...ico} width={24} height={24}><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" /></svg> }
-function UploadIcon() { return <svg {...ico} width={28} height={28}><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" /></svg> }
-function ShieldIcon() { return <svg {...ico} width={18} height={18}><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6l8-3z" /><path d="M9 12l2 2 4-4" /></svg> }
-function AlertIcon() { return <svg {...ico} width={30} height={30} strokeWidth={2}><path d="M12 8v5M12 16.5h.01" /><circle cx="12" cy="12" r="9" /></svg> }
-function ChevronRightIcon() { return <svg {...ico} width={22} height={22} strokeWidth={2}><path d="M9 6l6 6-6 6" /></svg> }
-function CheckCircleIcon() { return <svg {...ico} width={26} height={26} strokeWidth={2}><circle cx="12" cy="12" r="9.5" /><path d="M8 12.5l2.7 2.7L16 9.8" /></svg> }
-function CheckIcon({ size = 22 }) { return <svg {...ico} width={size} height={size} strokeWidth={2.4}><path d="M5 12.5l4.5 4.5L19 7.5" /></svg> }
-function ArrowRightIcon() { return <svg {...ico} width={22} height={22} strokeWidth={2}><path d="M5 12h14M13 6l6 6-6 6" /></svg> }
-function ArrowLeftIcon() { return <svg {...ico} width={22} height={22} strokeWidth={2}><path d="M19 12H5M11 6l-6 6 6 6" /></svg> }
+function DocsIcon({ size = 30 } = {}) { return <Files size={size} strokeWidth={1.8} aria-hidden="true" /> }
+function HomeIcon({ size = 24 } = {}) { return <House size={size} strokeWidth={1.8} aria-hidden="true" /> }
+function KeyIcon({ size = 24 } = {}) { return <KeyRound size={size} strokeWidth={1.8} aria-hidden="true" /> }
+function DeedIcon({ size = 24 } = {}) { return <FileSignature size={size} strokeWidth={1.8} aria-hidden="true" /> }
+function BoltIcon({ size = 24 } = {}) { return <Zap size={size} strokeWidth={1.8} aria-hidden="true" /> }
+function UploadIcon({ size = 28 } = {}) { return <Upload size={size} strokeWidth={1.8} aria-hidden="true" /> }
+function ShieldIcon({ size = 18 } = {}) { return <ShieldCheck size={size} strokeWidth={1.8} aria-hidden="true" /> }
+function AlertIcon({ size = 30 } = {}) { return <CircleAlert size={size} strokeWidth={2} aria-hidden="true" /> }
+function ChevronRightIcon({ size = 22 } = {}) { return <ChevronRight size={size} strokeWidth={2} aria-hidden="true" /> }
+function CheckCircleIcon({ size = 26 } = {}) { return <CircleCheck size={size} strokeWidth={2} aria-hidden="true" /> }
+function CheckIcon({ size = 22 }) { return <Check size={size} strokeWidth={2.4} aria-hidden="true" /> }
+function ArrowRightIcon({ size = 22 } = {}) { return <ArrowRight size={size} strokeWidth={2} aria-hidden="true" /> }
+function ArrowLeftIcon({ size = 22 } = {}) { return <ArrowLeft size={size} strokeWidth={2} aria-hidden="true" /> }

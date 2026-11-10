@@ -1,5 +1,6 @@
 'use client'
 
+import { Check, ChevronDown, Coins, Layers, RotateCcw, SlidersHorizontal } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { ALL_AMENITIES } from '@/lib/amenities'
@@ -195,21 +196,9 @@ export default function FilterSidebar({ feeCounts = [], instant = true, onApplie
 
 const svg = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
 
-function CoinsIcon() {
-  return <svg {...svg}><ellipse cx="9" cy="7" rx="6" ry="3" /><path d="M3 7v4c0 1.7 2.7 3 6 3s6-1.3 6-3V7M3 11v4c0 1.7 2.7 3 6 3 1 0 2-.1 2.8-.4M15 13.5c0-1.7 2.7-3 6-3M21 10.5v6c0 1.7-2.7 3-6 3s-6-1.3-6-3" /></svg>
-}
-function SlidersIcon() {
-  return <svg {...svg}><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" /><circle cx="16" cy="6" r="2" /><circle cx="10" cy="12" r="2" /><circle cx="18" cy="18" r="2" /></svg>
-}
-function LayersIcon() {
-  return <svg {...svg}><path d="M12 3l9 5-9 5-9-5 9-5z" /><path d="M3 12.5l9 5 9-5M3 16.5l9 5 9-5" /></svg>
-}
-function ChevronIcon() {
-  return <svg {...svg} width="20" height="20" className="fpanel-select-chev"><path d="M6 9l6 6 6-6" /></svg>
-}
-function CheckIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10" /></svg>
-}
-function ResetIcon() {
-  return <svg {...svg} width="20" height="20"><path d="M4 12a8 8 0 108-8 8.5 8.5 0 00-6 2.5L4 8.5" /><path d="M4 4v4.5h4.5" /></svg>
-}
+function CoinsIcon({ size = 22 } = {}) { return <Coins size={size} strokeWidth={1.8} aria-hidden="true" /> }
+function SlidersIcon({ size = 22 } = {}) { return <SlidersHorizontal size={size} strokeWidth={1.8} aria-hidden="true" /> }
+function LayersIcon({ size = 22 } = {}) { return <Layers size={size} strokeWidth={1.8} aria-hidden="true" /> }
+function ChevronIcon({ size = 20 } = {}) { return <ChevronDown size={size} strokeWidth={1.8} aria-hidden="true" className="fpanel-select-chev" /> }
+function CheckIcon({ size = 14 } = {}) { return <Check size={size} strokeWidth={3} aria-hidden="true" /> }
+function ResetIcon({ size = 20 } = {}) { return <RotateCcw size={size} strokeWidth={1.8} aria-hidden="true" /> }

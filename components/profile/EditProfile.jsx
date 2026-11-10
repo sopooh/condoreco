@@ -1,5 +1,6 @@
 'use client'
 
+import { Lock } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
@@ -101,14 +102,7 @@ function LockedRow({ label, value, dot }) {
   )
 }
 
-function LockIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-4)" strokeWidth="2">
-      <rect x="5" y="11" width="14" height="10" rx="2" />
-      <path d="M8 11V7a4 4 0 018 0v4" />
-    </svg>
-  )
-}
+function LockIcon({ size = 13 } = {}) { return <Lock size={size} strokeWidth={2} aria-hidden="true" color="var(--text-4)" /> }
 
 const Field = ({ label, children }) => (
   <div style={{ marginBottom: 16 }}>

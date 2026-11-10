@@ -1,5 +1,6 @@
 'use client'
 
+import { AlignLeft, CalendarDays, Check, ChevronDown as LChevronDown, ChevronLeft as LChevronLeft, ChevronRight as LChevronRight, Clock, Droplet, Ellipsis, Layers, MapPin, Plus, Search, Users, Wrench, X, Zap } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useCalendarEvents } from '@/hooks/useCalendarEvents'
 import { usePublicInterventions } from '@/hooks/usePublicInterventions'
@@ -252,7 +253,7 @@ export default function BoardPage({ buildingId }) {
         <Sheet isMobile={isMobile} onClose={() => setOpenDay(null)}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
             <h2 style={{ fontSize: 19, fontWeight: 800, textTransform: 'capitalize', margin: 0 }}>{longDate(openDay)}</h2>
-            <button onClick={() => setOpenDay(null)} aria-label="Chiudi" style={closeBtn}>✕</button>
+            <button onClick={() => setOpenDay(null)} aria-label="Chiudi" style={closeBtn}><X size={18} strokeWidth={2} aria-hidden="true" /></button>
           </div>
           {(eventsByDay[openDay] ?? []).length === 0 ? (
             <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '4px 0 16px' }}>Nessun appuntamento in questo giorno.</p>
@@ -288,7 +289,7 @@ export default function BoardPage({ buildingId }) {
             }}>
               {typeMeta(selected.event_type).label}
             </span>
-            <button onClick={() => setSelected(null)} aria-label="Chiudi" style={closeBtn}>✕</button>
+            <button onClick={() => setSelected(null)} aria-label="Chiudi" style={closeBtn}><X size={18} strokeWidth={2} aria-hidden="true" /></button>
           </div>
 
           <h2 style={{ fontSize: 21, fontWeight: 800, margin: '0 0 10px', letterSpacing: '-0.3px' }}>{selected.title}</h2>
@@ -500,7 +501,7 @@ function EventFormModal({ isMobile, initial, defaultDate, onClose, onSubmit }) {
         <h2 style={{ flex: 1, fontSize: 22, fontWeight: 800, margin: 0, letterSpacing: '-0.3px' }}>
           {initial ? 'Modifica appuntamento' : 'Nuovo appuntamento'}
         </h2>
-        <button onClick={onClose} aria-label="Chiudi" style={{ ...closeBtn, width: 40, height: 40 }}>✕</button>
+        <button onClick={onClose} aria-label="Chiudi" style={{ ...closeBtn, width: 40, height: 40 }}><X size={18} strokeWidth={2} aria-hidden="true" /></button>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -631,23 +632,23 @@ const hiddenInput = { position: 'absolute', inset: 0, width: '100%', height: '10
 
 /* ---- icone ---- */
 const svg = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
-function ChevronLeft() { return <svg {...svg}><path d="M15 6l-6 6 6 6" /></svg> }
-function ChevronRight() { return <svg {...svg}><path d="M9 6l6 6-6 6" /></svg> }
-function CaretDown() { return <svg {...svg} width={16} height={16}><path d="M7 10l5 5 5-5" fill="currentColor" stroke="none" /></svg> }
-function SearchIcon() { return <svg {...svg}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg> }
-function PlusIcon() { return <svg {...svg} width={28} height={28} strokeWidth={2.2}><path d="M12 5v14M5 12h14" /></svg> }
-function CalendarIcon({ size = 18 }) { return <svg {...svg} width={size} height={size}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg> }
-function PeopleIcon() { return <svg {...svg} width={18} height={18}><circle cx="9" cy="8" r="3" /><path d="M3 20a6 6 0 0112 0" /><circle cx="17" cy="9" r="2.5" /><path d="M15.5 14.5A5 5 0 0121 20" /></svg> }
-function WrenchIcon() { return <svg {...svg} width={18} height={18}><path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.1 2.1-2-2z" /></svg> }
-function DropIcon() { return <svg {...svg} width={18} height={18}><path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z" /></svg> }
-function BoltIcon() { return <svg {...svg} width={18} height={18}><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" /></svg> }
-function LayersIcon() { return <svg {...svg} width={18} height={18}><path d="M12 3l9 5-9 5-9-5 9-5z" /><path d="M3 13l9 5 9-5" /></svg> }
-function DotsIcon() { return <svg {...svg} width={18} height={18} strokeWidth={3}><path d="M5 12h.01M12 12h.01M19 12h.01" /></svg> }
-function LinesIcon() { return <svg {...svg} width={18} height={18}><path d="M4 7h16M4 12h16M4 17h10" /></svg> }
-function ChevronDown() { return <svg {...svg} width={18} height={18}><path d="M6 9l6 6 6-6" /></svg> }
-function CheckIcon() { return <svg {...svg} width={28} height={28} strokeWidth={2.4}><path d="M5 12.5l4.5 4.5L19 7.5" /></svg> }
-function ClockIcon() { return <svg {...svg} width={20} height={20}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg> }
-function PinIcon() { return <svg {...svg} width={18} height={18}><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg> }
+function ChevronLeft({ size = 20 } = {}) { return <LChevronLeft size={size} strokeWidth={2} aria-hidden="true" /> }
+function ChevronRight({ size = 20 } = {}) { return <LChevronRight size={size} strokeWidth={2} aria-hidden="true" /> }
+function CaretDown({ size = 16 } = {}) { return <LChevronDown size={size} strokeWidth={2} aria-hidden="true" /> }
+function SearchIcon({ size = 20 } = {}) { return <Search size={size} strokeWidth={2} aria-hidden="true" /> }
+function PlusIcon({ size = 28 } = {}) { return <Plus size={size} strokeWidth={2.2} aria-hidden="true" /> }
+function CalendarIcon({ size = 18 }) { return <CalendarDays size={size} strokeWidth={2} aria-hidden="true" /> }
+function PeopleIcon({ size = 18 } = {}) { return <Users size={size} strokeWidth={2} aria-hidden="true" /> }
+function WrenchIcon({ size = 18 } = {}) { return <Wrench size={size} strokeWidth={2} aria-hidden="true" /> }
+function DropIcon({ size = 18 } = {}) { return <Droplet size={size} strokeWidth={2} aria-hidden="true" /> }
+function BoltIcon({ size = 18 } = {}) { return <Zap size={size} strokeWidth={2} aria-hidden="true" /> }
+function LayersIcon({ size = 18 } = {}) { return <Layers size={size} strokeWidth={2} aria-hidden="true" /> }
+function DotsIcon({ size = 18 } = {}) { return <Ellipsis size={size} strokeWidth={3} aria-hidden="true" /> }
+function LinesIcon({ size = 18 } = {}) { return <AlignLeft size={size} strokeWidth={2} aria-hidden="true" /> }
+function ChevronDown({ size = 18 } = {}) { return <LChevronDown size={size} strokeWidth={2} aria-hidden="true" /> }
+function CheckIcon({ size = 28 } = {}) { return <Check size={size} strokeWidth={2.4} aria-hidden="true" /> }
+function ClockIcon({ size = 20 } = {}) { return <Clock size={size} strokeWidth={2} aria-hidden="true" /> }
+function PinIcon({ size = 18 } = {}) { return <MapPin size={size} strokeWidth={2} aria-hidden="true" /> }
 function TodayIcon({ day }) {
   return (
     <svg {...svg} width={24} height={24} strokeWidth={1.8}>

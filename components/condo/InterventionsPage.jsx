@@ -1,5 +1,6 @@
 'use client'
 
+import { CalendarDays, Check, ChevronRight, Info, Mail, Megaphone, MessageCircle, Phone, Plus, UserRound, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from '@/components/providers/SessionProvider'
@@ -509,7 +510,7 @@ export function Sheet({ title, subtitle, onClose, children }) {
             <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.3px' }}>{title}</div>
             {subtitle && <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>{subtitle}</div>}
           </div>
-          <button onClick={onClose} aria-label="Chiudi" style={{ width: 36, height: 36, minHeight: 0, borderRadius: '50%', border: 'none', background: 'var(--bg)', color: 'var(--text-3)', cursor: 'pointer', flexShrink: 0 }}>✕</button>
+          <button onClick={onClose} aria-label="Chiudi" style={{ width: 36, height: 36, minHeight: 0, borderRadius: '50%', border: 'none', background: 'var(--bg)', color: 'var(--text-3)', cursor: 'pointer', flexShrink: 0 }}><X size={18} strokeWidth={2} aria-hidden="true" /></button>
         </div>
         {children}
       </div>
@@ -529,13 +530,13 @@ const errText = { fontSize: 13, color: '#B42318', margin: 0 }
 
 /* ---- icone ---- */
 const ico = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', viewBox: '0 0 24 24', 'aria-hidden': true }
-function PhoneIcon() { return <svg {...ico} width={18} height={18}><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2" /></svg> }
-function MailIcon() { return <svg {...ico} width={18} height={18}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg> }
-function ChatIcon() { return <svg {...ico} width={18} height={18}><path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z" /></svg> }
-function CalendarIcon() { return <svg {...ico} width={18} height={18}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg> }
-function ChevronIcon() { return <svg {...ico} width={18} height={18}><path d="M9 6l6 6-6 6" /></svg> }
-function CheckIcon({ size = 22 }) { return <svg {...ico} width={size} height={size} strokeWidth={2.4}><path d="M5 12.5l4.5 4.5L19 7.5" /></svg> }
-function PersonIcon() { return <svg {...ico} width={15} height={15}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0116 0" /></svg> }
-function PlusIcon() { return <svg {...ico} width={20} height={20} strokeWidth={2.2}><path d="M12 5v14M5 12h14" /></svg> }
-function InfoIcon() { return <svg {...ico} width={20} height={20}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></svg> }
-function MegaphoneIcon() { return <svg {...ico} width={18} height={18}><path d="M3 11v2a1 1 0 001 1h2l5 4V6L6 10H4a1 1 0 00-1 1z" /><path d="M15 9a4 4 0 010 6M18 6a8 8 0 010 12" /></svg> }
+function PhoneIcon({ size = 18 } = {}) { return <Phone size={size} strokeWidth={2} aria-hidden="true" /> }
+function MailIcon({ size = 18 } = {}) { return <Mail size={size} strokeWidth={2} aria-hidden="true" /> }
+function ChatIcon({ size = 18 } = {}) { return <MessageCircle size={size} strokeWidth={2} aria-hidden="true" /> }
+function CalendarIcon({ size = 18 } = {}) { return <CalendarDays size={size} strokeWidth={2} aria-hidden="true" /> }
+function ChevronIcon({ size = 18 } = {}) { return <ChevronRight size={size} strokeWidth={2} aria-hidden="true" /> }
+function CheckIcon({ size = 22 }) { return <Check size={size} strokeWidth={2.4} aria-hidden="true" /> }
+function PersonIcon({ size = 15 } = {}) { return <UserRound size={size} strokeWidth={2} aria-hidden="true" /> }
+function PlusIcon({ size = 20 } = {}) { return <Plus size={size} strokeWidth={2.2} aria-hidden="true" /> }
+function InfoIcon({ size = 20 } = {}) { return <Info size={size} strokeWidth={2} aria-hidden="true" /> }
+function MegaphoneIcon({ size = 18 } = {}) { return <Megaphone size={size} strokeWidth={2} aria-hidden="true" /> }

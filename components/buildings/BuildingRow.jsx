@@ -1,5 +1,6 @@
 'use client'
 
+import { Lock, ShieldCheck } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { scoreColor, feeBand, costPerSqm } from '@/lib/score'
 import BuildingPreviewImage from '@/components/buildings/BuildingPreviewImage'
@@ -122,23 +123,9 @@ function Chip({ label, value, valueColor }) {
 const badgePending  = { display: 'flex', alignItems: 'center', gap: 4, background: '#FEF3E8', color: '#E8651A', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 100, whiteSpace: 'nowrap' }
 const badgeVerified = { display: 'flex', alignItems: 'center', gap: 4, background: 'var(--teal-lt)', color: 'var(--teal-dk)', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 100, whiteSpace: 'nowrap' }
 
-function LockIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <rect x="5" y="11" width="14" height="10" rx="2" />
-      <path d="M8 11V7a4 4 0 018 0v4" />
-    </svg>
-  )
-}
+function LockIcon({ size = 16 } = {}) { return <Lock size={size} strokeWidth={2} aria-hidden="true" /> }
 
-function ShieldCheckIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z" />
-      <path d="M9 12l2 2 4-4" />
-    </svg>
-  )
-}
+function ShieldCheckIcon({ size = 12 } = {}) { return <ShieldCheck size={size} strokeWidth={2} aria-hidden="true" /> }
 
 function scoreLabel(score) {
   if (score == null) return 'Nuovo'

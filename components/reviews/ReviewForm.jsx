@@ -1,5 +1,6 @@
 'use client'
 
+import { Check } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Modal from '@/components/ui/Modal'
@@ -238,7 +239,7 @@ export default function ReviewForm({
                           color: active ? 'var(--teal-dk)' : 'var(--text-3)',
                           cursor: 'pointer', textAlign: 'left',
                         }}
-                      >{active ? '✓ ' : ''}{l}</button>
+                      >{active && <Check size={14} strokeWidth={2.6} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 4 }} />}{l}</button>
                     )
                   })}
                 </div>

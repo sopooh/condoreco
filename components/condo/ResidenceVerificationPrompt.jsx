@@ -1,5 +1,6 @@
 'use client'
 
+import { Lock, Hourglass, ShieldCheck } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 // Sostituisce il vecchio blocco statico "Area riservata": guida il residente
@@ -12,7 +13,7 @@ export default function ResidenceVerificationPrompt({ condominiumId, status }) {
   if (status === 'pending') {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-        <div style={{ fontSize: 48, marginBottom: 20 }}>🟡</div>
+        <div style={{ marginBottom: 20, color: '#D97706', display: 'flex', justifyContent: 'center' }}><Hourglass size={44} strokeWidth={1.6} aria-hidden="true" /></div>
         <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>Verifica in corso</h1>
         <p style={{ fontSize: 14, color: 'var(--text-3)', textAlign: 'center', maxWidth: 360 }}>
           Stiamo controllando il documento che hai caricato. Ti avviseremo appena la verifica sarà completata.
@@ -23,7 +24,7 @@ export default function ResidenceVerificationPrompt({ condominiumId, status }) {
 
   return (
     <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-      <div style={{ fontSize: 48, marginBottom: 20 }}>🔒</div>
+      <div style={{ marginBottom: 20, color: 'var(--teal)', display: 'flex', justifyContent: 'center' }}><Lock size={44} strokeWidth={1.6} aria-hidden="true" /></div>
       <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>Area privata del condominio</h1>
       <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 8, textAlign: 'center', maxWidth: 380 }}>
         Per accedere alla bacheca, ai sondaggi e alla chat del condominio dobbiamo verificare che tu viva in questo edificio.
@@ -41,7 +42,7 @@ export default function ResidenceVerificationPrompt({ condominiumId, status }) {
           background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer',
         }}
       >
-        ✓ Verifica che abiti qui
+        <ShieldCheck size={18} strokeWidth={2} aria-hidden="true" style={{ verticalAlign: '-3px', marginRight: 6 }} />Verifica che abiti qui
       </button>
       <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 10 }}>
         La verifica richiede circa 2 minuti.

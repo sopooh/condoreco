@@ -8,21 +8,8 @@
 --    categoria, data, orario e luogo degli interventi programmati, che cosi
 --    compaiono in bacheca e nel calendario il giorno in cui sono fissati.
 
--- helper: l'utente corrente e' membro del condominio?
-create or replace function public.is_condo_member(p_building_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1 from public.condo_members m
-    where m.building_id = p_building_id and m.user_id = auth.uid()
-  );
-$$;
-revoke all on function public.is_condo_member(uuid) from public, anon;
-grant execute on function public.is_condo_member(uuid) to authenticated;
+-- Usa le funzioni gia' presenti nel progetto: public.is_member(uuid) e
+-- public.is_condo_admin(uuid) (security definer, basate su condo_members).
 
 -- ---------------------------------------------------------------- manutentori
 create table if not exists public.condo_maintainers (
@@ -45,21 +32,17 @@ create index if not exists condo_maintainers_building_idx on public.condo_mainta
 alter table public.condo_maintainers enable row level security;
 
 create policy "condo_maintainers: members read" on public.condo_maintainers
-  for select to authenticated using (public.is_condo_member(building_id));
+  for select to authenticated using (public.is_member(building_id));
 create policy "condo_maintainers: members insert own" on public.condo_maintainers
   for insert to authenticated
-  with check (created_by = auth.uid() and public.is_condo_member(building_id));
+  with check (created_by = auth.uid() and public.is_member(building_id));
 create policy "condo_maintainers: author or admin update" on public.condo_maintainers
   for update to authenticated
-  using (public.is_condo_member(building_id) and (created_by = auth.uid() or exists (
-    select 1 from public.condo_members m where m.building_id = condo_maintainers.building_id
-      and m.user_id = auth.uid() and m.role = 'admin')))
-  with check (public.is_condo_member(building_id));
+  using (public.is_member(building_id) and (created_by = auth.uid() or public.is_condo_admin(building_id)))
+  with check (public.is_member(building_id));
 create policy "condo_maintainers: author or admin delete" on public.condo_maintainers
   for delete to authenticated
-  using (created_by = auth.uid() or exists (
-    select 1 from public.condo_members m where m.building_id = condo_maintainers.building_id
-      and m.user_id = auth.uid() and m.role = 'admin'));
+  using (created_by = auth.uid() or public.is_condo_admin(building_id));
 
 revoke all on public.condo_maintainers from anon;
 grant select, insert, delete on public.condo_maintainers to authenticated;
@@ -94,14 +77,14 @@ alter table public.condo_interventions enable row level security;
 -- solo l'autore, e solo finche' e' membro del condominio
 create policy "condo_interventions: author all" on public.condo_interventions
   for all to authenticated
-  using (created_by = auth.uid() and public.is_condo_member(building_id))
-  with check (created_by = auth.uid() and public.is_condo_member(building_id));
+  using (created_by = auth.uid() and public.is_member(building_id))
+  with check (created_by = auth.uid() and public.is_member(building_id));
 
 revoke all on public.condo_interventions from anon;
 grant select, insert, update, delete on public.condo_interventions to authenticated;
 
 create or replace function public.condo_interventions_touch()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin
   new.updated_at := now();
   return new;
@@ -125,7 +108,7 @@ as $$
   select i.id, i.title, i.category, i.location, i.status, i.scheduled_date, i.time_start, i.time_end
   from public.condo_interventions i
   where i.building_id = p_building_id
-    and public.is_condo_member(p_building_id)
+    and public.is_member(p_building_id)
     and i.status in ('scheduled', 'done')
     and i.scheduled_date between p_from and p_to
   order by i.scheduled_date, i.time_start nulls first;

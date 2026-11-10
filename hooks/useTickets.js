@@ -2,10 +2,10 @@ import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
 
-// Ticket della bacheca urgente (public.building_reports): quelli aperti nel
-// mese corrente piu' quelli ancora aperti dai mesi precedenti.
-// Aperto = status open/under_review, chiuso = resolved.
-export const isTicketOpen = (t) => t.status !== 'resolved'
+// Ticket della bacheca urgente (public.condo_tickets, privati per i membri
+// del condominio via RLS): quelli aperti nel mese corrente piu' quelli
+// ancora aperti dai mesi precedenti.
+export const isTicketOpen = (t) => t.status === 'open'
 
 export function useTickets(buildingId) {
   const [tickets, setTickets] = useState([])
@@ -19,10 +19,10 @@ export function useTickets(buildingId) {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
     const supabase = createClient()
     const { data, error } = await supabase
-      .from('building_reports')
-      .select('id, title, category, description, status, created_at, resolved_at, user_id')
+      .from('condo_tickets')
+      .select('id, title, category, description, status, created_at, closed_at, created_by')
       .eq('building_id', buildingId)
-      .or(`created_at.gte.${monthStart},status.neq.resolved`)
+      .or(`created_at.gte.${monthStart},status.eq.open`)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -42,9 +42,9 @@ export function useTickets(buildingId) {
   const openTicket = useCallback(async ({ title, category, description }) => {
     if (!userId) return { error: 'Devi essere autenticato' }
     const supabase = createClient()
-    const { error } = await supabase.from('building_reports').insert({
+    const { error } = await supabase.from('condo_tickets').insert({
       building_id: buildingId,
-      user_id: userId,
+      created_by: userId,
       title: title.trim(),
       category,
       description: description?.trim() || null,
@@ -59,10 +59,10 @@ export function useTickets(buildingId) {
   const setTicketOpen = useCallback(async (ticketId, open) => {
     const supabase = createClient()
     const { data, error } = await supabase
-      .from('building_reports')
+      .from('condo_tickets')
       .update(open
-        ? { status: 'open', resolved_at: null, resolved_by: null }
-        : { status: 'resolved', resolved_at: new Date().toISOString(), resolved_by: userId })
+        ? { status: 'open', closed_at: null, closed_by: null }
+        : { status: 'closed', closed_at: new Date().toISOString(), closed_by: userId })
       .eq('id', ticketId)
       .select('id')
     if (error) {

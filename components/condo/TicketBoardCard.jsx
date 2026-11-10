@@ -70,7 +70,7 @@ export default function TicketBoardCard({ tickets, userId, isCondoAdmin, onOpenT
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {list.map((t) => {
             const isOpen = isTicketOpen(t)
-            const mine = t.user_id === userId
+            const mine = t.created_by === userId
             const canEdit = mine || isCondoAdmin
             const isExpanded = expanded === t.id
             const fromPrevMonth = new Date(t.created_at) < new Date(now.getFullYear(), now.getMonth(), 1)
@@ -108,8 +108,8 @@ export default function TicketBoardCard({ tickets, userId, isCondoAdmin, onOpenT
                     {t.description
                       ? <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.5, margin: '0 0 10px', whiteSpace: 'pre-wrap' }}>{t.description}</p>
                       : <p style={{ fontSize: 13, color: 'var(--text-4)', margin: '0 0 10px' }}>Nessuna descrizione.</p>}
-                    {!isOpen && t.resolved_at && (
-                      <p style={{ fontSize: 12, color: 'var(--text-4)', margin: '0 0 10px' }}>Chiuso il {shortDate(t.resolved_at)}</p>
+                    {!isOpen && t.closed_at && (
+                      <p style={{ fontSize: 12, color: 'var(--text-4)', margin: '0 0 10px' }}>Chiuso il {shortDate(t.closed_at)}</p>
                     )}
                     {canEdit && (
                       <button onClick={() => toggle(t)} disabled={busy === t.id} style={isOpen ? closeBtn : reopenBtn}>
@@ -202,7 +202,7 @@ function TicketForm({ onClose, onSubmit, onDone }) {
         </div>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrivi il problema (dove, da quando, cosa serve)" style={{ ...field, minHeight: 90, resize: 'vertical' }} />
         <p style={{ fontSize: 12, color: 'var(--text-4)', margin: 0 }}>
-          Categoria e stato del ticket compaiono anche nelle statistiche pubbliche delle segnalazioni dell&apos;edificio.
+          Visibile solo ai residenti verificati di questo condominio.
         </p>
         {error && <p style={{ fontSize: 13, color: '#B42318', margin: 0 }}>{error}</p>}
         <button

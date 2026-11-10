@@ -198,33 +198,20 @@ export default function ProfileClient() {
       <div className="wrap profile-body-wrap">
         <div className="profile-body-grid" style={{ display: 'grid' }}>
 
-          {/* LE MIE ABITAZIONI: un solo blocco, un solo modo di aggiungere */}
+          {/* LE MIE ABITAZIONI */}
           <section>
-            <div className="profile-section-title-row" style={{ marginBottom: 14 }}>
+            <div className="profile-section-title-row" style={{ marginBottom: 16 }}>
               <HouseIcon />
-              <h2 style={sectionHeading}>Le mie abitazioni</h2>
+              <SectionTitle noMargin>Le mie abitazioni</SectionTitle>
             </div>
 
             {buildingsLoading ? (
               <div style={{ fontSize: 14, color: 'var(--text-3)', padding: '20px 0' }}>Caricamento...</div>
-            ) : currentBuildings.length === 0 && pastBuildings.length === 0 ? (
-              <div style={{ ...card, padding: '28px 22px', textAlign: 'center' }}>
-                <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--teal-lt)', color: 'var(--teal)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                  <HomeStatIcon />
-                </div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
-                  Non hai ancora aggiunto la tua casa
-                </div>
-                <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.5, margin: '0 auto 18px', maxWidth: 360 }}>
-                  Aggiungi il condominio dove vivi, o dove hai vissuto, per recensirlo e accedere all&apos;area riservata ai residenti.
-                </p>
-                <Link href="/aggiungi-condominio" style={primaryBtn}>Aggiungi la tua casa</Link>
-              </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                {currentBuildings.length > 0 && (
-                  <div>
-                    <div style={groupLabel}>Dove abiti ora</div>
+              <>
+                <div style={{ marginBottom: 24 }}>
+                  <div style={subTitleTeal}>Ora abiti qui</div>
+                  {currentBuildings.length > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                       {currentBuildings.map(b => (
                         <div key={b.id}>
@@ -235,12 +222,16 @@ export default function ProfileClient() {
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <p style={{ fontSize: 14, color: 'var(--text-4)', margin: 0 }}>
+                      Nessuna abitazione attuale registrata.
+                    </p>
+                  )}
+                </div>
 
                 {pastBuildings.length > 0 && (
-                  <div>
-                    <div style={groupLabel}>Dove hai abitato</div>
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={subTitleGray}>Hai abitato in</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                       {pastBuildings.map(b => (
                         <div key={b.id}>
@@ -254,29 +245,30 @@ export default function ProfileClient() {
                   </div>
                 )}
 
-                <Link href="/aggiungi-condominio" style={secondaryBtn}>+ Aggiungi un&apos;altra abitazione</Link>
-              </div>
+                <Link href="/aggiungi-condominio" style={primaryBtn}>+ Aggiungi condominio</Link>
+              </>
             )}
           </section>
 
           {/* SIDEBAR */}
-          <aside style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <aside style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
             <section>
-              <h2 style={{ ...sectionHeading, marginBottom: 10 }}>Esplora</h2>
+              <SectionTitle>Azioni rapide</SectionTitle>
               <nav style={{ ...card, overflow: 'hidden' }}>
-                <NavRow href="/cerca" label="Cerca edifici" sub="Recensioni e spese dei condomini" />
-                <NavRow href="/amministratori" label="Cerca amministratori" sub="Valutazioni degli amministratori" last />
+                <ActionRow href="/aggiungi-condominio" icon={<BuildingIcon />} label="Aggiungi condominio" />
+                <ActionRow href="/cerca" icon={<MapIcon />} label="Esplora edifici" />
+                <ActionRow href="/amministratori" icon={<UsersIcon />} label="Cerca amministratori" last />
               </nav>
             </section>
 
             <section>
-              <h2 style={{ ...sectionHeading, marginBottom: 10 }}>Il tuo account</h2>
+              <SectionTitle>Info account</SectionTitle>
               <div style={{ ...card, padding: '4px 16px' }}>
                 <InfoRow label="Email" value={session.user.email} />
                 <InfoRow
                   label="Zona"
                   value={profile.zone || (
-                    <button onClick={() => setEditOpen(true)} style={{ ...textBtn, marginTop: 0, padding: 0, lineHeight: 1.2 }}>Aggiungi</button>
+                    <button onClick={() => setEditOpen(true)} style={{ ...textBtn, marginTop: 0, padding: 0, lineHeight: 1.2, minHeight: 0 }}>Aggiungi</button>
                   )}
                 />
                 <InfoRow label="Ruolo" value={roleConf?.label || 'Recoer'} />
@@ -367,28 +359,27 @@ function HouseIcon() {
   )
 }
 
-const sectionHeading = {
-  fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0,
+function SectionTitle({ children, noMargin = false }) {
+  return (
+    <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 1, margin: 0, marginBottom: noMargin ? 0 : 12 }}>
+      {children}
+    </h2>
+  )
 }
 
-const groupLabel = {
-  fontSize: 13, fontWeight: 600, color: 'var(--text-3)', marginBottom: 10,
+const subTitleTeal = {
+  fontSize: 14, fontWeight: 700, color: 'var(--teal)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8,
 }
+const subTitleGray = { ...subTitleTeal, color: 'var(--text-4)' }
 
 const card = {
-  background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12,
+  background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 14,
 }
 
 const primaryBtn = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  padding: '12px 22px', borderRadius: 10, background: 'var(--teal)', color: '#fff',
-  fontWeight: 700, fontSize: 14,
-}
-
-const secondaryBtn = {
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  padding: '12px 16px', borderRadius: 10, border: '1.5px dashed var(--border)',
-  color: 'var(--teal-dk)', fontWeight: 600, fontSize: 14, background: 'transparent',
+  padding: '13px 24px', borderRadius: 10, background: 'var(--teal)', color: '#fff',
+  fontWeight: 700, fontSize: 15,
 }
 
 // azione secondaria sotto una scheda: testo, non un secondo bottone pieno
@@ -397,19 +388,56 @@ const textBtn = {
   color: 'var(--teal)', fontWeight: 600, fontSize: 13, cursor: 'pointer',
 }
 
-// riga di navigazione: icona-freccia a destra, separatori, chiaramente un link
-function NavRow({ href, label, sub, last = false }) {
+// riga della card "Azioni rapide": icona a sinistra, freccia a destra, separatori
+function ActionRow({ href, icon, label, last = false }) {
   return (
     <Link href={href} style={{
-      display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
+      display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
       borderBottom: last ? 'none' : '1px solid var(--border)', color: 'inherit',
     }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{label}</div>
-        <div style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{sub}</div>
-      </div>
-      <span style={{ color: 'var(--text-4)', display: 'inline-flex' }}><ChevronRightIcon /></span>
+      <span style={{ color: 'var(--teal)', display: 'inline-flex', flexShrink: 0 }}>{icon}</span>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{label}</span>
+      <span style={{ color: 'var(--teal)', display: 'inline-flex', flexShrink: 0 }}><ArrowRightIcon /></span>
     </Link>
+  )
+}
+
+function BuildingIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="4" y="3" width="11" height="18" rx="1" />
+      <path d="M15 9h4a1 1 0 011 1v11h-5" />
+      <path d="M8 7h1M11 7h1M8 11h1M11 11h1M8 15h1M11 15h1M9 21v-3h2v3" />
+    </svg>
+  )
+}
+
+function MapIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" />
+      <path d="M9 4v14M15 6v14" />
+    </svg>
+  )
+}
+
+function UsersIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="8" r="3" />
+      <path d="M6 20v-1a6 6 0 0112 0v1" />
+      <circle cx="5" cy="10" r="2" />
+      <circle cx="19" cy="10" r="2" />
+      <path d="M2 19v-.5A3.5 3.5 0 015 15M22 19v-.5A3.5 3.5 0 0019 15" />
+    </svg>
+  )
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
   )
 }
 

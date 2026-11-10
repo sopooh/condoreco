@@ -14,25 +14,33 @@ export function usePolls(buildingId) {
 
   const loadPolls = useCallback(async () => {
     const supabase = createClient()
-    const { data, error } = await supabase
-      .from('polls')
-      .select(`
-        id, question, min_votes, closes_at, status, rejection_reason, created_at, created_by,
-        profiles:created_by(display_name),
-        poll_votes(user_id, vote)
-      `)
-      .eq('building_id', buildingId)
-      .order('created_at', { ascending: false })
+    // Conteggi da poll_tallies (funziona anche per le decisioni anonime, dove
+    // la RLS mostra a ciascuno solo il proprio voto). Nomi dei votanti solo
+    // per le decisioni palesi.
+    const [{ data, error }, { data: tallies }, { data: votes }] = await Promise.all([
+      supabase
+        .from('polls')
+        .select('id, question, min_votes, closes_at, status, rejection_reason, created_at, created_by, is_anonymous, profiles:created_by(display_name)')
+        .eq('building_id', buildingId)
+        .order('created_at', { ascending: false }),
+      supabase.rpc('poll_tallies', { p_building: buildingId }),
+      supabase.from('poll_votes').select('poll_id, user_id, vote, changed_count, polls!inner(building_id)').eq('polls.building_id', buildingId),
+    ])
 
     if (error) {
       console.error('[usePolls] load failed', error)
       setError(error.message)
     } else {
+      const tally = Object.fromEntries((tallies || []).map((t) => [t.poll_id, t]))
+      const votesBy = {}
+      ;(votes || []).forEach((v) => { (votesBy[v.poll_id] ??= []).push(v) })
       setPolls(
         data.map((p) => {
-          const total = p.poll_votes.length
-          const yes = p.poll_votes.filter((v) => v.vote).length
-          const myVote = p.poll_votes.find((v) => v.user_id === userId)
+          const t = tally[p.id] || { yes_votes: 0, total_votes: 0, others_voted: false }
+          const total = t.total_votes
+          const yes = t.yes_votes
+          const pv = votesBy[p.id] || []
+          const myVote = pv.find((v) => v.user_id === userId)
           return {
             ...p,
             totalVotes: total,
@@ -42,10 +50,12 @@ export function usePolls(buildingId) {
             // complemento, non arrotondamento separato: altrimenti 37.5/62.5 -> 38% + 63%
             noPct: total ? 100 - Math.round((yes / total) * 100) : 0,
             hasVoted: !!myVote,
-            // voti di altri residenti: dopo il primo, il testo non e' piu' modificabile
-            othersVoted: p.poll_votes.some((v) => v.user_id !== userId),
+            // voti di altri residenti: dopo il primo, testo e anonimato non sono piu' modificabili
+            othersVoted: t.others_voted,
             isMine: !!userId && p.created_by === userId,
             myVote: myVote?.vote ?? null,
+            canChangeVote: !!myVote && (myVote.changed_count ?? 0) < 1,
+            voters: p.is_anonymous ? [] : pv.map((v) => ({ userId: v.user_id, vote: v.vote })),
             isOpen: p.status === 'open' && new Date(p.closes_at) > new Date(),
           }
         })
@@ -60,7 +70,7 @@ export function usePolls(buildingId) {
 
   // Creazione: aperta a tutti i membri. durationDays definisce closes_at.
   const createPoll = useCallback(
-    async ({ question, minVotes = 10, durationDays = 7 }) => {
+    async ({ question, minVotes = 10, durationDays = 7, isAnonymous = false }) => {
       if (!userId) return { error: 'Devi essere autenticato' }
 
       const closesAt = new Date()
@@ -73,6 +83,7 @@ export function usePolls(buildingId) {
         question: question.trim(),
         min_votes: minVotes,
         closes_at: closesAt.toISOString(),
+        is_anonymous: !!isAnonymous,
       })
 
       if (!error) await loadPolls()
@@ -103,15 +114,24 @@ export function usePolls(buildingId) {
     [userId, loadPolls]
   )
 
+  // Cambio voto: una sola volta, a decisione aperta (funzione change_poll_vote)
+  const changeVote = useCallback(async (pollId, vote) => {
+    const { error } = await createClient().rpc('change_poll_vote', { p_poll_id: pollId, p_vote: vote })
+    if (error) return { error: /già cambiato/.test(error.message) ? 'Hai già cambiato il voto una volta.' : 'Non riesco a cambiare il voto. Riprova.' }
+    await loadPolls()
+    return { error: null }
+  }, [loadPolls])
+
   // Modifica (solo autore, solo se aperta: RLS + trigger lato DB).
   // .select(): se la RLS blocca, Supabase restituisce 0 righe senza errore.
   const updatePoll = useCallback(
-    async (pollId, { question, minVotes, closesAt }) => {
+    async (pollId, { question, minVotes, closesAt, isAnonymous }) => {
       const supabase = createClient()
       const patch = {}
       if (question !== undefined) patch.question = question.trim()
       if (minVotes !== undefined) patch.min_votes = minVotes
       if (closesAt !== undefined) patch.closes_at = closesAt
+      if (isAnonymous !== undefined) patch.is_anonymous = !!isAnonymous
       const { data, error } = await supabase.from('polls').update(patch).eq('id', pollId).select('id')
       if (error) {
         console.error('[usePolls] update failed', error)
@@ -136,5 +156,5 @@ export function usePolls(buildingId) {
     return { error: null }
   }, [loadPolls])
 
-  return { polls, loading, error, userId, createPoll, castVote, updatePoll, deletePoll, reload: loadPolls }
+  return { polls, loading, error, userId, createPoll, castVote, changeVote, updatePoll, deletePoll, reload: loadPolls }
 }

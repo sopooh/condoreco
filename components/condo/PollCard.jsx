@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight, CircleCheck, CircleX, Clock, Lightbulb } from 'lucide-react'
+import { ChevronRight, CircleCheck, CircleX, Clock, Eye, EyeOff, Lightbulb } from 'lucide-react'
 import { useState } from 'react'
 import Link from 'next/link'
 
@@ -24,9 +24,18 @@ export function deadlineLabel(poll) {
   return days === 1 ? 'Scade domani' : `Scade tra ${days} giorni`
 }
 
-export default function PollCard({ poll, onVote, href, showLabel = true }) {
+export default function PollCard({ poll, onVote, onChangeVote, href, showLabel = true }) {
   const [voting, setVoting] = useState(false)
   const [error, setError] = useState(null)
+  const [confirmChange, setConfirmChange] = useState(false)
+
+  async function changeVote() {
+    setVoting(true)
+    const { error } = await onChangeVote(poll.id, !poll.myVote)
+    setError(error)
+    setVoting(false)
+    setConfirmChange(false)
+  }
 
   async function vote(value) {
     if (!poll.isOpen || poll.hasVoted || voting) return
@@ -98,6 +107,11 @@ export default function PollCard({ poll, onVote, href, showLabel = true }) {
       <div style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 6 }}>
         {poll.totalVotes} {poll.totalVotes === 1 ? 'voto' : 'voti'}
         {poll.min_votes ? ` · quorum ${poll.min_votes}` : ''}
+        {' · '}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, verticalAlign: '-2px' }}>
+          {poll.is_anonymous ? <EyeOff size={12} strokeWidth={2} aria-hidden="true" /> : <Eye size={12} strokeWidth={2} aria-hidden="true" />}
+          {poll.is_anonymous ? 'voto anonimo' : 'voto palese'}
+        </span>
       </div>
 
       {/* voto */}
@@ -124,7 +138,29 @@ export default function PollCard({ poll, onVote, href, showLabel = true }) {
       {poll.hasVoted && (
         <p style={{ fontSize: 12, color: 'var(--text-4)', margin: '10px 0 0', textAlign: 'center' }}>
           Hai votato {poll.myVote ? 'favorevole' : 'contrario'}
+          {poll.isOpen && !poll.canChangeVote && ' · voto già cambiato una volta'}
         </p>
+      )}
+      {poll.hasVoted && poll.isOpen && poll.canChangeVote && onChangeVote && (
+        confirmChange ? (
+          <div style={{ marginTop: 10, padding: 12, borderRadius: 12, background: 'var(--bg)', textAlign: 'center' }}>
+            <div style={{ fontSize: 13.5, color: 'var(--text-2)', marginBottom: 10 }}>
+              Passi a <strong>{poll.myVote ? 'contrario' : 'favorevole'}</strong>. Puoi cambiare il voto una sola volta: dopo resta definitivo.
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <button type="button" disabled={voting} onClick={() => setConfirmChange(false)} style={smallBtn}>Annulla</button>
+              <button type="button" disabled={voting} onClick={changeVote} style={{ ...smallBtn, background: 'var(--teal)', borderColor: 'var(--teal)', color: '#fff' }}>
+                {voting ? 'Salvataggio...' : 'Conferma'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', marginTop: 6 }}>
+            <button type="button" onClick={() => setConfirmChange(true)} style={{ minHeight: 0, border: 'none', background: 'none', color: 'var(--teal)', fontWeight: 700, fontSize: 13, cursor: 'pointer', padding: 4 }}>
+              Cambia voto (una sola volta)
+            </button>
+          </div>
+        )
       )}
       {error && <p style={{ fontSize: 13, color: '#B42318', margin: '10px 0 0' }}>{error}</p>}
     </div>
@@ -164,3 +200,5 @@ function ClockIcon({ size = 16 } = {}) { return <Clock size={size} strokeWidth={
 function ChevronIcon({ size = 20 } = {}) { return <ChevronRight size={size} strokeWidth={2.2} aria-hidden="true" /> }
 function CheckCircleIcon({ size = 24 } = {}) { return <CircleCheck size={size} strokeWidth={2} aria-hidden="true" /> }
 function XCircleIcon({ size = 24 } = {}) { return <CircleX size={size} strokeWidth={2} aria-hidden="true" /> }
+
+const smallBtn = { minHeight: 0, height: 40, borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--white)', color: 'var(--text)', fontWeight: 700, fontSize: 14, cursor: 'pointer' }

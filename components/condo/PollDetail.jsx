@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { usePolls } from '@/hooks/usePolls'
 import { useCondoRole } from '@/hooks/useCondoRole'
+import AnonymityToggle from '@/components/condo/AnonymityToggle'
+import VotersList from '@/components/condo/VotersList'
 import PollCard from '@/components/condo/PollCard'
 import { LegalNote, backLink } from '@/components/condo/PollsPage'
 
@@ -14,7 +16,7 @@ import { LegalNote, backLink } from '@/components/condo/PollsPage'
 export default function PollDetail({ building, pollId }) {
   const buildingId = building.id
   const router = useRouter()
-  const { polls, loading, error, castVote, updatePoll, deletePoll } = usePolls(buildingId)
+  const { polls, loading, error, castVote, changeVote, updatePoll, deletePoll } = usePolls(buildingId)
   const { isCondoAdmin } = useCondoRole(buildingId)
   const poll = polls.find((p) => p.id === pollId)
   const listHref = `/edificio/${buildingId}/condominio/decisioni`
@@ -46,7 +48,7 @@ export default function PollDetail({ building, pollId }) {
         <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Questa decisione non esiste o non e&apos; piu&apos; disponibile.</p>
       ) : (
         <>
-          <PollCard poll={poll} onVote={castVote} />
+          <PollCard poll={poll} onVote={castVote} onChangeVote={changeVote} />
 
           {(canEdit || canDelete) && !editing && (
             <div style={{ display: 'grid', gridTemplateColumns: canEdit && canDelete ? '1fr 1fr' : '1fr', gap: 10 }}>
@@ -103,8 +105,11 @@ export default function PollDetail({ building, pollId }) {
               label="Quorum"
               value={`${poll.totalVotes} su ${poll.min_votes} ${poll.totalVotes >= poll.min_votes ? '(raggiunto)' : '(non ancora raggiunto)'}`}
             />
+            <Row label="Voto" value={poll.is_anonymous ? 'Anonimo' : 'Palese'} />
             <Row label="Esito" value={outcome(poll)} last />
           </div>
+
+          {!poll.is_anonymous && poll.voters.length > 0 && <VotersList voters={poll.voters} />}
 
           <LegalNote />
         </>
@@ -144,6 +149,7 @@ function EditPollForm({ poll, onCancel, onSave }) {
   const pad = (n) => String(n).padStart(2, '0')
   const [question, setQuestion] = useState(poll.question)
   const [minVotes, setMinVotes] = useState(poll.min_votes)
+  const [anonymous, setAnonymous] = useState(!!poll.is_anonymous)
   const [date, setDate] = useState(`${closes.getFullYear()}-${pad(closes.getMonth() + 1)}-${pad(closes.getDate())}`)
   const [time, setTime] = useState(`${pad(closes.getHours())}:${pad(closes.getMinutes())}`)
   const [saving, setSaving] = useState(false)
@@ -182,6 +188,13 @@ function EditPollForm({ poll, onCancel, onSave }) {
         </div>
         {!closeOk && <p style={{ fontSize: 12, color: '#B42318', margin: '6px 0 0' }}>La scadenza deve essere nel futuro.</p>}
       </div>
+      <div>
+        <div style={label}>Come si vota</div>
+        <AnonymityToggle value={anonymous} onChange={setAnonymous} disabled={poll.othersVoted} />
+        {poll.othersVoted && (
+          <p style={{ fontSize: 12, color: 'var(--text-4)', margin: '6px 0 0' }}>Dopo i primi voti degli altri residenti non si può più cambiare.</p>
+        )}
+      </div>
       {error && <p style={{ fontSize: 13, color: '#B42318', margin: 0 }}>{error}</p>}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <button onClick={onCancel} style={outlineBtn}>Annulla</button>
@@ -194,6 +207,7 @@ function EditPollForm({ poll, onCancel, onSave }) {
             // la scadenza si invia solo se cambiata (l'input orario arrotonda ai minuti)
             if (Math.abs(newClose - new Date(poll.closes_at)) >= 60000) values.closesAt = newClose.toISOString()
             if (!poll.othersVoted && question.trim() !== poll.question) values.question = question
+            if (!poll.othersVoted && anonymous !== !!poll.is_anonymous) values.isAnonymous = anonymous
             const err = Object.keys(values).length ? await onSave(values) : (onCancel(), null)
             setSaving(false)
             setError(err)

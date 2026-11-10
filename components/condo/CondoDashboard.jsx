@@ -55,7 +55,13 @@ export default function CondoDashboard({ building }) {
   // appuntamenti del calendario da oggi in poi (griglia del mese corrente)
   const now = new Date()
   const { events: monthEvents } = useCalendarEvents(buildingId, now.getFullYear(), now.getMonth())
-  const upcomingEvents = monthEvents.filter((e) => e.approved && e.event_date >= today)
+  // interventi programmati: fanno parte del calendario come le manutenzioni
+  const monthEnd = toLocalISODate(new Date(now.getFullYear(), now.getMonth() + 1, 0))
+  const { items: monthInterventions } = usePublicInterventions(buildingId, today, monthEnd)
+  const upcomingEvents = [
+    ...monthEvents.filter((e) => e.approved && e.event_date >= today),
+    ...monthInterventions.filter((i) => i.status === 'scheduled').map((i) => ({ event_date: i.scheduled_date })),
+  ]
   const eventsToday = upcomingEvents.filter((e) => e.event_date === today).length
 
   const address = `${building.address}${building.street_number ? `, ${building.street_number}` : ''}`

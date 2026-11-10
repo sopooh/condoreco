@@ -2,17 +2,17 @@
 
 import { useCondoChat } from '@/hooks/useCondoChat'
 import { usePolls } from '@/hooks/usePolls'
-import { useEvents } from '@/hooks/useEvents'
+import { useTickets } from '@/hooks/useTickets'
 import { useCondoRole } from '@/hooks/useCondoRole'
 import CondoPrivateHeader from '@/components/condo/CondoPrivateHeader'
-import UrgentNoticesCard from '@/components/condo/UrgentNoticesCard'
+import TicketBoardCard from '@/components/condo/TicketBoardCard'
 import PollsCard from '@/components/condo/PollsCard'
 import ChatPreviewCard from '@/components/condo/ChatPreviewCard'
 
 export default function CondoDashboard({ building }) {
   const buildingId = building.id
   const { isCondoAdmin } = useCondoRole(buildingId)
-  const { events, loading: eventsLoading, approveEvent } = useEvents(buildingId)
+  const { tickets, loading: ticketsLoading, userId, openTicket, setTicketOpen } = useTickets(buildingId)
   const { polls, loading: pollsLoading, castVote } = usePolls(buildingId)
   const { messages, loading: chatLoading, sendMessage, hideMessage } = useCondoChat(buildingId)
 
@@ -20,14 +20,16 @@ export default function CondoDashboard({ building }) {
     <div className="wrap condo-private-wrap">
       <CondoPrivateHeader building={building} />
 
-      {eventsLoading ? (
+      {ticketsLoading ? (
         <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Caricamento bacheca...</p>
       ) : (
-        <UrgentNoticesCard
-          events={events}
+        <TicketBoardCard
+          tickets={tickets}
+          userId={userId}
           isCondoAdmin={isCondoAdmin}
-          onApprove={approveEvent}
-          viewAllHref={`/edificio/${buildingId}/condominio/calendario`}
+          onOpenTicket={openTicket}
+          onSetOpen={setTicketOpen}
+          calendarHref={`/edificio/${buildingId}/condominio/calendario`}
         />
       )}
 

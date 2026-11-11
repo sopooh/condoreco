@@ -3,7 +3,8 @@
 import { Suspense, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { AlertTriangle, Check, CheckCircle2, ChevronDown, Clock3, CreditCard, FileSpreadsheet, Landmark, Plus, Search, Settings, Trash2, Upload, Wallet, X } from 'lucide-react'
+import { AlertTriangle, Check, CheckCircle2, ChevronDown, Clock3, CreditCard, FileSpreadsheet, FileText, Landmark, Paperclip, Plus, Search, Settings, Trash2, Upload, Wallet, X } from 'lucide-react'
+import { RECEIPT_STATUS, openReceipt } from '@/components/condo/accounting/Receipts'
 import { useAccountingAdmin } from '@/hooks/useAccounting'
 import { useCondoRole } from '@/hooks/useCondoRole'
 import { createClient } from '@/lib/supabase/client'
@@ -84,7 +85,9 @@ function Overview({ acc, names, go }) {
   const sum = (l) => l.reduce((n, c) => n + Number(c.amount), 0)
   const paidYear = live.filter((c) => c.status === 'paid' && (c.paid_at || '').startsWith(String(year)))
   const overdue = live.filter((c) => isOverdue(c, today))
-  const pending = live.filter((c) => c.status === 'pending')
+  const pendingReceipts = acc.receipts.filter((r) => r.status === 'pending')
+  const covered = new Set(pendingReceipts.flatMap((r) => r.charge_ids))
+  const pending = live.filter((c) => c.status === 'pending' && !covered.has(c.id))
   const toCollect = live.filter((c) => c.status === 'open' || c.status === 'pending')
   const debtors = Object.values(overdue.reduce((acc2, c) => {
     (acc2[c.user_id] ??= { user_id: c.user_id, total: 0, n: 0, oldest: c.due_date, ids: [] })
@@ -109,12 +112,14 @@ function Overview({ acc, names, go }) {
         <Kpi label={`Incassato ${year}`} value={euro(sum(paidYear))} tone="ok" icon={<CheckCircle2 size={20} />} />
         <Kpi label="Da incassare" value={euro(sum(toCollect))} icon={<Wallet size={20} />} />
         <Kpi label="Scaduto" value={euro(sum(overdue))} sub={`${debtors.length} condomin${debtors.length === 1 ? 'o' : 'i'}`} tone={overdue.length ? 'danger' : undefined} icon={<AlertTriangle size={20} />} />
-        <Kpi label="Bonifici da confermare" value={String(pending.length)} sub={pending.length ? euro(sum(pending)) : 'nessuno'} tone={pending.length ? 'info' : undefined} icon={<Clock3 size={20} />} />
+        <Kpi label="Da confermare" value={String(pending.length + pendingReceipts.length)} sub={pendingReceipts.length ? `${pendingReceipts.length} contabil${pendingReceipts.length === 1 ? 'e' : 'i'}` : pending.length ? euro(sum(pending)) : 'nessuno'} tone={pending.length + pendingReceipts.length ? 'info' : undefined} icon={<Clock3 size={20} />} />
       </div>
+
+      <ReceiptsReview acc={acc} names={names} />
 
       {pending.length > 0 && (
         <div className="acc-card">
-          <h2 className="acc-h2">Bonifici da confermare</h2>
+          <h2 className="acc-h2">Bonifici da confermare (senza contabile)</h2>
           <p className="rc-muted" style={{ marginTop: 0 }}>Il condomino dice di aver pagato. Conferma quando vedi l&apos;accredito sul conto, oppure importa l&apos;estratto conto.</p>
           <ul className="acc-list">
             {pending.map((c) => (
@@ -154,6 +159,87 @@ function Overview({ acc, names, go }) {
         )}
       </div>
     </>
+  )
+}
+
+function ReceiptsReview({ acc, names }) {
+  const [rejecting, setRejecting] = useState(null)
+  const [reason, setReason] = useState('')
+  const [busy, setBusy] = useState(null)
+  const [showArchive, setShowArchive] = useState(false)
+  const pending = acc.receipts.filter((r) => r.status === 'pending')
+  const archive = acc.receipts.filter((r) => r.status !== 'pending')
+  const titles = Object.fromEntries(acc.charges.map((c) => [c.id, c]))
+  if (!acc.receipts.length) return null
+  const ratesOf = (r) => r.charge_ids.map((id) => titles[id]).filter(Boolean)
+
+  return (
+    <div className="acc-card">
+      <h2 className="acc-h2"><Paperclip size={20} aria-hidden="true" />Contabili da validare</h2>
+      {pending.length === 0 ? <p className="rc-muted" style={{ marginTop: 0 }}>Nessuna contabile in attesa.</p> : (
+        <ul className="acc-list">
+          {pending.map((r) => {
+            const rates = ratesOf(r)
+            const expected = rates.reduce((n, c) => n + Number(c.amount), 0)
+            const mismatch = r.amount && Math.abs(Number(r.amount) - expected) > 0.009
+            return (
+              <li key={r.id} style={{ alignItems: 'flex-start' }}>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <strong>{names[r.user_id] || 'Condomino'}</strong>
+                  <small>{rates.map((c) => c.title).join(', ') || 'Nessuna rata indicata'}</small>
+                  <small>{r.amount ? `Bonifico di ${euro(r.amount)}` : 'Importo non indicato'}{r.paid_on ? ` del ${fmtDay(r.paid_on)}` : ''}{mismatch ? ` · le rate valgono ${euro(expected)}` : ''}</small>
+                  {r.note && <small>Nota: {r.note}</small>}
+                  <button type="button" className="rc-link" style={{ marginTop: 6 }} onClick={() => openReceipt(r.file_path)}><FileText size={15} aria-hidden="true" />Apri la contabile</button>
+                </span>
+                {mismatch && <span className="acc-pill conf-da-verificare">importo diverso</span>}
+                <span className="acc-actions">
+                  {rejecting === r.id ? (
+                    <span className="acc-confirm" style={{ margin: 0, width: '100%' }}>
+                      <input className="acc-match" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Motivo (es. importo sbagliato, contabile illeggibile)" maxLength={300} />
+                      <span style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                        <button type="button" className="acc-btn" onClick={() => { setRejecting(null); setReason('') }}>Annulla</button>
+                        <button type="button" className="acc-btn is-danger" disabled={busy === r.id} onClick={async () => { setBusy(r.id); await acc.reviewReceipt(r.id, false, reason); setBusy(null); setRejecting(null); setReason('') }}>Respingi</button>
+                      </span>
+                    </span>
+                  ) : (
+                    <>
+                      <button type="button" className="acc-btn is-primary" disabled={busy === r.id} onClick={async () => { setBusy(r.id); await acc.reviewReceipt(r.id, true); setBusy(null) }}><Check size={16} aria-hidden="true" />Valida</button>
+                      <button type="button" className="acc-btn" onClick={() => setRejecting(r.id)}>Respingi</button>
+                    </>
+                  )}
+                </span>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      {archive.length > 0 && (
+        <>
+          <button type="button" className="rc-link" style={{ marginTop: 10 }} onClick={() => setShowArchive((v) => !v)}>
+            {showArchive ? 'Nascondi archivio' : `Archivio contabili (${archive.length})`}
+          </button>
+          {showArchive && (
+            <ul className="rcp-list" style={{ marginTop: 6 }}>
+              {archive.map((r) => {
+                const st = RECEIPT_STATUS[r.status]
+                return (
+                  <li key={r.id}>
+                    <button type="button" className="rcp-file" onClick={() => openReceipt(r.file_path)}>
+                      <span className="rcp-ico"><FileText size={18} aria-hidden="true" /></span>
+                      <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                        <strong>{names[r.user_id] || 'Condomino'} · {r.file_name}</strong>
+                        <small>{[r.amount ? euro(r.amount) : null, r.reviewed_at ? `esaminata il ${fmtDay(r.reviewed_at)}` : null].filter(Boolean).join(' · ')}</small>
+                      </span>
+                      <span className="acc-pill" style={{ background: st.bg, color: st.fg, margin: 0 }}>{st.label}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </>
+      )}
+    </div>
   )
 }
 

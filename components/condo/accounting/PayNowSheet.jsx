@@ -7,7 +7,7 @@ import { causaleFor, euro, fmtDay, formatIban } from '@/lib/accounting'
 // "Paga ora": scelta delle rate e del metodo.
 // Online (carta, PayPal, Apple Pay, Google Pay) con Stripe se il condominio l'ha attivato;
 // bonifico con IBAN e causale pronti, poi l'amministratore conferma.
-export default function PayNowSheet({ charges, overdueIds, settings, onClose, onReport, onCheckout }) {
+export default function PayNowSheet({ charges, overdueIds, settings, onClose, onReport, onCheckout, onUploadReceipt }) {
   const [sel, setSel] = useState(() => new Set(overdueIds.length ? overdueIds : charges.slice(0, 1).map((c) => c.id)))
   const [method, setMethod] = useState(settings?.stripe_ready ? 'online' : 'bonifico')
   const [busy, setBusy] = useState(false)
@@ -108,8 +108,11 @@ export default function PayNowSheet({ charges, overdueIds, settings, onClose, on
                   {settings.bank_name && <p className="pay-note"><Building2 size={14} aria-hidden="true" />{settings.bank_name}</p>}
                   <p className="pay-note">Copia la causale così com&apos;è: contiene il codice delle rate e il pagamento viene riconosciuto in automatico.</p>
                 </div>
-                <button type="button" className="ep-save" disabled={!chosen.length || busy} onClick={reported}>
-                  {busy ? 'Invio…' : 'Ho fatto il bonifico'}
+                <button type="button" className="ep-save" disabled={!chosen.length || busy} onClick={() => onUploadReceipt(chosen.map((c) => c.id))}>
+                  Ho fatto il bonifico: carica la contabile
+                </button>
+                <button type="button" className="auth-secondary" style={{ marginTop: 8 }} disabled={!chosen.length || busy} onClick={reported}>
+                  {busy ? 'Invio…' : 'Segnala senza contabile'}
                 </button>
               </>
             )}

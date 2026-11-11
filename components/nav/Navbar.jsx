@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight, Compass, LogOut, MailCheck, Settings, UserRound, Users, X } from 'lucide-react'
+import { ChevronRight, Compass, LogOut, MailCheck, Settings, UserRound, Users, X, Wrench } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -25,6 +25,7 @@ export default function Navbar() {
   const [busyGoogle, setBusyGoogle] = useState(false)
   const [err, setErr] = useState('')
   const [isAdminUser, setIsAdminUser] = useState(false)
+  const [isSupplier, setIsSupplier] = useState(false)
 
   // Il ruolo va letto dal profilo (protetto da RLS + trigger anti-escalation),
   // non da un'email hardcoded: is_admin() è la stessa fonte di verità usata
@@ -34,8 +35,32 @@ export default function Navbar() {
     let cancelled = false
     supabase.from('profiles').select('role').eq('id', session.user.id).single()
       .then(({ data }) => { if (!cancelled) setIsAdminUser(data?.role === 'admin') })
+    // Recofixer: chi ha un profilo fornitore vede "I miei interventi"
+    supabase.from('suppliers').select('id').eq('id', session.user.id).maybeSingle()
+      .then(({ data }) => { if (!cancelled) setIsSupplier(!!data) })
     return () => { cancelled = true }
   }, [session, supabase])
+
+  // altre pagine possono chiedere il login (es. invito fornitore) e indicare
+  // dove tornare dopo: il callback porta sempre in home, da lì si riparte
+  useEffect(() => {
+    const open = (e) => {
+      try { if (e.detail?.next) window.localStorage.setItem('condoreco:next', e.detail.next) } catch { /* ignore */ }
+      setAuthOpen(true)
+    }
+    window.addEventListener('condoreco:open-auth', open)
+    return () => window.removeEventListener('condoreco:open-auth', open)
+  }, [])
+  useEffect(() => {
+    if (!session) return
+    try {
+      const next = window.localStorage.getItem('condoreco:next')
+      if (next && next.startsWith('/')) {
+        window.localStorage.removeItem('condoreco:next')
+        if (window.location.pathname !== next) window.location.assign(next)
+      }
+    } catch { /* ignore */ }
+  }, [session])
 
   async function handleGoogleSignIn() {
     setErr(''); setBusyGoogle(true)
@@ -92,6 +117,7 @@ export default function Navbar() {
           <Link href="/amministratori" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-3)' }}>Amministratori</Link>
           {session ? (
             <>
+              {isSupplier && <Link href="/fornitore" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-3)' }}>I miei interventi</Link>}
               <Link href="/profilo" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-3)' }}>Profilo</Link>
               <NotificationBell />
               {isAdminUser && (
@@ -155,6 +181,7 @@ export default function Navbar() {
               {[
                 { to: '/cerca', label: 'Esplora', icon: 'compass' },
                 { to: '/amministratori', label: 'Amministratori', icon: 'people' },
+                ...(isSupplier ? [{ to: '/fornitore', label: 'I miei interventi', icon: 'wrench' }] : []),
                 ...(session ? [{ to: '/profilo', label: 'Profilo', icon: 'person' }] : []),
                 ...(isAdminUser ? [{ to: '/admin', label: 'Admin', icon: 'gear', badge: 'Admin' }] : []),
               ].map((item, i, arr) => (
@@ -236,7 +263,7 @@ export default function Navbar() {
   )
 }
 
-const ICONS = { compass: Compass, people: Users, person: UserRound, gear: Settings, chevron: ChevronRight, close: X, logout: LogOut }
+const ICONS = { compass: Compass, people: Users, person: UserRound, gear: Settings, chevron: ChevronRight, close: X, logout: LogOut, wrench: Wrench }
 
 function MenuIcon({ name }) {
   const Icon = ICONS[name]

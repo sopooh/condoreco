@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Building2, Map as MapIcon, List, SlidersHorizontal, X } from 'lucide-react'
 import AdminRow from '@/components/admins/AdminRow'
 import AdminFilterSidebar from '@/components/admins/AdminFilterSidebar'
@@ -14,8 +14,7 @@ import QuickTabs from '@/components/directory/QuickTabs'
 import SortSelect from '@/components/directory/SortSelect'
 import { useParamNav } from '@/components/directory/useParamNav'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { useSession } from '@/components/providers/SessionProvider'
-import { createClient } from '@/lib/supabase/client'
+import { useSaved } from '@/components/directory/useSaved'
 
 export const ADMIN_TABS = [
   { id: '', label: 'Tutte' },
@@ -32,40 +31,13 @@ const ADMIN_SORT_OPTIONS = [
   { id: 'nome', label: 'Nome (A-Z)' },
 ]
 
-// Amministratori salvati con il segnalibro (tabella saved_admins, solo i propri).
-function useSavedAdmins() {
-  const session = useSession()
-  const [saved, setSaved] = useState(() => new Set())
-  const userId = session?.user?.id
-  useEffect(() => {
-    if (!userId) return
-    let off = false
-    createClient().from('saved_admins').select('administrator_id').then(({ data }) => {
-      if (!off) setSaved(new Set((data || []).map((r) => r.administrator_id)))
-    })
-    return () => { off = true }
-  }, [userId])
-  const toggle = useCallback(async (id) => {
-    if (!userId) {
-      window.dispatchEvent(new CustomEvent('condoreco:open-auth', { detail: { next: '/amministratori' } }))
-      return
-    }
-    const on = saved.has(id)
-    setSaved((prev) => { const n = new Set(prev); if (on) n.delete(id); else n.add(id); return n })
-    const sb = createClient().from('saved_admins')
-    const { error } = on ? await sb.delete().eq('administrator_id', id) : await sb.insert({ administrator_id: id })
-    if (error) setSaved((prev) => { const n = new Set(prev); if (on) n.add(id); else n.delete(id); return n })
-  }, [saved, userId])
-  return { saved: userId ? saved : new Set(), toggle }
-}
-
 export default function AdminsResultsView({ admins, buildingsByAdmin, cities, feeCounts, city }) {
   const isMobile = useIsMobile()
   const { searchParams, setParams } = useParamNav()
   const [showMap, setShowMap] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [selectedBuilding, setSelectedBuilding] = useState(null)
-  const { saved, toggle } = useSavedAdmins()
+  const { saved, toggle } = useSaved('saved_admins', 'administrator_id', '/amministratori')
   const onlySaved = searchParams.get('salvati') === '1'
   const list = onlySaved ? admins.filter((a) => saved.has(a.id)) : admins
 

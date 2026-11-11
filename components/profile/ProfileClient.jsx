@@ -246,7 +246,8 @@ export default function ProfileClient() {
                 <ActionRow href="/aggiungi-condominio" icon={<BuildingIcon />} label="Aggiungi condominio" />
                 <ActionRow href="/cerca" icon={<MapIcon />} label="Esplora edifici" />
                 <ActionRow href="/amministratori" icon={<UsersIcon />} label="Cerca amministratori" />
-                <ActionRow href="/amministratori?salvati=1" icon={<Bookmark size={18} strokeWidth={2} aria-hidden="true" />} label="Amministratori salvati" last />
+                <ActionRow href="/amministratori?salvati=1" icon={<Bookmark size={18} strokeWidth={2} aria-hidden="true" />} label="Amministratori salvati" />
+                <ActionRow href="/fornitori?salvati=1" icon={<Bookmark size={18} strokeWidth={2} aria-hidden="true" />} label="Fornitori salvati" last />
               </nav>
             </section>
 

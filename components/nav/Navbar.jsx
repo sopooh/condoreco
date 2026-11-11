@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight, Compass, LogOut, MailCheck, Settings, UserRound, Users, X, Wrench } from 'lucide-react'
+import { ChevronRight, Compass, LogOut, MailCheck, Settings, UserRound, Users, X, Wrench, ClipboardList } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -115,6 +115,7 @@ export default function Navbar() {
         <div className="navbar-desktop-nav" style={{ alignItems: 'center', gap: 28 }}>
           <Link href="/cerca" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-3)' }}>Esplora</Link>
           <Link href="/amministratori" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-3)' }}>Amministratori</Link>
+          <Link href="/fornitori" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-3)' }}>Fornitori</Link>
           {session ? (
             <>
               {isSupplier && <Link href="/fornitore" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-3)' }}>I miei interventi</Link>}
@@ -181,7 +182,8 @@ export default function Navbar() {
               {[
                 { to: '/cerca', label: 'Esplora', icon: 'compass' },
                 { to: '/amministratori', label: 'Amministratori', icon: 'people' },
-                ...(isSupplier ? [{ to: '/fornitore', label: 'I miei interventi', icon: 'wrench' }] : []),
+                { to: '/fornitori', label: 'Fornitori', icon: 'wrench' },
+                ...(isSupplier ? [{ to: '/fornitore', label: 'I miei interventi', icon: 'clipboard' }] : []),
                 ...(session ? [{ to: '/profilo', label: 'Profilo', icon: 'person' }] : []),
                 ...(isAdminUser ? [{ to: '/admin', label: 'Admin', icon: 'gear', badge: 'Admin' }] : []),
               ].map((item, i, arr) => (
@@ -263,7 +265,7 @@ export default function Navbar() {
   )
 }
 
-const ICONS = { compass: Compass, people: Users, person: UserRound, gear: Settings, chevron: ChevronRight, close: X, logout: LogOut, wrench: Wrench }
+const ICONS = { compass: Compass, people: Users, person: UserRound, gear: Settings, chevron: ChevronRight, close: X, logout: LogOut, wrench: Wrench, clipboard: ClipboardList }
 
 function MenuIcon({ name }) {
   const Icon = ICONS[name]

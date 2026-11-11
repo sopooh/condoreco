@@ -11,6 +11,9 @@ import { ToolboxArt } from '@/components/condo/CondoArt'
 import { useInterventions, INTERVENTION_STATUS, isActiveIntervention } from '@/hooks/useInterventions'
 import { contactMessage, telLink, waLink, mailLink } from '@/lib/contact'
 import { toLocalISODate } from '@/lib/localDate'
+import { SupplierLinkBadge, InviteSupplierPanel, FindSupplierPanel } from '@/components/suppliers/ResidentSupplierTools'
+import InterventionFiles from '@/components/suppliers/InterventionFiles'
+import { createClient } from '@/lib/supabase/client'
 import { useNeighbourNotices } from '@/hooks/useNeighbourNotices'
 import { NoticeForm, NoticeIcon } from '@/components/condo/NeighbourNotice'
 
@@ -27,7 +30,9 @@ export default function InterventionsPage({ building }) {
   const address = `${building.address}${building.street_number ? `, ${building.street_number}` : ''}`
   const session = useSession()
   const [senderName, setSenderName] = useState(null)
-  const { interventions, maintainers, loading, error, createIntervention, updateIntervention, deleteIntervention, addMaintainer } = useInterventions(buildingId)
+  const { interventions, maintainers, loading, error, createIntervention, updateIntervention, deleteIntervention, addMaintainer, reload } = useInterventions(buildingId)
+  const [inviting, setInviting] = useState(null)
+  const [findingSupplier, setFindingSupplier] = useState(false)
   const notices = useNeighbourNotices(buildingId)
 
   useEffect(() => {
@@ -123,7 +128,10 @@ export default function InterventionsPage({ building }) {
               <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Fornitori del condominio</h2>
               <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '2px 0 0' }}>Rubrica condivisa tra i residenti verificati.</p>
             </div>
-            <button onClick={() => setAddingMaintainer(true)} style={{ ...ghostBtn, height: 40, padding: '0 12px', flexShrink: 0 }}>+ Aggiungi</button>
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+              <button onClick={() => setFindingSupplier(true)} style={{ ...ghostBtn, height: 40, padding: '0 12px', color: '#6D28D9', borderColor: '#C4B5FD' }}>Cerca Recofixer</button>
+              <button onClick={() => setAddingMaintainer(true)} style={{ ...ghostBtn, height: 40, padding: '0 12px' }}>+ Aggiungi</button>
+            </div>
           </div>
           {maintainers.length === 0 ? (
             <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0 }}>Nessun fornitore ancora: aggiungi ascensorista, idraulico, elettricista...</p>
@@ -133,7 +141,10 @@ export default function InterventionsPage({ building }) {
                 <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderTop: idx ? '1px solid var(--border)' : 'none' }}>
                   <span style={{ ...iconTile, width: 42, height: 42 }}><MaintenanceIcon name={maintenanceCategory(m.category).icon} size={22} /></span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700 }}>{m.name}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 15, fontWeight: 700 }}>{m.name}</span>
+                      <SupplierLinkBadge maintainer={m} onInvite={() => setInviting(m)} />
+                    </div>
                     <div style={{ fontSize: 12.5, color: 'var(--text-3)' }}>{maintenanceCategoryLabel(m.category)}{m.company ? ` · ${m.company}` : ''}</div>
                     {m.notes && <div style={{ fontSize: 12.5, color: 'var(--text-3)' }}>{m.notes}</div>}
                   </div>
@@ -158,6 +169,11 @@ export default function InterventionsPage({ building }) {
           onSchedule={() => setScheduling(current)}
           onUpdate={(patch) => updateIntervention(current.id, patch)}
           onDelete={async () => { const r = await deleteIntervention(current.id); if (!r.error) setDetail(null); return r }}
+          onConfirmProposal={async () => {
+            const { error } = await createClient().rpc('confirm_proposed_date', { p_intervention: current.id })
+            if (!error) await reload()
+            return { error: error ? 'Non riesco a confermare la data. Riprova.' : null }
+          }}
         />
       )}
       {creating && (
@@ -191,6 +207,16 @@ export default function InterventionsPage({ building }) {
             return error
           }}
         />
+      )}
+      {inviting && (
+        <Sheet onClose={() => setInviting(null)} title={`Invita ${inviting.name}`} subtitle="Su Condoreco come Recofixer">
+          <InviteSupplierPanel maintainer={inviting} buildingLabel={`${building.address}${building.street_number ? `, ${building.street_number}` : ''}`} />
+        </Sheet>
+      )}
+      {findingSupplier && (
+        <Sheet onClose={() => setFindingSupplier(false)} title="Cerca Recofixer" subtitle={`Fornitori iscritti a Condoreco${building.city ? ` che lavorano a ${building.city}` : ''}`}>
+          <FindSupplierPanel buildingId={buildingId} city={building.city} defaultCategory={filter} onAdded={() => { setFindingSupplier(false); reload() }} />
+        </Sheet>
       )}
       {addingMaintainer && (
         <Sheet onClose={() => setAddingMaintainer(false)} title="Aggiungi fornitore">
@@ -251,7 +277,7 @@ function InterventionCard({ intervention: i, maintainer, onOpen }) {
   )
 }
 
-function DetailSheet({ intervention: i, maintainer, onClose, onContact, onSchedule, onUpdate, onDelete }) {
+function DetailSheet({ intervention: i, maintainer, onClose, onContact, onSchedule, onUpdate, onDelete, onConfirmProposal }) {
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState(null)
   const st = INTERVENTION_STATUS[i.status]
@@ -267,6 +293,19 @@ function DetailSheet({ intervention: i, maintainer, onClose, onContact, onSchedu
           )}
         </div>
         {i.description && <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap' }}>{i.description}</p>}
+        {i.proposed_date && active && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '12px 14px', borderRadius: 14, background: '#FDF0D5', color: '#7A4A00' }}>
+            <span style={{ fontSize: 14.5 }}>
+              <strong>{maintainer?.name || 'Il fornitore'}</strong> propone {capDay(i.proposed_date)}{i.proposed_time_start ? ` alle ${i.proposed_time_start.slice(0, 5)}` : ''}{i.proposed_time_end ? `-${i.proposed_time_end.slice(0, 5)}` : ''}.
+            </span>
+            <button type="button" disabled={busy} onClick={() => run(onConfirmProposal)} style={{ ...primaryBtn, height: 44 }}>Conferma la data</button>
+          </div>
+        )}
+        {i.status === 'done' && i.completion_notes && (
+          <div style={{ padding: '12px 14px', borderRadius: 14, background: '#E3F5E9', color: '#14532D', fontSize: 14, whiteSpace: 'pre-wrap' }}>
+            <strong>Note del fornitore:</strong> {i.completion_notes}
+          </div>
+        )}
         <Link href={`/edificio/${i.building_id}/condominio/chat?intervento=${i.id}`} style={{ ...primaryBtn, height: 50, textDecoration: 'none' }}>
           <ChatIcon /> Vai alla chat
         </Link>
@@ -283,6 +322,9 @@ function DetailSheet({ intervention: i, maintainer, onClose, onContact, onSchedu
             <button disabled={busy} onClick={() => run(() => onUpdate({ status: 'cancelled' }))} style={{ ...ghostBtn, color: '#B42318' }}>Annulla</button>
           </div>
         )}
+        <div style={{ padding: 14, borderRadius: 14, border: '1px solid var(--border)' }}>
+          <InterventionFiles interventionId={i.id} />
+        </div>
         {!active && (
           <button disabled={busy} onClick={() => { if (confirm('Eliminare definitivamente questa segnalazione?')) run(onDelete) }} style={{ ...ghostBtn, color: '#B42318' }}>Elimina</button>
         )}

@@ -25,11 +25,11 @@ export function useInterventions(buildingId) {
     const supabase = createClient()
     const [ints, mans] = await Promise.all([
       supabase.from('condo_interventions')
-        .select('id, building_id, ref_number, title, category, description, location, status, scheduled_date, time_start, time_end, maintainer_id, created_at')
+        .select('id, building_id, ref_number, title, category, description, location, status, scheduled_date, time_start, time_end, maintainer_id, created_at, proposed_date, proposed_time_start, proposed_time_end, completion_notes, completed_at')
         .eq('building_id', buildingId).eq('created_by', userId)
         .order('created_at', { ascending: false }),
       supabase.from('condo_maintainers')
-        .select('id, name, company, category, phone, email, notes, created_by')
+        .select('id, name, company, category, phone, email, notes, created_by, supplier_user_id')
         .eq('building_id', buildingId)
         .order('name', { ascending: true }),
     ])

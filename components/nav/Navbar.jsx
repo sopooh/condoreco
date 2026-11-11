@@ -1,5 +1,6 @@
 'use client'
 
+import { useViewAs } from '@/hooks/useViewAs'
 import { ChevronRight, Compass, LogOut, Settings, UserRound, Users, X, Wrench, ClipboardList } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -21,7 +22,9 @@ export default function Navbar() {
   const [authMode, setAuthMode] = useState('login')
   const [menuOpen, setMenuOpen] = useState(false)
   const [isAdminUser, setIsAdminUser] = useState(false)
-  const [isSupplier, setIsSupplier] = useState(false)
+  const [isSupplierReal, setIsSupplier] = useState(false)
+  const { viewAs } = useViewAs()
+  const isSupplier = isSupplierReal || viewAs === 'recofixer'
 
   // Il ruolo va letto dal profilo (protetto da RLS + trigger anti-escalation),
   // non da un'email hardcoded: is_admin() è la stessa fonte di verità usata

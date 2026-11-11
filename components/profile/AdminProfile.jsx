@@ -25,7 +25,7 @@ export function AdminKpis({ buildings, inbox }) {
   const due = buildings.reduce((n, b) => n + Number(b.due_total), 0)
   const paid = buildings.reduce((n, b) => n + Number(b.paid_total), 0)
   return (
-    <div className="adm-kpis">
+    <div className="cadm-kpis">
       <div><Building2 size={18} aria-hidden="true" /><b>{buildings.length}</b><small>{buildings.length === 1 ? 'Condominio' : 'Condomini'}</small></div>
       <div><Users size={18} aria-hidden="true" /><b>{people}</b><small>Condomini iscritti</small></div>
       <div className={inbox.length ? 'is-warn' : 'is-ok'}><Inbox size={18} aria-hidden="true" /><b>{inbox.length}</b><small>Da fare</small></div>
@@ -42,8 +42,8 @@ export function AdminInbox({ admin, hideAddress = false }) {
 
   if (!items.length) {
     return (
-      <div className="adm-card adm-empty">
-        <span className="adm-empty-ico"><Check size={22} aria-hidden="true" /></span>
+      <div className="cadm-card cadm-empty">
+        <span className="cadm-empty-ico"><Check size={22} aria-hidden="true" /></span>
         <div><strong>Tutto in ordine</strong><small>Nessuna contabile, appuntamento o decisione da gestire.</small></div>
       </div>
     )
@@ -58,23 +58,23 @@ export function AdminInbox({ admin, hideAddress = false }) {
   }
 
   return (
-    <div className="adm-card" style={{ padding: 0 }}>
+    <div className="cadm-card" style={{ padding: 0 }}>
       {err && <p className="auth-err" style={{ margin: 12 }}>{err}</p>}
-      <ul className="adm-inbox">
+      <ul className="cadm-inbox">
         {items.map((it) => {
           const t = TYPE[it.type]
           const base = `/edificio/${it.buildingId}/condominio`
           const key = `${it.type}-${it.id}`
           return (
             <li key={key}>
-              <span className={`adm-ico is-${t.tone}`}><t.icon size={18} aria-hidden="true" /></span>
-              <div className="adm-inbox-body">
+              <span className={`cadm-ico is-${t.tone}`}><t.icon size={18} aria-hidden="true" /></span>
+              <div className="cadm-inbox-body">
                 <small>{t.label}{hideAddress ? '' : ` · ${it.address}`}</small>
                 <strong>{it.title}</strong>
                 {it.type === 'event' && <small>{fmtDay(it.date)}{it.time ? ` · ${String(it.time).slice(0, 5)}` : ''}{it.location ? ` · ${it.location}` : ''}</small>}
                 {it.type === 'quote' && it.amount && <small>{euro(it.amount)}</small>}
               </div>
-              <div className="adm-inbox-act">
+              <div className="cadm-inbox-act">
                 {it.type === 'poll' && (
                   <button type="button" className="acc-btn is-primary" disabled={busy === key}
                     onClick={() => act(key, async () => { const r = await admin.takeCharge(it.id); if (r.id) router.push(`${base}/pratiche?p=${r.id}`); return r })}>

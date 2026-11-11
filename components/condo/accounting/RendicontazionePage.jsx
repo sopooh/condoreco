@@ -52,7 +52,7 @@ function AdminRendicontazione({ building, base }) {
         </ul>
       </div>
 
-      <div className="adm-links">
+      <div className="cadm-links">
         <Link href={`${base}/contabilita`} className="rc-admin-link">
           <span><strong>Valida pagamenti</strong><small>Contabili, bonifici da confermare, rate, estratto conto</small></span>
           <span aria-hidden="true">›</span>

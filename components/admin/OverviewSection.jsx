@@ -1,5 +1,7 @@
 'use client'
 
+import { ViewAsPicker } from '@/components/nav/ViewAsSwitcher'
+
 import { useState, useEffect } from 'react'
 import { getDashboardData } from '@/lib/adminQueries'
 import { AdminIcon } from './AdminIcons'
@@ -33,6 +35,8 @@ export default function OverviewSection({ onNavigate }) {
         <h1 className="adm-title">Dashboard</h1>
         <p className="adm-sub">Panoramica della piattaforma e attività recenti.</p>
       </div>
+
+      <ViewAsPicker style={{ marginBottom: 16 }} current="none" />
 
       <label className="adm-period">
         <span className="adm-period-icon"><AdminIcon name="calendar" size={20} /></span>

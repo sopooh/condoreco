@@ -12,6 +12,16 @@ import SupplierProfileForm from '@/components/suppliers/SupplierProfileForm'
 import InterventionFiles from '@/components/suppliers/InterventionFiles'
 import ChatThreadView from '@/components/condo/chat/ChatThreadView'
 import { Sheet } from '@/components/condo/InterventionsPage'
+import { useViewAs } from '@/hooks/useViewAs'
+
+// Anteprima "vedi come Recofixer" per l'admin del sito senza profilo fornitore
+const DEMO_SUPPLIER = { company_name: 'Idraulica Esempio srl', verified: true, categories: ['plumbing', 'heating'] }
+const demoDay = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10) }
+const DEMO_ITEMS = [
+  { id: 'demo-1', title: 'Perdita colonna acqua scala B', status: 'requested', category: 'plumbing', building_address: 'Via Ripamonti 120, Milano', location: 'Scala B, 3° piano', requester: 'Amministrazione', ref_number: 1042, description: 'Macchia di umidità sul soffitto del pianerottolo, probabile perdita dalla colonna.', thread_id: null },
+  { id: 'demo-2', title: 'Manutenzione caldaia centralizzata', status: 'scheduled', category: 'heating', building_address: 'Via Tortona 8, Milano', location: 'Locale caldaia', requester: 'Giulia B.', ref_number: 1038, scheduled_date: demoDay(3), time_start: '09:00:00', thread_id: null },
+  { id: 'demo-3', title: 'Sostituzione rubinetto cortile', status: 'done', category: 'plumbing', building_address: 'Via Ripamonti 120, Milano', requester: 'Marco C.', ref_number: 1012, completion_notes: 'Sostituito rubinetto a sfera, garanzia 24 mesi.', thread_id: null },
+]
 
 const fmtDay = (d) => new Date(d + 'T00:00:00').toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })
 const hhmm = (t) => (t ? t.slice(0, 5) : '')
@@ -27,6 +37,7 @@ export default function SupplierDashboard() {
   const [open, setOpen] = useState(null)
   const [chat, setChat] = useState(null)
   const [editing, setEditing] = useState(false)
+  const { viewAs } = useViewAs()
 
   const load = useCallback(async () => {
     const { data, error } = await createClient().rpc('supplier_interventions')
@@ -49,6 +60,8 @@ export default function SupplierDashboard() {
       </Wrap>
     )
   }
+  const demo = viewAs === 'recofixer' && !supplier && !editing
+  if (demo) return <SupplierView supplier={DEMO_SUPPLIER} items={DEMO_ITEMS} demo tab={tab} setTab={setTab} open={open} setOpen={setOpen} onChat={() => {}} onEdit={() => {}} />
   if (!supplier || editing) {
     return (
       <Wrap>
@@ -67,12 +80,27 @@ export default function SupplierDashboard() {
 
   if (chat) return <SupplierChat item={chat} onBack={() => { setChat(null); load() }} />
 
+  return (
+    <SupplierView supplier={supplier} items={items} tab={tab} setTab={setTab} open={open} setOpen={setOpen}
+      onChat={setChat} onEdit={() => setEditing(true)}
+      onChanged={async () => { const { data } = await createClient().rpc('supplier_interventions'); setItems(data || []); setOpen((data || []).find((x) => x.id === open?.id) || null) }} />
+  )
+}
+
+function SupplierView({ supplier, items, tab, setTab, open, setOpen, onChat, onEdit, onChanged, demo = false }) {
   const todo = (items || []).filter((i) => i.status === 'requested' || i.status === 'scheduled')
   const done = (items || []).filter((i) => i.status === 'done' || i.status === 'cancelled')
   const list = tab === 'todo' ? todo : done
+  const setChat = onChat
+  const setEditing = () => onEdit()
 
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', padding: '22px 16px 64px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {demo && (
+        <div style={{ background: '#F5F3FF', border: '1px solid #DDD6FE', color: '#5B21B6', borderRadius: 14, padding: '12px 14px', fontSize: 14, lineHeight: 1.45 }}>
+          <strong>Anteprima con dati di esempio.</strong> Non hai un profilo Recofixer, quindi vedi interventi finti: le azioni non salvano nulla.
+        </div>
+      )}
       <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 20, padding: 18, display: 'flex', alignItems: 'center', gap: 14 }}>
         <span style={{ width: 52, height: 52, borderRadius: 16, background: '#EDE9FE', color: '#6D28D9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Wrench size={26} strokeWidth={1.9} aria-hidden="true" /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -104,7 +132,7 @@ export default function SupplierDashboard() {
 
       {open && (
         <SupplierDetail i={open} onClose={() => setOpen(null)} onChat={() => { setOpen(null); setChat(open) }}
-          onChanged={async () => { const { data } = await createClient().rpc('supplier_interventions'); setItems(data || []); setOpen((data || []).find((x) => x.id === open.id) || null) }} />
+          onChanged={demo ? () => {} : onChanged} />
       )}
     </div>
   )

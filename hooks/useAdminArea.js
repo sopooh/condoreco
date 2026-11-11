@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
 import { todayISO } from '@/lib/accounting'
+import { useViewAs } from '@/hooks/useViewAs'
 
 const isFinal = (p) => p.status === 'approved' && (p.phase2_status === 'none' || p.phase2_status === 'closed')
 
@@ -78,6 +79,10 @@ export function useAdminOverview() {
     return { id: data || null, error: error ? 'Non riesco a prendere in carico la decisione.' : null }
   }, [])
 
+  const { viewAs } = useViewAs()
+  if (viewAs === 'recoer' || viewAs === 'recofixer') {
+    return { ...state, loading: false, buildings: [], inbox: [], isAdmin: false, reload: load, approveEvent, rejectEvent, takeCharge }
+  }
   return { ...state, isAdmin: state.buildings.length > 0, reload: load, approveEvent, rejectEvent, takeCharge }
 }
 

@@ -121,9 +121,9 @@ export default function CondoDashboard({ building }) {
         {!isCondoAdmin && <MyUnitBanner building={building} />}
         {isCondoAdmin ? (
           <>
-            <section className="adm-hub-inbox" aria-label="Da validare">
-              <div className="adm-hub-head"><strong>Da validare</strong>{admInbox.inbox.length > 0 && <span>{admInbox.inbox.length}</span>}</div>
-              {admin.loading ? <div className="adm-card" style={{ padding: 16, color: 'var(--text-3)', fontSize: 14 }}>Caricamento…</div> : <AdminInbox admin={admInbox} hideAddress />}
+            <section className="cadm-hub-inbox" aria-label="Da validare">
+              <div className="cadm-hub-head"><strong>Da validare</strong>{admInbox.inbox.length > 0 && <span>{admInbox.inbox.length}</span>}</div>
+              {admin.loading ? <div className="cadm-card" style={{ padding: 16, color: 'var(--text-3)', fontSize: 14 }}>Caricamento…</div> : <AdminInbox admin={admInbox} hideAddress />}
             </section>
             <HubCard
               href={`${base}/rendicontazione`}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { usePolls } from '@/hooks/usePolls'
 import AnonymityToggle from '@/components/condo/AnonymityToggle'
 import PollCard from '@/components/condo/PollCard'
@@ -15,11 +15,14 @@ export default function PollsPage({ building }) {
   const buildingId = building.id
   const base = `/edificio/${buildingId}/condominio`
   const searchParams = useSearchParams()
-  const { polls, loading, error, createPoll, castVote, changeVote } = usePolls(buildingId)
+  const router = useRouter()
+  const { polls, loading, error, createPoll, castVote, changeVote, setPhase2 } = usePolls(buildingId)
   const [formOpen, setFormOpen] = useState(searchParams.get('nuova') === '1')
 
-  const open = polls.filter((p) => p.isOpen)
-  const closed = polls.filter((p) => !p.isOpen)
+  // "in corso" comprende anche la fase 2 (in voto o da aprire dopo l'approvazione)
+  const active = (p) => p.isOpen || p.phase2Open || (p.status === 'approved' && p.phase2_status === 'draft')
+  const open = polls.filter(active)
+  const closed = polls.filter((p) => !active(p))
 
   return (
     <div className="wrap condo-private-wrap" style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -35,7 +38,17 @@ export default function PollsPage({ building }) {
         )}
       </div>
 
-      {formOpen && <NewPollForm onCancel={() => setFormOpen(false)} onCreate={createPoll} onDone={() => setFormOpen(false)} />}
+      {formOpen && (
+        <NewPollForm onCancel={() => setFormOpen(false)} onCreate={createPoll}
+          onDone={async (id, withPhase2) => {
+            setFormOpen(false)
+            // con la fase 2 si va subito al dettaglio per aggiungere le proposte
+            if (withPhase2 && id) {
+              await setPhase2(id, { enabled: true, question: null, days: 7 })
+              router.push(`${base}/decisioni/${id}#fase-2`)
+            }
+          }} />
+      )}
 
       {error && <p style={{ fontSize: 13, color: '#B42318', margin: 0 }}>Non riesco a caricare le decisioni. Riprova tra poco.</p>}
 
@@ -67,6 +80,7 @@ function NewPollForm({ onCancel, onCreate, onDone }) {
   const [days, setDays] = useState(7)
   const [minVotes, setMinVotes] = useState(10)
   const [anonymous, setAnonymous] = useState(false)
+  const [withPhase2, setWithPhase2] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const canSave = question.trim().length > 3 && minVotes > 0 && !saving
@@ -102,6 +116,13 @@ function NewPollForm({ onCancel, onCreate, onDone }) {
         <div style={fieldLabel}>Come si vota</div>
         <AnonymityToggle value={anonymous} onChange={setAnonymous} />
       </div>
+      <label style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 14px', borderRadius: 14, border: `1.5px solid ${withPhase2 ? 'var(--teal)' : 'var(--border)'}`, background: withPhase2 ? 'var(--teal-lt)' : 'var(--white)', cursor: 'pointer' }}>
+        <input type="checkbox" checked={withPhase2} onChange={(e) => setWithPhase2(e.target.checked)} style={{ width: 20, height: 20, marginTop: 2, accentColor: 'var(--teal)', flexShrink: 0 }} />
+        <span>
+          <strong style={{ display: 'block', fontSize: 15 }}>Prevedi una fase 2 con proposte</strong>
+          <span style={{ display: 'block', fontSize: 13, color: 'var(--text-3)', lineHeight: 1.45, marginTop: 2 }}>Se passa il Sì, si vota tra più opzioni (es. i colori della facciata), anche con immagini. Le aggiungi subito dopo aver pubblicato.</span>
+        </span>
+      </label>
       {error && <p style={{ fontSize: 13, color: '#B42318', margin: 0 }}>{error}</p>}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         <button onClick={onCancel} style={secondaryBtn}>Annulla</button>
@@ -109,10 +130,10 @@ function NewPollForm({ onCancel, onCreate, onDone }) {
           disabled={!canSave}
           onClick={async () => {
             setSaving(true)
-            const { error } = await onCreate({ question, minVotes, durationDays: days, isAnonymous: anonymous })
+            const { error, id } = await onCreate({ question, minVotes, durationDays: days, isAnonymous: anonymous })
             setSaving(false)
             if (error) setError(error)
-            else onDone()
+            else onDone(id, withPhase2)
           }}
           style={{ ...primaryBtn, opacity: canSave ? 1 : 0.5 }}
         >

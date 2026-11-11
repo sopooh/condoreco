@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, Send } from 'lucide-react'
+import { useEffect, useRef } from 'react'
+import { ChevronLeft } from 'lucide-react'
+import Composer from '@/components/condo/chat/Composer'
+import MessageBody from '@/components/condo/chat/MessageBody'
 
 const time = (iso) => new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
 function dayLabel(iso) {
@@ -14,23 +16,11 @@ function dayLabel(iso) {
 }
 
 // Vista di una conversazione: intestazione, bolle dei messaggi, campo di scrittura.
-export default function ChatThreadView({ title, subtitle, avatar, headerRight, messages, names, userId, onSend, onBack, onHide, banner, emptyText }) {
-  const [draft, setDraft] = useState('')
-  const [sending, setSending] = useState(false)
-  const [err, setErr] = useState(null)
+// composer: { buildingId, threadId, isGroup, onAction }; ctx: dati per sondaggi, eventi, contatti
+export default function ChatThreadView({ title, subtitle, avatar, headerRight, messages, names, userId, onSend, onBack, onHide, banner, emptyText, composer = {}, ctx }) {
   const endRef = useRef(null)
 
   useEffect(() => { endRef.current?.scrollIntoView({ block: 'end' }) }, [messages.length])
-
-  async function submit(e) {
-    e.preventDefault()
-    const text = draft.trim()
-    if (!text || sending) return
-    setSending(true); setErr(null)
-    const { error } = await onSend(text)
-    setSending(false)
-    if (error) setErr(error); else setDraft('')
-  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100dvh - 58px)', background: 'var(--bg)' }}>
@@ -66,15 +56,15 @@ export default function ChatThreadView({ title, subtitle, avatar, headerRight, m
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginTop: showName ? 6 : 0 }}>
-                <div style={{
-                  maxWidth: '80%', padding: '8px 12px 6px', borderRadius: 16,
+                <div className={`chat-bubble kind-${m.kind || 'text'}`} style={{
+                  maxWidth: '80%', padding: ['image', 'video'].includes(m.kind) ? 4 : '8px 12px 6px', borderRadius: 16,
                   borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4,
                   background: mine ? 'var(--teal)' : 'var(--white)', color: mine ? '#fff' : 'var(--text)',
                   border: mine ? 'none' : '1px solid var(--border)', boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                 }}>
-                  {showName && <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--teal-dk)', marginBottom: 2 }}>{who}</div>}
-                  <div style={{ fontSize: 15, lineHeight: 1.4, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{m.content}</div>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 2 }}>
+                  {showName && <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--teal-dk)', margin: ['image', 'video'].includes(m.kind) ? '4px 8px 4px' : '0 0 2px' }}>{who}</div>}
+                  <MessageBody m={m} mine={mine} ctx={{ ...ctx, userId }} />
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 2, padding: ['image', 'video'].includes(m.kind) ? '0 8px 2px' : 0 }}>
                     {onHide && !mine && (
                       <button type="button" onClick={() => onHide(m.id)} style={{ minHeight: 0, border: 'none', background: 'none', padding: 0, fontSize: 11, color: 'var(--text-4)', cursor: 'pointer' }}>Nascondi</button>
                     )}
@@ -88,17 +78,7 @@ export default function ChatThreadView({ title, subtitle, avatar, headerRight, m
         <div ref={endRef} />
       </div>
 
-      <form onSubmit={submit} style={{ position: 'sticky', bottom: 0, background: 'var(--white)', borderTop: '1px solid var(--border)', padding: '10px 12px calc(10px + env(safe-area-inset-bottom))' }}>
-        {err && <p style={{ fontSize: 12.5, color: '#B42318', margin: '0 0 6px' }}>{err}</p>}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', maxWidth: 760, margin: '0 auto' }}>
-          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={1} maxLength={2000} placeholder="Scrivi un messaggio…"
-            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) submit(e) }}
-            style={{ flex: 1, minWidth: 0, resize: 'none', border: '1.5px solid var(--border)', borderRadius: 20, padding: '10px 16px', fontSize: 16, fontFamily: 'inherit', maxHeight: 120, outline: 'none' }} />
-          <button type="submit" aria-label="Invia messaggio" disabled={sending || !draft.trim()} style={{ minHeight: 0, width: 44, height: 44, borderRadius: '50%', flexShrink: 0, border: 'none', background: 'var(--teal)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: draft.trim() ? 1 : 0.5 }}>
-            <Send size={19} strokeWidth={2} aria-hidden="true" />
-          </button>
-        </div>
-      </form>
+      <Composer onSend={onSend} buildingId={composer.buildingId} threadId={composer.threadId} isGroup={composer.isGroup} onAction={composer.onAction} />
     </div>
   )
 }

@@ -25,8 +25,8 @@ export default async function SuppliersPage({ searchParams }) {
   const city = sp.city || null
   const q = sp.q?.trim() || ''
   const cats = (sp.cat || '').split(',').filter(Boolean)
-  const onlyVerified = sp.verified === '1'
-  const sort = SORTS[sp.sort] ? sp.sort : 'verified'
+  const onlyVerified = sp.tab === 'verificati'
+  const sort = sp.tab === 'attivi' ? 'jobs' : sp.tab === 'nuovi' ? 'recent' : (SORTS[sp.sort] ? sp.sort : 'verified')
 
   const { data } = await createStaticClient().rpc('public_suppliers')
   const all = (data || []).map((s) => ({ ...s, categories: s.categories || [], zones: s.zones || [] }))
@@ -48,14 +48,6 @@ export default async function SuppliersPage({ searchParams }) {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div className="admins-hero" style={{ background: 'var(--white)' }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto' }}>
-          <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', marginBottom: 4 }}>Fornitori</h1>
-          <p style={{ fontSize: 15, color: 'var(--text-3)', marginBottom: 20 }}>
-            I Recofixer che lavorano con i condomini su Condoreco: idraulici, elettricisti, ascensoristi, imprese e non solo.
-          </p>
-        </div>
-      </div>
       <SuppliersResultsView suppliers={suppliers} cities={cities} categoryCounts={categoryCounts} city={city} total={all.length} />
     </div>
   )

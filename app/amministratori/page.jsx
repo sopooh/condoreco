@@ -4,6 +4,18 @@ import { attachCoverPhotos } from '@/lib/photos'
 
 export const revalidate = 3600
 
+// Rilevanza: media bayesiana del voto (chi ha poche recensioni pesa meno),
+// poi condomini gestiti e certificazione.
+const bayes = (a) => ((a.score || 0) * a.review_count + 3.5 * 5) / (a.review_count + 5)
+const ADMIN_SORTS = {
+  rilevanti: (a, b) => bayes(b) - bayes(a) || b.building_count - a.building_count || Number(b.verified) - Number(a.verified),
+  valutazione: (a, b) => (b.score ?? -1) - (a.score ?? -1) || b.review_count - a.review_count,
+  recensioni: (a, b) => b.review_count - a.review_count || (b.score ?? 0) - (a.score ?? 0),
+  condomini: (a, b) => b.building_count - a.building_count || b.review_count - a.review_count,
+  anzianita: (a, b) => (a.active_since || 9999) - (b.active_since || 9999),
+  nome: (a, b) => a.name.localeCompare(b.name, 'it'),
+}
+
 export const metadata = {
   title: 'Amministratori di condominio',
   description: 'Scopri reputazione, stabili gestiti e recensioni degli amministratori di condominio prima di averci a che fare.',
@@ -41,7 +53,11 @@ async function getAdminsData(searchParams) {
     feeCountsReq,
   ])
 
-  const admins = adminRows || []
+  let admins = adminRows || []
+  if (searchParams.rec === '1') admins = admins.filter((a) => a.review_count > 0)
+  if (searchParams.tab === 'certificati') admins = admins.filter((a) => a.verified)
+  const sortId = searchParams.tab === 'recensiti' ? 'recensioni' : searchParams.tab === 'attivi' ? 'condomini' : (ADMIN_SORTS[searchParams.sort] ? searchParams.sort : 'rilevanti')
+  admins = [...admins].sort(ADMIN_SORTS[sortId])
 
   const buildingsByAdmin = {}
   if (admins.length > 0) {
@@ -76,17 +92,6 @@ export default async function AdminsPage({ searchParams }) {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div className="admins-hero" style={{ background: 'var(--white)' }}>
-        <div style={{ maxWidth: 1360, margin: '0 auto' }}>
-          <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', marginBottom: 4 }}>
-            Amministratori
-          </h1>
-          <p style={{ fontSize: 15, color: 'var(--text-3)', marginBottom: 20 }}>
-            Scopri reputazione, stabili gestiti e recensioni degli amministratori di condominio prima di averci a che fare.
-          </p>
-        </div>
-      </div>
-
       <AdminsResultsView
         admins={admins}
         buildingsByAdmin={buildingsByAdmin}

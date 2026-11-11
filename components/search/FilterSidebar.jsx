@@ -81,8 +81,6 @@ export default function FilterSidebar({ feeCounts = [], instant = true, onApplie
   const current = readParams(searchParams)
   const [draft, setDraft] = useState(current)
   const v = instant ? current : draft
-  const histogram = useMemo(() => buildHistogram(feeCounts), [feeCounts])
-  const maxCount = Math.max(...histogram, 1)
 
   function push(next) {
     const params = new URLSearchParams(searchParams.toString())
@@ -105,50 +103,10 @@ export default function FilterSidebar({ feeCounts = [], instant = true, onApplie
   }
 
   const reset = { feeMin: FEE_MIN, feeMax: FEE_MAX, amenities: [], sort: 'recent' }
-  const activePreset = PRESETS.findIndex((p) => p.min === v.feeMin && p.max === v.feeMax)
-  const pct = (n) => (feeToPos(n) / POS_MAX) * 100
-  const minPos = feeToPos(v.feeMin), maxPos = feeToPos(v.feeMax)
 
   return (
     <div className={`fpanel ${instant ? 'is-side' : 'is-sheet'}`}>
-      {/* ── Spese condominiali ── */}
-      <section className="fpanel-sec">
-        <h3 className="fpanel-title"><CoinsIcon />Spese condominiali</h3>
-        <div className="fpanel-seg" role="group" aria-label="Fascia di spesa">
-          {PRESETS.map((p, i) => (
-            <button key={p.label} type="button" className={i === activePreset ? 'is-on' : ''}
-              onClick={() => update({ feeMin: p.min, feeMax: p.max })}>
-              {p.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="fpanel-hist" aria-hidden="true">
-          {histogram.map((count, i) => {
-            const bw = POS_MAX / N_BUCKETS
-            const inRange = (i + 1) * bw > minPos && i * bw < maxPos
-            const h = count > 0 ? Math.max((count / maxCount) * 100, 12) : 6
-            return <div key={i} style={{ height: `${h}%`, background: inRange ? '#BFE3DF' : '#E5E7EB' }} />
-          })}
-        </div>
-
-        <div className="fee-range-wrap">
-          <div className="fpanel-track" />
-          <div className="fpanel-track is-active" style={{ left: `${pct(v.feeMin)}%`, right: `${100 - pct(v.feeMax)}%` }} />
-          <input type="range" className="fee-range-input" aria-label="Spesa minima"
-            min={0} max={POS_MAX} step={1} value={minPos}
-            style={{ zIndex: minPos > POS_MAX - 50 ? 5 : 3 }}
-            onChange={(e) => update({ feeMin: Math.min(posToFee(Number(e.target.value)), v.feeMax - 10) })} />
-          <input type="range" className="fee-range-input" aria-label="Spesa massima"
-            min={0} max={POS_MAX} step={1} value={maxPos}
-            style={{ zIndex: 4 }}
-            onChange={(e) => update({ feeMax: Math.max(posToFee(Number(e.target.value)), v.feeMin + 10) })} />
-        </div>
-        <div className="fpanel-range-labels">
-          <span>€{v.feeMin.toLocaleString('it-IT')}</span>
-          <span>€{v.feeMax.toLocaleString('it-IT')}{v.feeMax === FEE_MAX ? '+' : ''}</span>
-        </div>
-      </section>
+      <FeeRangeSection fees={feeCounts} feeMin={v.feeMin} feeMax={v.feeMax} onChange={update} />
 
       {/* ── Ordina per ── */}
       <section className="fpanel-sec">
@@ -191,6 +149,55 @@ export default function FilterSidebar({ feeCounts = [], instant = true, onApplie
         </button>
       </div>
     </div>
+  )
+}
+
+// Sezione "spese" (fasce rapide, istogramma, doppio cursore non lineare).
+// Usata da Esplora e dalla lista Amministratori (spesa media dei condomini gestiti).
+export function FeeRangeSection({ fees = [], feeMin, feeMax, onChange, title = 'Spese condominiali' }) {
+  const histogram = useMemo(() => buildHistogram(fees), [fees])
+  const maxCount = Math.max(...histogram, 1)
+  const activePreset = PRESETS.findIndex((p) => p.min === feeMin && p.max === feeMax)
+  const pct = (n) => (feeToPos(n) / POS_MAX) * 100
+  const minPos = feeToPos(feeMin), maxPos = feeToPos(feeMax)
+  return (
+    <section className="fpanel-sec">
+      <h3 className="fpanel-title"><CoinsIcon />{title}</h3>
+      <div className="fpanel-seg" role="group" aria-label="Fascia di spesa">
+        {PRESETS.map((p, i) => (
+          <button key={p.label} type="button" className={i === activePreset ? 'is-on' : ''}
+            onClick={() => onChange({ feeMin: p.min, feeMax: p.max })}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="fpanel-hist" aria-hidden="true">
+        {histogram.map((count, i) => {
+          const bw = POS_MAX / N_BUCKETS
+          const inRange = (i + 1) * bw > minPos && i * bw < maxPos
+          const h = count > 0 ? Math.max((count / maxCount) * 100, 12) : 6
+          return <div key={i} style={{ height: `${h}%`, background: inRange ? '#BFE3DF' : '#E5E7EB' }} />
+        })}
+      </div>
+
+      <div className="fee-range-wrap">
+        <div className="fpanel-track" />
+        <div className="fpanel-track is-active" style={{ left: `${pct(feeMin)}%`, right: `${100 - pct(feeMax)}%` }} />
+        <input type="range" className="fee-range-input" aria-label="Spesa minima"
+          min={0} max={POS_MAX} step={1} value={minPos}
+          style={{ zIndex: minPos > POS_MAX - 50 ? 5 : 3 }}
+          onChange={(e) => onChange({ feeMin: Math.min(posToFee(Number(e.target.value)), feeMax - 10) })} />
+        <input type="range" className="fee-range-input" aria-label="Spesa massima"
+          min={0} max={POS_MAX} step={1} value={maxPos}
+          style={{ zIndex: 4 }}
+          onChange={(e) => onChange({ feeMax: Math.max(posToFee(Number(e.target.value)), feeMin + 10) })} />
+      </div>
+      <div className="fpanel-range-labels">
+        <span>€{feeMin.toLocaleString('it-IT')}</span>
+        <span>€{feeMax.toLocaleString('it-IT')}{feeMax === FEE_MAX ? '+' : ''}</span>
+      </div>
+    </section>
   )
 }
 

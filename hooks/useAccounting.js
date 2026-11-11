@@ -13,7 +13,7 @@ export async function receiptUrl(path) {
   return data?.signedUrl || null
 }
 
-const CHARGE_COLS = 'id, building_id, user_id, budget_id, code, title, amount, due_date, status, reported_at, paid_at, paid_amount, payment_method, payment_ref, created_at'
+const CHARGE_COLS = 'id, building_id, user_id, budget_id, code, title, amount, due_date, status, reported_at, paid_at, paid_amount, payment_method, payment_ref, kind, created_at'
 
 // Preventivo più recente "emesso" dell'anno (o dell'ultimo anno disponibile), con le voci
 async function loadLatestBudget(supabase, buildingId) {
@@ -120,7 +120,7 @@ export function useAccountingAdmin(buildingId) {
       return { rows: data || [], error: error ? 'Anteprima non disponibile.' : null }
     },
     issueBudget: (id) => call((s) => s.rpc('issue_budget', { p_budget: id })),
-    addCharge: (v) => call((s) => s.rpc('add_charge', { p_building: buildingId, p_title: v.title, p_amount: v.amount, p_due: v.due, p_user: v.userId || null, p_split: !!v.split }), 'Spesa non aggiunta.'),
+    addCharge: (v) => call((s) => s.rpc('add_charge', { p_building: buildingId, p_title: v.title, p_amount: v.amount, p_due: v.due, p_user: v.userId || null, p_split: !!v.split, p_kind: v.kind || 'ordinaria' }), 'Spesa non aggiunta.'),
     markPaid: (ids, method = 'bonifico', paidOn = null) => call((s) => s.rpc('mark_charges_paid', { p_charges: ids, p_method: method, p_paid_on: paidOn, p_ref: null }), 'Pagamento non registrato.'),
     setStatus: (id, status) => call((s) => s.rpc('set_charge_status', { p_charge: id, p_status: status }), 'Operazione non riuscita.'),
     reviewReceipt: (id, approve, reason) => call((s) => s.rpc('review_payment_receipt', { p_receipt: id, p_approve: approve, p_reason: reason || null }), 'Operazione non riuscita.'),

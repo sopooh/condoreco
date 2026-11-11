@@ -17,6 +17,8 @@ import { toLocalISODate } from '@/lib/localDate'
 import MyUnitBanner from '@/components/condo/MyUnitBanner'
 import { useDocuments } from '@/hooks/useDocuments'
 import { ToolboxArt } from '@/components/condo/CondoArt'
+import { useAdminOverview } from '@/hooks/useAdminArea'
+import { AdminInbox } from '@/components/profile/AdminProfile'
 
 // Home dell'area condominio: saluto + sezioni.
 //  - Rendicontazione e I tuoi interventi (area personale, privata)
@@ -81,6 +83,15 @@ export default function CondoDashboard({ building }) {
   const [weekAgo] = useState(() => Date.now() - 7 * 86400000)
   const newDocs = docs.filter((d) => new Date(d.created_at).getTime() > weekAgo).length
 
+  // vista amministratore: cose da validare e stato dei pagamenti di questo condominio
+  const admin = useAdminOverview()
+  const adm = isCondoAdmin ? admin.buildings.find((b) => b.id === buildingId) : null
+  const admInbox = { ...admin, inbox: admin.inbox.filter((i) => i.buildingId === buildingId) }
+  const admDue = adm ? Number(adm.due_total) : 0
+  const admPct = admDue > 0 ? Math.round((Number(adm.paid_total) / admDue) * 100) : null
+  const admLate = adm ? Number(adm.overdue_total) : 0
+  const admAccState = !adm ? 'loading' : admLate > 0 ? 'late' : admDue > 0 ? 'ok' : 'none'
+
   const address = `${building.address}${building.street_number ? `, ${building.street_number}` : ''}`
 
   return (
@@ -95,7 +106,7 @@ export default function CondoDashboard({ building }) {
           <div style={{ fontSize: 30, lineHeight: 1.15, fontWeight: 400, letterSpacing: '-0.5px', maxWidth: '62%' }}>
             {greeting()}{name ? <>, <strong style={{ fontWeight: 800 }}>{name}</strong></> : ''}
           </div>
-          <div style={{ fontSize: 16, opacity: 0.9, marginTop: 6 }}>La tua area condominiale</div>
+          <div style={{ fontSize: 16, opacity: 0.9, marginTop: 6 }}>{isCondoAdmin ? 'Area amministratore' : 'La tua area condominiale'}</div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 12, padding: '5px 12px', borderRadius: 999, background: 'rgba(255,255,255,0.14)', fontSize: 13, fontWeight: 600 }}>
             <PinIcon /> {address}
           </div>
@@ -107,7 +118,52 @@ export default function CondoDashboard({ building }) {
 
       {/* ---- sezioni ---- */}
       <div style={{ maxWidth: 720, margin: '-36px auto 0', padding: '0 16px 48px', position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <MyUnitBanner building={building} />
+        {!isCondoAdmin && <MyUnitBanner building={building} />}
+        {isCondoAdmin ? (
+          <>
+            <section className="adm-hub-inbox" aria-label="Da validare">
+              <div className="adm-hub-head"><strong>Da validare</strong>{admInbox.inbox.length > 0 && <span>{admInbox.inbox.length}</span>}</div>
+              {admin.loading ? <div className="adm-card" style={{ padding: 16, color: 'var(--text-3)', fontSize: 14 }}>Caricamento…</div> : <AdminInbox admin={admInbox} hideAddress />}
+            </section>
+            <HubCard
+              href={`${base}/rendicontazione`}
+              personal
+              tag="Amministratore"
+              title="Rendicontazione"
+              text="Chi ha pagato e chi no, arretrati, spese ordinarie e straordinarie di ogni condomino."
+              status={admAccState === 'loading' ? 'Caricamento…'
+                : admAccState === 'late' ? `Arretrati ${euro(admLate)} · ${adm.overdue_people} ${adm.overdue_people === 1 ? 'condomino' : 'condomini'}`
+                : admAccState === 'ok' ? `Tutti in regola · incassato ${admPct}%`
+                : 'Ancora nessuna quota emessa'}
+              tone={admAccState === 'late' ? 'danger' : admAccState === 'ok' ? 'ok' : undefined}
+              art={<AccountArt state={admAccState} amount={admLate} />}
+            />
+            <HubCard
+              href={`${base}/pratiche`}
+              personal
+              tag="Amministratore"
+              title="Pratiche e preventivi"
+              text="Prendi in carico le decisioni approvate, chiedi i preventivi ai fornitori e confrontali."
+              status={adm ? ([
+                adm.polls_to_take ? `${adm.polls_to_take} da prendere in carico` : null,
+                adm.quotes_received ? `${adm.quotes_received} ${adm.quotes_received === 1 ? 'preventivo' : 'preventivi'} da confrontare` : null,
+                adm.practices_open ? `${adm.practices_open} in corso` : null,
+              ].filter(Boolean).join(' · ') || 'Nessuna pratica aperta') : 'Caricamento…'}
+              highlight={!!adm && adm.polls_to_take > 0}
+              art={<BallotArt />}
+            />
+            <HubCard
+              href={`${base}/bilancio`}
+              personal
+              tag="Amministratore"
+              title="Bilancio"
+              text="Spese sostenute, confronto con il preventivo e con gli incassi, PDF del bilancio provvisorio."
+              status={admPct != null ? `Incassato ${admPct}% delle quote` : 'Registra le spese del condominio'}
+              art={<FolderArt />}
+            />
+          </>
+        ) : (
+          <>
         <HubCard
           href={`${base}/rendicontazione`}
           personal
@@ -130,6 +186,8 @@ export default function CondoDashboard({ building }) {
           status={activeMine ? `${activeMine} in corso` : 'Nessun intervento in corso'}
           art={<ToolboxArt />}
         />
+          </>
+        )}
         <HubCard
           href={`${base}/bacheca`}
           tag="Area condominiale"
@@ -147,8 +205,9 @@ export default function CondoDashboard({ building }) {
             href={`${base}/contabilita`}
             tag="Amministratore"
             title="Contabilità"
-            text="Preventivo, rate dei condomini, bonifici da confermare ed estratto conto."
-            status="Gestisci quote e pagamenti"
+            text="Preventivo, rate dei condomini, contabili e bonifici da confermare, estratto conto."
+            status={adm && (adm.receipts_pending + adm.transfers_pending) > 0 ? `${adm.receipts_pending + adm.transfers_pending} pagamenti da confermare` : 'Gestisci quote e pagamenti'}
+            highlight={!!adm && (adm.receipts_pending + adm.transfers_pending) > 0}
             art={<CoinsArt />}
           />
         )}
@@ -157,14 +216,26 @@ export default function CondoDashboard({ building }) {
           tag="Area condominiale"
           title="Calendario del condominio"
           text="Assemblee, manutenzioni e appuntamenti del condominio."
-          status={eventsToday
+          status={adm?.events_pending
+            ? `${adm.events_pending} ${adm.events_pending === 1 ? 'appuntamento' : 'appuntamenti'} da approvare`
+            : eventsToday
             ? `${eventsToday} ${eventsToday === 1 ? 'appuntamento' : 'appuntamenti'} oggi`
             : upcomingEvents.length
               ? `${upcomingEvents.length} in arrivo questo mese`
               : 'Nessun appuntamento in arrivo'}
-          highlight={eventsToday > 0}
+          highlight={eventsToday > 0 || !!adm?.events_pending}
           art={<CalendarArt />}
         />
+        {isCondoAdmin && (
+          <HubCard
+            href={`${base}/interventi`}
+            tag="Amministratore"
+            title="Interventi"
+            text="I lavori affidati ai fornitori: date proposte, chat con il fornitore, preventivi e fatture."
+            status={activeMine ? `${activeMine} in corso` : 'Nessun intervento in corso'}
+            art={<ToolboxArt />}
+          />
+        )}
         <HubCard
           href={`${base}/archivio`}
           tag="Area condominiale"

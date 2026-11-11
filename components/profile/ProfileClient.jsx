@@ -1,6 +1,6 @@
 'use client'
 
-import { Building2, Camera, ChevronRight, History, House, Map as LMap, MessageSquare, Pencil, Plus, ShieldCheck, Sparkles, UserRound, Users, Wrench, Zap, Bookmark, KeyRound } from 'lucide-react'
+import { Building2, Camera, ChevronRight, History, House, Map as LMap, MessageSquare, Pencil, Plus, ShieldCheck, Sparkles, UserRound, Users, Wrench, Zap, Bookmark, KeyRound, Briefcase, Inbox, Bell } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Avatar from '@/components/ui/Avatar'
@@ -12,6 +12,8 @@ import { ROLES } from '@/lib/avatars'
 import { getProfile, upsertProfile, markBuildingAsFormerHome, markBuildingAsCurrentHome } from '@/lib/profile'
 import { useUserBuildings } from '@/hooks/useUserBuildings'
 import { useSession } from '@/components/providers/SessionProvider'
+import { useAdminOverview } from '@/hooks/useAdminArea'
+import { AdminBuildingRow, AdminInbox, AdminKpis } from '@/components/profile/AdminProfile'
 
 export default function ProfileClient() {
   const session = useSession()
@@ -46,6 +48,9 @@ export default function ProfileClient() {
 
   const userId = session?.user?.id
   const { current: currentBuildings, past: pastBuildings, loading: buildingsLoading, refetch, reviewCount } = useUserBuildings(userId)
+  const admin = useAdminOverview()
+  const [viewPick, setViewPick] = useState(null) // 'admin' | 'resident'
+  const view = admin.isAdmin ? (viewPick || 'admin') : 'resident'
 
   // ── Carica profilo reale da Supabase ──
   // Onboarding automatico al primo accesso: la fonte di verità è il profilo
@@ -164,6 +169,9 @@ export default function ProfileClient() {
                 <span className="profile-pill profile-pill-violet">
                   <ReviewIcon />{reviewCount} {reviewCount === 1 ? 'recensione' : 'recensioni'}
                 </span>
+                {admin.isAdmin && (
+                  <span className="profile-pill profile-pill-teal"><Briefcase size={14} strokeWidth={2} aria-hidden="true" />Amministratore</span>
+                )}
                 {profile.verified && (
                   <span className="profile-pill profile-pill-teal"><ShieldCheckIcon />Verificata</span>
                 )}
@@ -184,9 +192,37 @@ export default function ProfileClient() {
 
       {/* BODY */}
       <div className="wrap profile-body-wrap">
+        {admin.isAdmin && (
+          <div className="adm-switch" role="tablist" aria-label="Vista del profilo">
+            <button type="button" role="tab" aria-selected={view === 'admin'} className={view === 'admin' ? 'is-on' : ''} onClick={() => setViewPick('admin')}>
+              <Briefcase size={16} aria-hidden="true" />Amministratore
+            </button>
+            <button type="button" role="tab" aria-selected={view === 'resident'} className={view === 'resident' ? 'is-on' : ''} onClick={() => setViewPick('resident')}>
+              <House size={16} aria-hidden="true" />Le mie abitazioni
+            </button>
+          </div>
+        )}
         <div className="profile-body-grid" style={{ display: 'grid' }}>
 
-          {/* LE MIE ABITAZIONI */}
+          {view === 'admin' ? (
+          <section style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
+            <div>
+              <SectionTitle icon={<Inbox size={16} strokeWidth={2} aria-hidden="true" />}>Da fare</SectionTitle>
+              <AdminKpis buildings={admin.buildings} inbox={admin.inbox} />
+              {admin.loading ? <div style={{ ...card, padding: 20, fontSize: 14, color: 'var(--text-3)' }}>Caricamento...</div> : <AdminInbox admin={admin} />}
+            </div>
+            <div>
+              <div className="profile-section-head">
+                <SectionTitle icon={<BuildingIcon size={16} />}>I miei condomini</SectionTitle>
+                <span className="adm-count">{admin.buildings.length}</span>
+              </div>
+              <div style={{ ...card, overflow: 'hidden' }}>
+                {admin.buildings.map((b) => <AdminBuildingRow key={b.id} b={b} />)}
+              </div>
+            </div>
+          </section>
+          ) : (
+          /* LE MIE ABITAZIONI */
           <section>
             <div className="profile-section-head">
               <SectionTitle icon={<HouseIcon />}>Le mie abitazioni</SectionTitle>
@@ -236,13 +272,16 @@ export default function ProfileClient() {
               )}
             </div>
           </section>
+          )}
 
           {/* SIDEBAR */}
           <aside style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
             <section>
               <SectionTitle icon={<BoltIcon />}>Azioni rapide</SectionTitle>
               <nav style={{ ...card, overflow: 'hidden' }}>
-                <ActionRow href="/fornitore" icon={<Wrench size={18} strokeWidth={2} aria-hidden="true" />} label={profile.role === 'condofixer' ? 'I miei interventi (Recofixer)' : 'Sei un fornitore? Diventa Recofixer'} />
+                {view === 'admin' && <ActionRow href="/notifiche" icon={<Bell size={18} strokeWidth={2} aria-hidden="true" />} label="Notifiche e avvisi" />}
+                {view === 'admin' && <ActionRow href="/fornitori" icon={<Wrench size={18} strokeWidth={2} aria-hidden="true" />} label="Fornitori per i preventivi" />}
+                {view !== 'admin' && <ActionRow href="/fornitore" icon={<Wrench size={18} strokeWidth={2} aria-hidden="true" />} label={profile.role === 'condofixer' ? 'I miei interventi (Recofixer)' : 'Sei un fornitore? Diventa Recofixer'} />}
                 <ActionRow href="/aggiungi-condominio" icon={<BuildingIcon />} label="Aggiungi condominio" />
                 <ActionRow href="/cerca" icon={<MapIcon />} label="Esplora edifici" />
                 <ActionRow href="/amministratori" icon={<UsersIcon />} label="Cerca amministratori" />
@@ -264,7 +303,7 @@ export default function ProfileClient() {
                     </button>
                   )}
                 />
-                <InfoRow label="Ruolo" value={roleConf?.label || 'Recoer'} />
+                <InfoRow label="Ruolo" value={admin.isAdmin ? `Amministratore · ${admin.buildings.length} ${admin.buildings.length === 1 ? 'condominio' : 'condomini'}` : (roleConf?.label || 'Recoer')} />
                 <InfoRow label="Membro da" value={memberSince} last />
               </div>
             </section>

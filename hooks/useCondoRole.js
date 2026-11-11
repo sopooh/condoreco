@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSession, useSessionReady } from '@/components/providers/SessionProvider'
+import { useViewAs } from '@/hooks/useViewAs'
 
 // Ruolo condominiale dell'utente corrente per un building.
 // Cache a livello di modulo: piu' componenti possono usare questo hook
@@ -74,7 +75,11 @@ export function useCondoRole(buildingId) {
     return () => { active = false; clearTimeout(retry) }
   }, [buildingId, userId, ready, key, attempt])
 
-  const role = state.key === key && ready ? state.role : undefined
+  const { viewAs } = useViewAs()
+  const real = state.key === key && ready ? state.role : undefined
+  // anteprima "vedi come" (solo admin del sito): da Recoer o Recofixer
+  // l'amministratore vede il condominio come un condomino qualsiasi
+  const role = real === 'admin' && (viewAs === 'recoer' || viewAs === 'recofixer') ? 'resident' : real
   return {
     role: role === 'error' ? undefined : role,  // 'admin' | 'resident' | null | undefined
     userId,

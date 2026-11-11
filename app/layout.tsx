@@ -1,6 +1,7 @@
 import './globals.css'
 import { SessionProvider } from '@/components/providers/SessionProvider'
 import Navbar from '@/components/nav/Navbar'
+import ViewAsBadge from '@/components/nav/ViewAsSwitcher'
 import Footer from '@/components/nav/Footer'
 
 export const metadata = {
@@ -25,6 +26,7 @@ export default function RootLayout({
       <body>
         <SessionProvider>
           <Navbar />
+          <ViewAsBadge />
           <main>{children}</main>
           <Footer />
         </SessionProvider>

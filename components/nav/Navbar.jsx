@@ -9,6 +9,7 @@ import { useSession } from '@/components/providers/SessionProvider'
 import Button from '@/components/ui/Button'
 import AuthDialog from '@/components/auth/AuthDialog'
 import NotificationBell from '@/components/nav/NotificationBell'
+import ViewAsBadge from '@/components/nav/ViewAsSwitcher'
 
 // Niente useIsMobile qui: nav desktop e hamburger sono renderizzati SEMPRE
 // entrambi, la visibilità è decisa da CSS (.navbar-desktop-nav/.navbar-hamburger
@@ -97,6 +98,7 @@ export default function Navbar() {
             <>
               {isSupplier && <Link href="/fornitore" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-3)' }}>I miei interventi</Link>}
               <Link href="/profilo" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-3)' }}>Profilo</Link>
+              <ViewAsBadge />
               <NotificationBell />
               {isAdminUser && (
                 <Link href="/admin" style={{ fontSize: 13, fontWeight: 700, color: 'var(--teal)', background: 'var(--teal-lt)', padding: '5px 12px', borderRadius: 6 }}>
@@ -112,6 +114,7 @@ export default function Navbar() {
 
         {/* Mobile: campanella + hamburger — visibilità via CSS, non JS */}
         <div className="navbar-mobile-right" style={{ alignItems: 'center', gap: 6 }}>
+        {session && <ViewAsBadge />}
         {session && <NotificationBell />}
         <button
           className="navbar-hamburger"

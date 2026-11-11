@@ -67,8 +67,8 @@ export default function ViewAsBadge() {
           </button>
         </div>
       )}
-      <button type="button" className="vas-pill" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <Eye size={16} aria-hidden="true" />Vista: <I size={15} aria-hidden="true" /><strong>{VIEW_AS[viewAs].label}</strong>
+      <button type="button" className="vas-pill" aria-expanded={open} aria-label={`Vista: ${VIEW_AS[viewAs].label}. Cambia vista`} onClick={() => setOpen((o) => !o)}>
+        <I size={15} aria-hidden="true" /><strong>{viewAs === 'amministratore' ? 'Admin' : VIEW_AS[viewAs].label}</strong>
       </button>
     </div>
   )

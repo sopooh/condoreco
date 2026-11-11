@@ -98,7 +98,11 @@ export function usePolls(buildingId) {
       }).select('id').single()
 
       if (!error) await loadPolls()
-      return { error: error?.message ?? null, id: data?.id ?? null }
+      const friendly = !error ? null
+        : /question_check/.test(error.message) ? 'La domanda deve avere tra 5 e 300 caratteri.'
+        : /row-level security/.test(error.message) ? 'Non hai i permessi per creare decisioni in questo condominio.'
+        : 'Pubblicazione non riuscita. Riprova.'
+      return { error: friendly, id: data?.id ?? null }
     },
     [buildingId, userId, loadPolls]
   )

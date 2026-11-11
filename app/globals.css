@@ -2191,3 +2191,4 @@ input, select, textarea { font-family: inherit; }
 .acc-kpi small { padding-right: 24px; }
 .acc-rows .acc-pill { display: block; width: fit-content; margin-left: auto; }
 .acc-rows li > span:nth-child(3) { flex-shrink: 0; }
+#rendicontazione { scroll-margin-top: 72px; }

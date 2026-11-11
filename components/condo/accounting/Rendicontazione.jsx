@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, ArrowRight, BarChart3, CheckCircle2, Clock3, Coins, Lock, ReceiptText } from 'lucide-react'
 import { useMyAccount } from '@/hooks/useAccounting'
 import { SPESA_CATEGORIES, categoryOf, euro, fmtDay, isOverdue, todayISO } from '@/lib/accounting'
@@ -31,6 +31,11 @@ export default function Rendicontazione({ building }) {
     }
   }, [acc.charges, acc.budget, today])
 
+  // arrivo dalla scheda "Rendicontazione" della home del condominio
+  useEffect(() => {
+    if (!acc.loading && window.location.hash === '#rendicontazione') document.getElementById('rendicontazione')?.scrollIntoView({ block: 'start' })
+  }, [acc.loading])
+
   if (acc.loading) return <section className="rc"><p className="rc-muted">Caricamento della rendicontazione…</p></section>
 
   const items = acc.budget?.condo_budget_items || []
@@ -39,7 +44,7 @@ export default function Rendicontazione({ building }) {
   const empty = !acc.charges.length && !acc.budget
 
   return (
-    <section className="rc" aria-labelledby="rc-title">
+    <section className="rc" id="rendicontazione" aria-labelledby="rc-title">
       <header className="rc-head">
         <span className="rc-head-ico"><Coins size={28} strokeWidth={1.8} aria-hidden="true" /></span>
         <div style={{ flex: 1, minWidth: 0 }}>

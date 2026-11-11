@@ -8,7 +8,7 @@ import { getProfile } from '@/lib/profile'
 import { usePolls } from '@/hooks/usePolls'
 import { useCondoRole } from '@/hooks/useCondoRole'
 import { useMyAccount } from '@/hooks/useAccounting'
-import { euro, isOverdue } from '@/lib/accounting'
+import { euro, fmtDay, isOverdue } from '@/lib/accounting'
 import { useTickets, isTicketOpen } from '@/hooks/useTickets'
 import { useInterventions, isActiveIntervention } from '@/hooks/useInterventions'
 import { usePublicInterventions } from '@/hooks/usePublicInterventions'
@@ -18,8 +18,8 @@ import MyUnitBanner from '@/components/condo/MyUnitBanner'
 import { useDocuments } from '@/hooks/useDocuments'
 import { ToolboxArt } from '@/components/condo/CondoArt'
 
-// Home dell'area condominio: saluto + quattro sezioni.
-//  - I tuoi interventi (area personale, privata)
+// Home dell'area condominio: saluto + sezioni.
+//  - Rendicontazione e I tuoi interventi (area personale, privata)
 //  - Bacheca urgente, Decisioni, Chat (area condominiale, condivise)
 // Ogni card porta alla propria pagina e mostra una riga di stato.
 
@@ -60,6 +60,9 @@ export default function CondoDashboard({ building }) {
   const myAcc = useMyAccount(buildingId)
   const myOverdue = myAcc.charges.filter((c) => isOverdue(c, today))
   const myOverdueSum = myOverdue.reduce((n, c) => n + Number(c.amount), 0)
+  const myPending = myAcc.charges.some((c) => c.status === 'pending')
+  const myNext = myAcc.charges.find((c) => c.status === 'open' && c.due_date >= today)
+  const accState = myAcc.loading ? 'loading' : myOverdueSum > 0 ? 'late' : (myAcc.charges.length || myAcc.budget) ? 'ok' : 'none'
 
   // appuntamenti del calendario da oggi in poi (griglia del mese corrente)
   const now = new Date()
@@ -106,6 +109,19 @@ export default function CondoDashboard({ building }) {
       <div style={{ maxWidth: 720, margin: '-36px auto 0', padding: '0 16px 48px', position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: 14 }}>
         <MyUnitBanner building={building} />
         <HubCard
+          href={`${base}/bacheca#rendicontazione`}
+          personal
+          tag="Area personale"
+          title="Rendicontazione"
+          text="Le tue quote condominiali, le spese del condominio e i pagamenti fatti."
+          status={accState === 'loading' ? 'Caricamento…'
+            : accState === 'late' ? `Arretrati da pagare: ${euro(myOverdueSum)}`
+            : accState === 'ok' ? (myPending ? 'Saldato · bonifico in verifica' : myNext ? `Saldato · prossima rata il ${fmtDay(myNext.due_date)}` : 'Saldato, sei in regola')
+            : 'Ancora nessuna quota caricata'}
+          tone={accState === 'late' ? 'danger' : accState === 'ok' ? 'ok' : undefined}
+          art={<AccountArt state={accState} amount={myOverdueSum} />}
+        />
+        <HubCard
           href={`${base}/interventi`}
           personal
           tag="Area personale"
@@ -120,11 +136,10 @@ export default function CondoDashboard({ building }) {
           title="Bacheca urgente"
           text="Avvisi, interventi programmati e segnalazioni importanti."
           status={[
-            myOverdueSum ? `Quote arretrate ${euro(myOverdueSum)}` : null,
             scheduledToday ? `${scheduledToday} ${scheduledToday === 1 ? 'intervento' : 'interventi'} oggi` : null,
             openTickets ? `${openTickets} ${openTickets === 1 ? 'ticket aperto' : 'ticket aperti'}` : null,
           ].filter(Boolean).join(' · ') || 'Nessun avviso aperto'}
-          highlight={scheduledToday > 0 || myOverdueSum > 0}
+          highlight={scheduledToday > 0}
           art={<MegaphoneArt />}
         />
         {isCondoAdmin && (
@@ -181,7 +196,7 @@ export default function CondoDashboard({ building }) {
   )
 }
 
-function HubCard({ href, personal = false, tag, title, text, status, highlight = false, art }) {
+function HubCard({ href, personal = false, tag, title, text, status, highlight = false, tone, art }) {
   return (
     <Link href={href} style={{
       position: 'relative', display: 'flex', alignItems: 'center', gap: 12, color: 'inherit',
@@ -198,8 +213,8 @@ function HubCard({ href, personal = false, tag, title, text, status, highlight =
         <div style={{ fontSize: 21, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.4px', lineHeight: 1.2, margin: '10px 0 6px' }}>{title}</div>
         <div style={{ fontSize: 14.5, color: 'var(--text-3)', lineHeight: 1.45 }}>{text}</div>
         {status && (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, fontSize: 13, fontWeight: 700, color: highlight ? '#C2410C' : 'var(--teal)' }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: highlight ? '#E8651A' : 'var(--teal)' }} />
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, fontSize: 13, fontWeight: 700, color: tone === 'danger' ? '#C4320A' : tone === 'ok' ? '#067647' : highlight ? '#C2410C' : 'var(--teal)' }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: tone === 'danger' ? '#D92D20' : tone === 'ok' ? '#12B76A' : highlight ? '#E8651A' : 'var(--teal)' }} />
             {status}
           </div>
         )}
@@ -268,17 +283,44 @@ function CalendarArt() {
     </svg>
   )
 }
+// Monete con il bollino di stato: spunta verde se saldato, importo rosso se ci sono arretrati
+function AccountArt({ state, amount }) {
+  const late = state === 'late'
+  const label = late ? `-${Math.round(amount).toLocaleString('it-IT')}€` : null
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <CoinsArt />
+      {state === 'ok' && (
+        <span aria-label="Saldato" style={{ position: 'absolute', top: 2, right: 0, width: 30, height: 30, borderRadius: '50%', background: '#12B76A', color: '#fff', border: '3px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,.15)' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+        </span>
+      )}
+      {late && (
+        <span aria-label={`Arretrati ${label}`} style={{ position: 'absolute', top: 0, right: -6, maxWidth: 92, padding: '3px 8px', borderRadius: 999, background: '#D92D20', color: '#fff', border: '2.5px solid #fff', fontSize: label.length > 7 ? 11 : 12.5, fontWeight: 800, whiteSpace: 'nowrap', boxShadow: '0 2px 6px rgba(217,45,32,.35)' }}>
+          {label}
+        </span>
+      )}
+    </div>
+  )
+}
 function CoinsArt() {
+  const coin = (y, top, side) => (
+    <g key={y}>
+      <ellipse cx="30" cy={y + 7} rx="20" ry="6" fill={side} />
+      <rect x="10" y={y} width="40" height="7" fill={side} />
+      <ellipse cx="30" cy={y} rx="20" ry="6" fill={top} />
+    </g>
+  )
   return (
     <svg viewBox="0 0 84 84" width="100%" height="100%" aria-hidden="true">
-      <ellipse cx="42" cy="77" rx="30" ry="4" fill="rgba(13,103,111,0.12)" />
-      <ellipse cx="34" cy="58" rx="22" ry="8" fill={T} />
-      <rect x="12" y="44" width="44" height="14" fill={T} />
-      <ellipse cx="34" cy="44" rx="22" ry="8" fill={TL} />
-      <ellipse cx="50" cy="38" rx="22" ry="8" fill={O} />
-      <rect x="28" y="24" width="44" height="14" fill={O} />
-      <ellipse cx="50" cy="24" rx="22" ry="8" fill="#FFB27D" />
-      <text x="50" y="28" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff">€</text>
+      <ellipse cx="42" cy="76" rx="32" ry="4" fill="rgba(13,103,111,0.12)" />
+      {coin(62, TL, T)}
+      {coin(53, TL, T)}
+      {coin(44, '#E3F0F0', TM)}
+      <circle cx="58" cy="52" r="19" fill="#C2410C" />
+      <circle cx="56" cy="50" r="19" fill={O} />
+      <circle cx="56" cy="50" r="14" fill="#FFB27D" />
+      <text x="56" y="56.5" textAnchor="middle" fontSize="17" fontWeight="800" fill="#fff" fontFamily="system-ui, sans-serif">€</text>
     </svg>
   )
 }

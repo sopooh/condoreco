@@ -1,6 +1,6 @@
 'use client'
 
-import { Building2, Camera, ChevronRight, History, House, Map as LMap, MessageSquare, Pencil, Plus, ShieldCheck, Sparkles, UserRound, Users, Wrench, Zap } from 'lucide-react'
+import { Building2, Camera, ChevronRight, History, House, Map as LMap, MessageSquare, Pencil, Plus, ShieldCheck, Sparkles, UserRound, Users, Wrench, Zap, Bookmark } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Avatar from '@/components/ui/Avatar'
@@ -245,7 +245,8 @@ export default function ProfileClient() {
                 <ActionRow href="/fornitore" icon={<Wrench size={18} strokeWidth={2} aria-hidden="true" />} label={profile.role === 'condofixer' ? 'I miei interventi (Recofixer)' : 'Sei un fornitore? Diventa Recofixer'} />
                 <ActionRow href="/aggiungi-condominio" icon={<BuildingIcon />} label="Aggiungi condominio" />
                 <ActionRow href="/cerca" icon={<MapIcon />} label="Esplora edifici" />
-                <ActionRow href="/amministratori" icon={<UsersIcon />} label="Cerca amministratori" last />
+                <ActionRow href="/amministratori" icon={<UsersIcon />} label="Cerca amministratori" />
+                <ActionRow href="/amministratori?salvati=1" icon={<Bookmark size={18} strokeWidth={2} aria-hidden="true" />} label="Amministratori salvati" last />
               </nav>
             </section>
 

@@ -1,36 +1,75 @@
 'use client'
 
-import { List, Map as MapIcon, X } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useCallback, useEffect, useState } from 'react'
+import { Building2, Map as MapIcon, List, SlidersHorizontal, X } from 'lucide-react'
 import AdminRow from '@/components/admins/AdminRow'
-import AdminCityTabs from '@/components/admins/AdminCityTabs'
-import AdminSearchForm from '@/components/admins/AdminSearchForm'
 import AdminFilterSidebar from '@/components/admins/AdminFilterSidebar'
 import ResultsMap from '@/components/map/ResultsMap'
 import MapLegend from '@/components/map/MapLegend'
 import { DesktopMapPreview, MobileMapPreview } from '@/components/map/BuildingMapPreview'
+import PageHero from '@/components/directory/PageHero'
+import DirectorySearch from '@/components/directory/DirectorySearch'
+import CitySelect from '@/components/directory/CitySelect'
+import QuickTabs from '@/components/directory/QuickTabs'
+import SortSelect from '@/components/directory/SortSelect'
+import { useParamNav } from '@/components/directory/useParamNav'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { useSession } from '@/components/providers/SessionProvider'
+import { createClient } from '@/lib/supabase/client'
 
-// Riceve admins/buildingsByAdmin/cities/feeCounts già filtrati/calcolati
-// server-side (città + testo + range fee via searchParams). Qui restano solo
-// stati di UI — mostra/nascondi mappa, drawer filtri mobile, riga espansa,
-// pin selezionato — nessun rifetch dei dati. Il pannello mappa (dimensioni,
-// popup, legenda, comportamento mobile fullscreen) rispecchia esattamente
-// quello di Esplora (components/search/SearchResultsView.jsx) tramite lo
-// stesso componente condiviso ResultsMap.
+export const ADMIN_TABS = [
+  { id: '', label: 'Tutte' },
+  { id: 'recensiti', label: 'Più recensiti' },
+  { id: 'attivi', label: 'Più attivi' },
+  { id: 'certificati', label: 'Certificati' },
+]
+const ADMIN_SORT_OPTIONS = [
+  { id: 'rilevanti', label: 'Più rilevanti' },
+  { id: 'valutazione', label: 'Valutazione migliore' },
+  { id: 'recensioni', label: 'Più recensioni' },
+  { id: 'condomini', label: 'Più condomini gestiti' },
+  { id: 'anzianita', label: 'Attivi da più tempo' },
+  { id: 'nome', label: 'Nome (A-Z)' },
+]
+
+// Amministratori salvati con il segnalibro (tabella saved_admins, solo i propri).
+function useSavedAdmins() {
+  const session = useSession()
+  const [saved, setSaved] = useState(() => new Set())
+  const userId = session?.user?.id
+  useEffect(() => {
+    if (!userId) return
+    let off = false
+    createClient().from('saved_admins').select('administrator_id').then(({ data }) => {
+      if (!off) setSaved(new Set((data || []).map((r) => r.administrator_id)))
+    })
+    return () => { off = true }
+  }, [userId])
+  const toggle = useCallback(async (id) => {
+    if (!userId) {
+      window.dispatchEvent(new CustomEvent('condoreco:open-auth', { detail: { next: '/amministratori' } }))
+      return
+    }
+    const on = saved.has(id)
+    setSaved((prev) => { const n = new Set(prev); if (on) n.delete(id); else n.add(id); return n })
+    const sb = createClient().from('saved_admins')
+    const { error } = on ? await sb.delete().eq('administrator_id', id) : await sb.insert({ administrator_id: id })
+    if (error) setSaved((prev) => { const n = new Set(prev); if (on) n.add(id); else n.delete(id); return n })
+  }, [saved, userId])
+  return { saved: userId ? saved : new Set(), toggle }
+}
+
 export default function AdminsResultsView({ admins, buildingsByAdmin, cities, feeCounts, city }) {
   const isMobile = useIsMobile()
-  const [expandedId, setExpandedId] = useState(null)
-  const [showMap, setShowMap] = useState(!isMobile)
+  const { searchParams, setParams } = useParamNav()
+  const [showMap, setShowMap] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [selectedBuilding, setSelectedBuilding] = useState(null)
+  const { saved, toggle } = useSavedAdmins()
+  const onlySaved = searchParams.get('salvati') === '1'
+  const list = onlySaved ? admins.filter((a) => saved.has(a.id)) : admins
 
-  useEffect(() => {
-    setShowMap(!isMobile)
-  }, [isMobile])
-
-  // blocca scroll body quando la mappa è full-screen su mobile
+  // mappa a schermo intero su mobile: blocca lo scroll sotto
   useEffect(() => {
     if (isMobile && showMap) {
       document.body.style.overflow = 'hidden'
@@ -38,167 +77,93 @@ export default function AdminsResultsView({ admins, buildingsByAdmin, cities, fe
     }
   }, [isMobile, showMap])
 
-  const handleCloseMap = () => {
-    setShowMap(false)
-    setSelectedBuilding(null)
-  }
-
-  const expandedBuildings = expandedId
-    ? (buildingsByAdmin[expandedId] || [])
-    : Object.values(buildingsByAdmin).flat()
-
-  // ResultsMap non conosce le rotte: ogni pagina passa il proprio href di dettaglio.
-  const results = expandedBuildings.map((b) => ({ ...b, href: `/edificio/${b.id}` }))
+  const results = list.flatMap((a) => buildingsByAdmin[a.id] || []).map((b) => ({ ...b, href: `/edificio/${b.id}` }))
+  const filtersActive = ['feeMin', 'feeMax', 'rec'].some((k) => searchParams.get(k))
+  const closeMap = () => { setShowMap(false); setSelectedBuilding(null) }
 
   return (
     <>
-      {/* Toolbar */}
-      <div className="admins-toolbar" style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)' }}>
-        <div className="admins-toolbar-inner" style={{ maxWidth: 1360, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-          <AdminSearchForm />
-          {isMobile ? (
-            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-              <button onClick={() => setShowFilters(v => !v)} style={{
-                padding: '0 12px', height: 44, borderRadius: 8, border: '1px solid var(--border)',
-                background: showFilters ? 'var(--teal-lt)' : 'var(--white)',
-                color: 'var(--teal-dk)', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-              }}>Filtri</button>
-              <button onClick={() => setShowMap(v => !v)} style={{
-                padding: '0 12px', height: 44, borderRadius: 8, border: '1px solid var(--border)',
-                background: showMap ? 'var(--teal-lt)' : 'var(--white)',
-                color: 'var(--teal-dk)', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-              }} aria-label={showMap ? 'Mostra lista' : 'Mostra mappa'}>{showMap ? <List size={18} strokeWidth={2} aria-hidden="true" /> : <MapIcon size={18} strokeWidth={2} aria-hidden="true" />}</button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
-              <Link href="/aggiungi-condominio" style={{
-                padding: '9px 16px', borderRadius: 8, border: '1.5px solid var(--teal)',
-                background: 'var(--teal-lt)', fontWeight: 600, fontSize: 13,
-                color: 'var(--teal-dk)', whiteSpace: 'nowrap', display: 'inline-block',
-              }}>+ Aggiungi condominio</Link>
-              <button
-                onClick={() => setShowMap(v => !v)}
-                style={{
-                  padding: '9px 18px', borderRadius: 8, border: '1px solid var(--border)',
-                  background: 'var(--white)', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-                  color: 'var(--teal-dk)', whiteSpace: 'nowrap',
-                }}
-              >{showMap ? 'Chiudi mappa' : 'Mostra mappa'}</button>
-            </div>
+      <PageHero icon={<Building2 size={isMobile ? 26 : 30} strokeWidth={1.8} aria-hidden="true" />} title="Amministratori"
+        subtitle="Scopri reputazione, stabili gestiti e recensioni degli amministratori di condominio prima di averci a che fare.">
+        <DirectorySearch placeholder="Cerca un amministratore..." />
+        <div className="dir-ctrls">
+          <CitySelect cities={cities} allLabel="Tutte" />
+          {isMobile && (
+            <button type="button" className={`dir-ctrl${filtersActive ? ' is-on' : ''}`} onClick={() => setShowFilters(true)}>
+              <SlidersHorizontal size={20} strokeWidth={2} aria-hidden="true" />Filtri
+            </button>
           )}
+          <button type="button" className={`dir-ctrl${showMap ? ' is-on' : ''}`} onClick={() => (showMap ? closeMap() : setShowMap(true))} aria-pressed={showMap}>
+            {showMap && !isMobile ? <List size={20} strokeWidth={2} aria-hidden="true" /> : <MapIcon size={20} strokeWidth={2} aria-hidden="true" />}
+            {showMap && !isMobile ? 'Lista' : 'Mappa'}
+          </button>
         </div>
-      </div>
+      </PageHero>
 
-      <AdminCityTabs cities={cities} />
+      <QuickTabs tabs={ADMIN_TABS} />
 
-      {/* Drawer filtri mobile */}
       {isMobile && showFilters && (
-        <>
-          <div onClick={() => setShowFilters(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 200 }} />
-          <div style={{
-            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 201,
-            background: 'var(--white)', borderRadius: '16px 16px 0 0',
-            padding: '20px 20px 40px', maxHeight: '80vh', overflowY: 'auto',
-            boxShadow: '0 -8px 32px rgba(0,0,0,0.15)',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <span style={{ fontSize: 16, fontWeight: 700 }}>Filtri</span>
-              <button onClick={() => setShowFilters(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-3)' }}><X size={18} strokeWidth={2} aria-hidden="true" /></button>
+        <div className="dir-sheet-wrap" role="dialog" aria-modal="true" aria-label="Filtri">
+          <div className="dir-sheet-backdrop" onClick={() => setShowFilters(false)} />
+          <div className="dir-sheet" style={{ maxHeight: '85vh', overflowY: 'auto' }}>
+            <div className="dir-sheet-head">
+              <div className="dir-sheet-title">Filtri</div>
+              <button type="button" onClick={() => setShowFilters(false)} aria-label="Chiudi" className="dir-sheet-close"><X size={22} /></button>
             </div>
-            <AdminFilterSidebar feeCounts={feeCounts} />
-            <button onClick={() => setShowFilters(false)} style={{
-              width: '100%', marginTop: 20, padding: '14px', borderRadius: 8, border: 'none',
-              background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer',
-            }}>Applica filtri</button>
+            <AdminFilterSidebar feeCounts={feeCounts} instant={false} onApplied={() => setShowFilters(false)} />
           </div>
-        </>
+        </div>
       )}
 
-      {/* Mappa full-screen su mobile */}
       {isMobile && showMap && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', flexDirection: 'column', background: '#fff' }}>
           <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-            <ResultsMap
-              results={results}
-              height="100%"
-              onResultSelect={setSelectedBuilding}
-              containerStyle={{ borderRadius: 0, border: 'none' }}
-            />
-            <button
-              onClick={handleCloseMap}
-              style={{
-                position: 'absolute', top: 12, left: 12, zIndex: 1000,
-                background: 'var(--white)', border: '1px solid var(--border)',
-                borderRadius: 20, padding: '8px 14px',
-                fontWeight: 600, fontSize: 13, cursor: 'pointer',
-                color: 'var(--teal-dk)', boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                display: 'flex', alignItems: 'center', gap: 6,
-              }}
-            >← Lista</button>
-            {selectedBuilding && (
-              <MobileMapPreview
-                building={selectedBuilding}
-                onClose={() => setSelectedBuilding(null)}
-              />
-            )}
+            <ResultsMap results={results} height="100%" onResultSelect={setSelectedBuilding} containerStyle={{ borderRadius: 0, border: 'none' }} />
+            <button onClick={closeMap} style={{
+              position: 'absolute', top: 12, left: 12, zIndex: 1000, minHeight: 0, background: 'var(--white)', border: '1px solid var(--border)',
+              borderRadius: 20, padding: '8px 14px', fontWeight: 600, fontSize: 13, cursor: 'pointer', color: 'var(--teal-dk)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', gap: 6,
+            }}><List size={16} aria-hidden="true" />Lista</button>
+            {selectedBuilding && <MobileMapPreview building={selectedBuilding} onClose={() => setSelectedBuilding(null)} />}
           </div>
-          <div style={{ padding: '8px 16px', background: 'var(--white)', borderTop: '1px solid var(--border)' }}>
-            <MapLegend />
-          </div>
+          <div style={{ padding: '8px 16px', background: 'var(--white)', borderTop: '1px solid var(--border)' }}><MapLegend /></div>
         </div>
       )}
 
-      {/* Layout: 3 colonne desktop (filtri, lista, mappa), 1 colonna mobile */}
-      <div className={`admins-results-grid${!isMobile ? ' has-filters' : ''}${(!isMobile && showMap) ? ' has-map' : ''}`} style={{
-        maxWidth: 1360, margin: '0 auto',
-        display: 'grid',
-        gap: 28, alignItems: 'start',
-      }}>
+      <div className={`dir-results${!isMobile && showMap ? ' has-map' : ''}`}>
         {!isMobile && <AdminFilterSidebar feeCounts={feeCounts} />}
 
-        {/* Admin list */}
-        <div>
-          <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 16 }}>
-            {`${admins.length} amministrator${admins.length !== 1 ? 'i' : 'e'}${city ? ` a ${city}` : ''}`}
+        <div style={{ minWidth: 0 }}>
+          <div className="dir-listhead">
+            <span>{`${list.length} amministrator${list.length !== 1 ? 'i' : 'e'} trovat${list.length !== 1 ? 'i' : 'o'}${city ? ` a ${city}` : ''}`}</span>
+            <SortSelect sorts={ADMIN_SORT_OPTIONS} defaultId="rilevanti" tabsThatSort={['recensiti', 'attivi']} />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {admins.map(a => (
-              <AdminRow
-                key={a.id}
-                admin={a}
-                buildings={buildingsByAdmin[a.id] || []}
-                expanded={expandedId === a.id}
-                onToggle={() => { setExpandedId(expandedId === a.id ? null : a.id); setSelectedBuilding(null) }}
-              />
+          {onlySaved && (
+            <button type="button" onClick={() => setParams({ salvati: null })} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 0, marginBottom: 12, padding: '6px 12px', borderRadius: 999,
+              border: '1px solid var(--teal)', background: 'var(--teal-lt)', color: 'var(--teal-dk)', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+            }}>Solo salvati <X size={14} aria-hidden="true" /></button>
+          )}
+          <div className="dir-list">
+            {list.map((a) => (
+              <AdminRow key={a.id} admin={a} saved={saved.has(a.id)} onToggleSave={() => toggle(a.id)} />
             ))}
-            {admins.length === 0 && (
+            {list.length === 0 && (
               <div className="empty">
-                <div className="empty-title">Nessun amministratore trovato</div>
-                <p>Prova a cambiare città.</p>
+                <div className="empty-title">{onlySaved ? 'Nessun amministratore salvato' : 'Nessun amministratore trovato'}</div>
+                <p>{onlySaved ? 'Tocca il segnalibro su una card per ritrovarla qui.' : 'Prova a cambiare città o filtri.'}</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Mappa desktop — sticky a destra */}
         {!isMobile && showMap && (
           <div style={{ position: 'sticky', top: 80 }}>
             <div style={{ position: 'relative' }}>
-              <ResultsMap
-                results={results}
-                height={520}
-                onResultSelect={setSelectedBuilding}
-              />
-              {selectedBuilding && (
-                <DesktopMapPreview
-                  building={selectedBuilding}
-                  onClose={() => setSelectedBuilding(null)}
-                />
-              )}
+              <ResultsMap results={results} height={520} onResultSelect={setSelectedBuilding} />
+              {selectedBuilding && <DesktopMapPreview building={selectedBuilding} onClose={() => setSelectedBuilding(null)} />}
             </div>
-            <div style={{ marginTop: 8, paddingLeft: 2 }}>
-              <MapLegend />
-            </div>
+            <div style={{ marginTop: 8, paddingLeft: 2 }}><MapLegend /></div>
           </div>
         )}
       </div>

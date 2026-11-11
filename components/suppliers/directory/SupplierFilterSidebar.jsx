@@ -1,6 +1,6 @@
 'use client'
 
-import { BadgeCheck, Check, ChevronDown, Layers, RotateCcw, SlidersHorizontal } from 'lucide-react'
+import { Check, Layers, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { MAINTENANCE_CATEGORIES } from '@/lib/maintenanceCategories'
@@ -17,8 +17,6 @@ export const SUPPLIER_SORTS = [
 function readParams(sp) {
   return {
     cats: (sp.get('cat') || '').split(',').filter(Boolean),
-    verified: sp.get('verified') === '1',
-    sort: sp.get('sort') || 'verified',
   }
 }
 
@@ -35,8 +33,6 @@ export default function SupplierFilterSidebar({ categoryCounts = {}, instant = t
   function push(next) {
     const params = new URLSearchParams(searchParams.toString())
     if (next.cats.length) params.set('cat', next.cats.join(',')); else params.delete('cat')
-    if (next.verified) params.set('verified', '1'); else params.delete('verified')
-    if (next.sort !== 'verified') params.set('sort', next.sort); else params.delete('sort')
     router.push(`${pathname}?${params.toString()}`, { scroll: false })
   }
   function update(patch) {
@@ -44,7 +40,7 @@ export default function SupplierFilterSidebar({ categoryCounts = {}, instant = t
     if (instant) push(next); else setDraft(next)
   }
   const toggleCat = (id) => update({ cats: v.cats.includes(id) ? v.cats.filter((x) => x !== id) : [...v.cats, id] })
-  const reset = { cats: [], verified: false, sort: 'verified' }
+  const reset = { cats: [] }
 
   return (
     <div className={`fpanel ${instant ? 'is-side' : 'is-sheet'}`}>
@@ -67,25 +63,6 @@ export default function SupplierFilterSidebar({ categoryCounts = {}, instant = t
             )
           })}
         </div>
-      </section>
-
-      <section className="fpanel-sec">
-        <h3 className="fpanel-title"><BadgeCheck size={22} strokeWidth={1.8} aria-hidden="true" />Affidabilità</h3>
-        <label className={`fpanel-chip ${v.verified ? 'is-on' : ''}`}>
-          <input type="checkbox" checked={v.verified} onChange={() => update({ verified: !v.verified })} />
-          <span className="fpanel-box" aria-hidden="true">{v.verified && <Check size={14} strokeWidth={3} aria-hidden="true" />}</span>
-          <span className="fpanel-chip-label">Solo fornitori verificati</span>
-        </label>
-      </section>
-
-      <section className="fpanel-sec">
-        <h3 className="fpanel-title"><SlidersHorizontal size={22} strokeWidth={1.8} aria-hidden="true" />Ordina per</h3>
-        <label className="fpanel-select">
-          <select value={v.sort} onChange={(e) => update({ sort: e.target.value })} aria-label="Ordina per">
-            {SUPPLIER_SORTS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-          </select>
-          <ChevronDown size={20} strokeWidth={1.8} aria-hidden="true" className="fpanel-select-chev" />
-        </label>
       </section>
 
       <div className="fpanel-actions">

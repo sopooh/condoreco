@@ -1,115 +1,61 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useState } from 'react'
+import { Check, MessageSquareText, RotateCcw } from 'lucide-react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { FeeRangeSection, FEE_MIN, FEE_MAX } from '@/components/search/FilterSidebar'
 
-const FEE_MIN = 0
-const FEE_MAX = 3000
-const STEP = 10
-const N_BUCKETS = 24 // barre dell'istogramma
-
-// Stesso istogramma di components/search/FilterSidebar.jsx, ma sulla media
-// (avg_monthly_fee, view admin_scores) invece che sulla quota del singolo edificio.
-function buildHistogram(fees) {
-  const counts = new Array(N_BUCKETS).fill(0)
-  const bw = (FEE_MAX - FEE_MIN) / N_BUCKETS
-  fees.forEach((fee) => {
-    const n = Number(fee)
-    if (!n || n <= 0 || n > FEE_MAX) return
-    const idx = Math.min(Math.floor((n - FEE_MIN) / bw), N_BUCKETS - 1)
-    counts[idx]++
-  })
-  return counts
+function readParams(sp) {
+  return {
+    feeMin: sp.get('feeMin') ? Number(sp.get('feeMin')) : FEE_MIN,
+    feeMax: sp.get('feeMax') ? Number(sp.get('feeMax')) : FEE_MAX,
+    reviewed: sp.get('rec') === '1',
+  }
 }
 
-export default function AdminFilterSidebar({ feeCounts = [] }) {
+// Filtri della lista Amministratori, stesso pannello di Esplora (.fpanel).
+// instant: colonna desktop, applica subito. Altrimenti bozza fino ad "Applica filtri".
+export default function AdminFilterSidebar({ feeCounts = [], instant = true, onApplied }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const current = readParams(searchParams)
+  const [draft, setDraft] = useState(current)
+  const v = instant ? current : draft
 
-  const feeMin = searchParams.get('feeMin') ? Number(searchParams.get('feeMin')) : FEE_MIN
-  const feeMax = searchParams.get('feeMax') ? Number(searchParams.get('feeMax')) : FEE_MAX
-  const isDefaultRange = feeMin === FEE_MIN && feeMax === FEE_MAX
-  const histogram = useMemo(() => buildHistogram(feeCounts), [feeCounts])
-
-  function setFee(next) {
+  function push(next) {
     const params = new URLSearchParams(searchParams.toString())
-    if (next.feeMin === FEE_MIN) params.delete('feeMin')
-    else params.set('feeMin', String(next.feeMin))
-    if (next.feeMax === FEE_MAX) params.delete('feeMax')
-    else params.set('feeMax', String(next.feeMax))
-    router.push(`${pathname}?${params.toString()}`)
+    if (next.feeMin !== FEE_MIN) params.set('feeMin', String(next.feeMin)); else params.delete('feeMin')
+    if (next.feeMax !== FEE_MAX) params.set('feeMax', String(next.feeMax)); else params.delete('feeMax')
+    if (next.reviewed) params.set('rec', '1'); else params.delete('rec')
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
   }
+  function update(patch) {
+    const next = { ...v, ...patch }
+    if (instant) push(next); else setDraft(next)
+  }
+  const reset = { feeMin: FEE_MIN, feeMax: FEE_MAX, reviewed: false }
 
   return (
-    <div style={{ width: 240, flexShrink: 0 }}>
-      <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 20 }}>Filtra per</div>
+    <div className={`fpanel ${instant ? 'is-side' : 'is-sheet'}`}>
+      <FeeRangeSection fees={feeCounts} feeMin={v.feeMin} feeMax={v.feeMax} onChange={update} title="Spesa media dei condomini" />
 
-      <div style={{ paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid var(--border)' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>Spese condominiali medie</div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-2)', marginBottom: 10 }}>
-          {isDefaultRange
-            ? 'Tutte le fasce'
-            : `€${feeMin} – €${feeMax}/mese`}
-        </div>
+      <section className="fpanel-sec">
+        <h3 className="fpanel-title"><MessageSquareText size={22} strokeWidth={1.8} aria-hidden="true" />Recensioni</h3>
+        <label className={`fpanel-chip ${v.reviewed ? 'is-on' : ''}`}>
+          <input type="checkbox" checked={v.reviewed} onChange={() => update({ reviewed: !v.reviewed })} />
+          <span className="fpanel-box" aria-hidden="true">{v.reviewed && <Check size={14} strokeWidth={3} aria-hidden="true" />}</span>
+          <span className="fpanel-chip-label">Solo con almeno una recensione</span>
+        </label>
+      </section>
 
-        {/* Histogram */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', height: 52, gap: 2, marginBottom: 6 }}>
-          {histogram.map((count, i) => {
-            const bw = (FEE_MAX - FEE_MIN) / N_BUCKETS
-            const bucketStart = FEE_MIN + i * bw
-            const bucketEnd = FEE_MIN + (i + 1) * bw
-            const inRange = bucketEnd > feeMin && bucketStart < feeMax && count > 0
-            const maxCount = Math.max(...histogram, 1)
-            const h = count > 0 ? Math.max((count / maxCount) * 100, 10) : 3
-            return (
-              <div key={i} style={{
-                flex: 1, height: `${h}%`, borderRadius: '2px 2px 0 0',
-                background: inRange ? 'var(--teal)' : '#D1D5DB',
-                transition: 'background 0.1s',
-              }} />
-            )
-          })}
-        </div>
-
-        {/* Double range slider */}
-        <div className="fee-range-wrap">
-          <div style={{
-            position: 'absolute', top: '50%', left: 0, right: 0,
-            transform: 'translateY(-50%)', height: 4,
-            background: '#E5E7EB', borderRadius: 100, pointerEvents: 'none',
-          }} />
-          <div style={{
-            position: 'absolute', top: '50%', transform: 'translateY(-50%)', height: 4,
-            background: 'var(--teal)', borderRadius: 100, pointerEvents: 'none',
-            left: `${((feeMin - FEE_MIN) / (FEE_MAX - FEE_MIN)) * 100}%`,
-            right: `${((FEE_MAX - feeMax) / (FEE_MAX - FEE_MIN)) * 100}%`,
-          }} />
-          <input
-            type="range" className="fee-range-input"
-            min={FEE_MIN} max={FEE_MAX} step={STEP} value={feeMin}
-            style={{ zIndex: feeMin > FEE_MAX - 50 ? 5 : 3 }}
-            onChange={(e) => setFee({ feeMin: Math.min(Number(e.target.value), feeMax - STEP), feeMax })}
-          />
-          <input
-            type="range" className="fee-range-input"
-            min={FEE_MIN} max={FEE_MAX} step={STEP} value={feeMax}
-            style={{ zIndex: 4 }}
-            onChange={(e) => setFee({ feeMin, feeMax: Math.max(Number(e.target.value), feeMin + STEP) })}
-          />
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, fontSize: 11, color: 'var(--text-4)' }}>
-          <span>€{FEE_MIN}</span>
-          <span>€{FEE_MAX}+</span>
-        </div>
-
-        {!isDefaultRange && (
-          <button onClick={() => setFee({ feeMin: FEE_MIN, feeMax: FEE_MAX })}
-            style={{ marginTop: 8, fontSize: 12, color: 'var(--teal)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>
-            Azzera filtro
-          </button>
+      <div className="fpanel-actions">
+        {!instant && (
+          <button type="button" className="fpanel-apply" onClick={() => { push(draft); onApplied?.() }}>Applica filtri</button>
         )}
+        <button type="button" className="fpanel-reset" onClick={() => { if (instant) push(reset); else setDraft(reset) }}>
+          <RotateCcw size={20} strokeWidth={1.8} aria-hidden="true" />Reimposta filtri
+        </button>
       </div>
     </div>
   )

@@ -2226,3 +2226,21 @@ input, select, textarea { font-family: inherit; }
 .rp2-tabs { grid-template-columns: 1.45fr repeat(4, minmax(0, 1fr)); padding: 6px 4px; gap: 0; }
 .rp2-tabs a { font-size: 11.5px; padding: 10px 0; }
 .rc-donut-c b { font-size: 14.5px; }
+.rcp-drop { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 20px 14px; margin-bottom: 14px; border: 2px dashed var(--border); border-radius: 16px; background: var(--bg); color: var(--teal-dk); cursor: pointer; text-align: center; }
+.rcp-drop strong { overflow-wrap: anywhere; }
+.rcp-drop small { color: var(--text-3); }
+.rcp-drop.has-file { border-style: solid; border-color: var(--teal); background: #F5FAFA; }
+.rcp-list { list-style: none; margin: 0; padding: 0; }
+.rcp-list li + li { border-top: 1px solid var(--border-2); }
+.rcp-file { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 0; padding: 10px 0; border: none; background: none; cursor: pointer; font: inherit; color: inherit; }
+.rcp-file strong { display: block; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rcp-file small { display: block; font-size: 12.5px; color: var(--text-3); }
+.rcp-ico { width: 36px; height: 36px; border-radius: 10px; background: var(--teal-lt); color: var(--teal-dk); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.rc-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.rc-sum > div { padding: 10px; border-radius: 12px; background: var(--bg); min-width: 0; }
+.rc-sum small { display: block; font-size: 12px; color: var(--text-3); }
+.rc-sum b { display: block; font-size: 15.5px; white-space: nowrap; }
+.rc-lines { list-style: none; margin: 0; padding: 0; }
+.rc-lines li { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--border-2); font-size: 14px; }
+.rc-lines strong { display: block; font-size: 14.5px; }
+.rc-lines small { display: block; font-size: 12.5px; color: var(--text-3); }

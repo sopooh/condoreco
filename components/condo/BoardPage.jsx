@@ -2,6 +2,7 @@
 
 import { AlignLeft, CalendarDays, Check, ChevronDown as LChevronDown, ChevronLeft as LChevronLeft, ChevronRight as LChevronRight, Clock, Droplet, Ellipsis, Layers, MapPin, Plus, Search, Users, Wrench, X, Zap, CalendarCheck, CalendarRange, List } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { useCalendarEvents } from '@/hooks/useCalendarEvents'
 import { usePublicInterventions } from '@/hooks/usePublicInterventions'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -139,6 +140,10 @@ export default function BoardPage({ buildingId }) {
 
   return (
     <div style={{ maxWidth: 1180, margin: '0 auto', padding: isMobile ? '14px 6px 96px' : '24px 24px 96px' }}>
+      <Link href={`/edificio/${buildingId}/condominio`} style={{ display: 'inline-block', fontSize: 14, fontWeight: 600, color: 'var(--teal)', margin: isMobile ? '0 6px 12px' : '0 0 14px' }}>
+        ‹ Torna al condominio
+      </Link>
+
       {/* ---- Toolbar ---- */}
       <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 10, padding: isMobile ? '0 6px' : 0, marginBottom: 14 }}>
         <IconButton onClick={() => step(-1)} label={view === 'week' ? 'Settimana precedente' : 'Mese precedente'}><ChevronLeft /></IconButton>

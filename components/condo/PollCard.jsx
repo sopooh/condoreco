@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight, CircleCheck, CircleX, Clock, Eye, EyeOff, Lightbulb } from 'lucide-react'
+import { ChevronRight, CircleCheck, CircleX, Clock, Eye, EyeOff, Lightbulb, Layers } from 'lucide-react'
 import { useState } from 'react'
 import Link from 'next/link'
 
@@ -113,6 +113,16 @@ export default function PollCard({ poll, onVote, onChangeVote, href, showLabel =
           {poll.is_anonymous ? 'voto anonimo' : 'voto palese'}
         </span>
       </div>
+
+      {poll.phase2_status && poll.phase2_status !== 'none' && poll.status !== 'rejected' && (
+        <div className={`p2-strip is-${poll.phase2_status}`}>
+          <Layers size={15} strokeWidth={2} aria-hidden="true" />
+          {poll.phase2_status === 'open' ? `Fase 2 in corso: si vota tra ${poll.options?.length || 0} proposte`
+            : poll.phase2_status === 'closed' ? `Fase 2 conclusa${poll.options?.find((o) => o.id === poll.phase2_winner) ? `: scelta "${poll.options.find((o) => o.id === poll.phase2_winner).title}"` : ''}`
+            : poll.status === 'approved' ? 'Approvata: fase 2 da aprire'
+            : `Fase 2 prevista · ${poll.options?.length || 0} ${poll.options?.length === 1 ? 'proposta' : 'proposte'}`}
+        </div>
+      )}
 
       {/* voto */}
       {(poll.isOpen || poll.hasVoted) && (

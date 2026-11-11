@@ -238,7 +238,7 @@ function ThreadAvatar({ t, size = 44 }) {
 function GroupChat({ building, onBack, onOpenContact }) {
   const { isCondoAdmin, userId } = useCondoRole(building.id)
   const { messages, sendMessage, hideMessage } = useCondoChat(building.id)
-  const { polls, castVote, changeVote, createPoll, reload: reloadPolls } = usePolls(building.id)
+  const { polls, castVote, changeVote, createPoll, voteOption, reload: reloadPolls } = usePolls(building.id)
   const { createEvent } = useEvents(building.id)
   const [sheet, setSheet] = useState(null) // 'contact' | 'poll' | 'event'
   const [events, setEvents] = useState({})
@@ -281,7 +281,7 @@ function GroupChat({ building, onBack, onOpenContact }) {
         onHide={isCondoAdmin ? hideMessage : null}
         onBack={onBack}
         composer={{ buildingId: building.id, isGroup: true, onAction: setSheet }}
-        ctx={{ polls: pollMap, events, eventsLoaded, onVote, onOpenContact, buildingId: building.id }}
+        ctx={{ polls: pollMap, events, eventsLoaded, onVote, onVoteOption: voteOption, onOpenContact, buildingId: building.id }}
       />
       <ChatSheets sheet={sheet} onClose={() => setSheet(null)} buildingId={building.id} send={sendMessage}
         createPoll={async (v) => { const r = await createPoll(v); if (!r.error) await reloadPolls(); return r }}

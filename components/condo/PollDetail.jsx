@@ -9,6 +9,7 @@ import { useCondoRole } from '@/hooks/useCondoRole'
 import AnonymityToggle from '@/components/condo/AnonymityToggle'
 import VotersList from '@/components/condo/VotersList'
 import PollCard from '@/components/condo/PollCard'
+import Phase2Section from '@/components/condo/Phase2Section'
 import { LegalNote, backLink } from '@/components/condo/PollsPage'
 
 // Dettaglio di una decisione: card con voto + riepilogo (chi l'ha proposta,
@@ -16,7 +17,7 @@ import { LegalNote, backLink } from '@/components/condo/PollsPage'
 export default function PollDetail({ building, pollId }) {
   const buildingId = building.id
   const router = useRouter()
-  const { polls, loading, error, castVote, changeVote, updatePoll, deletePoll } = usePolls(buildingId)
+  const { polls, loading, error, castVote, changeVote, updatePoll, deletePoll, setPhase2, openPhase2, saveOption, deleteOption, voteOption } = usePolls(buildingId)
   const { isCondoAdmin } = useCondoRole(buildingId)
   const poll = polls.find((p) => p.id === pollId)
   const listHref = `/edificio/${buildingId}/condominio/decisioni`
@@ -94,6 +95,11 @@ export default function PollDetail({ building, pollId }) {
               </div>
             </div>
           )}
+
+          <div id="fase-2">
+            <Phase2Section poll={poll} canManage={poll.isMine || isCondoAdmin}
+              setPhase2={setPhase2} openPhase2={openPhase2} saveOption={saveOption} deleteOption={deleteOption} voteOption={voteOption} />
+          </div>
 
           <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 18, padding: '4px 20px' }}>
             <Row label="Proposta da" value={poll.profiles?.display_name ?? 'Un residente'} />

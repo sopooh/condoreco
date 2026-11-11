@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { BarChart3, CalendarDays, Clock, Download, FileText, MapPin, MessageCircle, UserRound, X } from 'lucide-react'
 import { extOf, formatSize, signedChatUrl } from '@/lib/chatFiles'
+import { pollImageUrl } from '@/lib/pollImages'
 
 // Contenuto di una bolla in base al tipo di messaggio.
 // ctx: { polls, events, onVote, onOpenContact, buildingId, userId }
@@ -15,7 +16,9 @@ export default function MessageBody({ m, mine, ctx }) {
     case 'audio': return <AudioAtt att={m.attachment} mine={mine} />
     case 'file': return <><FileAtt att={m.attachment} mine={mine} />{caption && <Text mine={mine}>{caption}</Text>}</>
     case 'contact': return <ContactCard meta={m.meta} mine={mine} ctx={ctx} />
-    case 'poll': return <PollCard poll={ctx?.polls?.[m.ref_id]} mine={mine} ctx={ctx} fallback={m.content} />
+    case 'poll': return m.meta?.phase === 2
+      ? <Phase2Card poll={ctx?.polls?.[m.ref_id]} mine={mine} ctx={ctx} fallback={m.content} />
+      : <PollCard poll={ctx?.polls?.[m.ref_id]} mine={mine} ctx={ctx} fallback={m.content} />
     case 'event': return <EventCard ev={ctx?.events?.[m.ref_id]} mine={mine} ctx={ctx} fallback={m.content} />
     default: return <Text mine={mine}>{m.content}</Text>
   }
@@ -225,6 +228,64 @@ function EventCard({ ev, mine, ctx, fallback }) {
           <CalendarDays size={16} aria-hidden="true" />Vedi nel calendario
         </Link>
       )}
+    </div>
+  )
+}
+
+function OptionThumb({ path }) {
+  const [url, setUrl] = useState(null)
+  useEffect(() => {
+    let off = false
+    if (path) pollImageUrl(path).then((u) => { if (!off) setUrl(u) })
+    return () => { off = true }
+  }, [path])
+  if (!path) return null
+  return url ? <img src={url} alt="" className="chat-p2-thumb" /> : <span className="chat-p2-thumb" />
+}
+
+// Fase 2 in chat: proposte con miniatura, voto con un tocco
+function Phase2Card({ poll, mine, ctx, fallback }) {
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState(null)
+  const href = poll && ctx?.buildingId ? `/edificio/${ctx.buildingId}/condominio/decisioni/${poll.id}#fase-2` : null
+  if (!poll) {
+    return (
+      <div className={`chat-card${mine ? ' is-mine' : ''}`}>
+        <div className="chat-card-kicker"><BarChart3 size={15} aria-hidden="true" />Fase 2</div>
+        <div style={{ fontSize: 15, fontWeight: 700 }}>{fallback.replace(/^Fase 2: /, '')}</div>
+      </div>
+    )
+  }
+  const closed = poll.phase2_status === 'closed' || !poll.phase2Open
+  async function vote(id) {
+    setBusy(true); setErr(null)
+    const r = await ctx.onVoteOption(poll, id)
+    setBusy(false)
+    if (r?.error) setErr(r.error)
+  }
+  return (
+    <div className={`chat-card${mine ? ' is-mine' : ''}`} style={{ minWidth: 260 }}>
+      <div className="chat-card-kicker"><BarChart3 size={15} aria-hidden="true" />Fase 2 · {poll.question}</div>
+      <div style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.3, marginBottom: 8 }}>{poll.phase2_question || 'Quale proposta preferisci?'}</div>
+      {poll.options.map((o) => {
+        const chosen = poll.myOption === o.id
+        const canPress = !closed && (!poll.myOption || (poll.canChangeOption && !chosen))
+        const won = poll.phase2_winner === o.id
+        return (
+          <button key={o.id} type="button" disabled={!canPress || busy} onClick={() => vote(o.id)}
+            className={`chat-poll-opt chat-p2-opt${chosen ? ' is-chosen' : ''}`} aria-pressed={chosen}>
+            <span className="chat-poll-bar" style={{ width: `${poll.phase2Total ? o.pct : 0}%` }} />
+            <OptionThumb path={o.image_path} />
+            <span className="chat-poll-label" style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chosen ? '✓ ' : ''}{won ? '🏆 ' : ''}{o.title}</span>
+            <span className="chat-poll-n">{poll.phase2Total ? `${o.pct}%` : ''}</span>
+          </button>
+        )
+      })}
+      {err && <div style={{ fontSize: 12.5, color: '#B42318', background: '#fff', borderRadius: 8, padding: '4px 8px', marginTop: 6 }}>{err}</div>}
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 12.5, opacity: 0.8, marginTop: 8 }}>
+        <span>{poll.phase2Total} vot{poll.phase2Total === 1 ? 'o' : 'i'} · {closed ? 'chiusa' : 'in corso'}</span>
+        {href && <Link href={href} style={{ color: 'inherit', fontWeight: 700, textDecoration: 'underline' }}>Vedi le proposte</Link>}
+      </div>
     </div>
   )
 }

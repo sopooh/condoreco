@@ -15,7 +15,7 @@ export function useCondoChat(buildingId) {
     const supabase = createClient()
     const { data, error } = await supabase
       .from('messages')
-      .select('id, content, created_at, created_by, hidden, profiles:created_by(display_name, avatar_url, role)')
+      .select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta, profiles:created_by(display_name, avatar_url, role)')
       .eq('building_id', buildingId)
       .order('created_at', { ascending: false })
       .limit(50)
@@ -65,19 +65,27 @@ export function useCondoChat(buildingId) {
   }, [buildingId, loadMessages])
 
   const sendMessage = useCallback(
-    async (content) => {
+    // extra: { kind, attachment, ref_id, meta } per allegati, contatti, eventi
+    async (content, extra = {}) => {
       const trimmed = content?.trim()
       if (!trimmed) return { error: 'Messaggio vuoto' }
       if (!session?.user?.id) return { error: 'Devi essere autenticato' }
 
       const supabase = createClient()
-      const { error } = await supabase.from('messages').insert({
+      const { data, error } = await supabase.from('messages').insert({
         building_id: buildingId,
         created_by: session.user.id, // la RLS verifica che coincida con auth.uid()
-        content: trimmed,
-      })
+        content: trimmed.slice(0, 2000),
+        kind: extra.kind || 'text',
+        attachment: extra.attachment || null,
+        ref_id: extra.ref_id || null,
+        meta: extra.meta || null,
+      }).select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta').single()
 
-      return { error: error?.message ?? null }
+      if (error) return { error: 'Messaggio non inviato. Riprova.' }
+      // subito visibile anche se Realtime arriva in ritardo
+      setMessages((prev) => (prev.some((m) => m.id === data.id) ? prev : [...prev, { ...data, profiles: null }]))
+      return { error: null }
     },
     [buildingId, session?.user?.id]
   )

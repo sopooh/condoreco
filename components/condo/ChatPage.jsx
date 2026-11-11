@@ -5,6 +5,9 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Users, Building2, Wrench, UserRound, Pin, Plus, Search, X, UserPlus, Check } from 'lucide-react'
 import { useCondoChat } from '@/hooks/useCondoChat'
+import { usePolls } from '@/hooks/usePolls'
+import { useEvents } from '@/hooks/useEvents'
+import { createClient } from '@/lib/supabase/client'
 import { useCondoRole } from '@/hooks/useCondoRole'
 import { useCondoThreads, useThreadMessages, loadDirectory, markGroupRead } from '@/hooks/useCondoThreads'
 import { INTERVENTION_STATUS } from '@/hooks/useInterventions'
@@ -60,10 +63,15 @@ function ChatInner({ building }) {
   if (adminParam || interventoParam) {
     return <p style={{ padding: 24, fontSize: 14, color: opening && !opening.endsWith('...') ? '#B42318' : 'var(--text-3)' }}>{opening || 'Caricamento...'}</p>
   }
-  if (groupOpen) return <GroupChat building={building} onBack={back} />
+  // contatto condiviso in chat: apre (o crea) la conversazione privata
+  const openContact = async (userId) => {
+    const r = await threadsApi.openDirect(userId)
+    if (r.id) { threadsApi.reload(); router.push(`${base}?t=${r.id}`) }
+  }
+  if (groupOpen) return <GroupChat building={building} onBack={back} onOpenContact={openContact} />
   if (openParam) {
     const meta = threadsApi.threads.find((t) => t.thread_id === openParam)
-    return <ThreadChat key={openParam} building={building} threadId={openParam} meta={meta} onBack={back} />
+    return <ThreadChat key={openParam} building={building} threadId={openParam} meta={meta} onBack={back} onOpenContact={openContact} />
   }
   return <Inbox building={building} base={base} {...threadsApi} />
 }
@@ -227,29 +235,65 @@ function ThreadAvatar({ t, size = 44 }) {
 
 /* ─────────────── Conversazioni ─────────────── */
 
-function GroupChat({ building, onBack }) {
+function GroupChat({ building, onBack, onOpenContact }) {
   const { isCondoAdmin, userId } = useCondoRole(building.id)
   const { messages, sendMessage, hideMessage } = useCondoChat(building.id)
+  const { polls, castVote, changeVote, createPoll, reload: reloadPolls } = usePolls(building.id)
+  const { createEvent } = useEvents(building.id)
+  const [sheet, setSheet] = useState(null) // 'contact' | 'poll' | 'event'
+  const [events, setEvents] = useState({})
+  const [eventsLoaded, setEventsLoaded] = useState(false)
   useEffect(() => { markGroupRead(building.id, userId) }, [building.id, userId, messages.length])
-  const names = useMemo(() => Object.fromEntries(messages.map((m) => [m.created_by, m.profiles || {}])), [messages])
+  const names = useMemo(() => Object.fromEntries(messages.filter((m) => m.profiles).map((m) => [m.created_by, m.profiles])), [messages])
+  const pollMap = useMemo(() => Object.fromEntries(polls.map((p) => [p.id, p])), [polls])
+
+  // sondaggio appena arrivato in chat (anche da altri): ricarica i risultati
+  const missingPoll = messages.some((m) => m.kind === 'poll' && !pollMap[m.ref_id])
+  useEffect(() => { if (missingPoll) reloadPolls() }, [missingPoll, reloadPolls])
+
+  // eventi citati in chat
+  const eventIds = useMemo(() => [...new Set(messages.filter((m) => m.kind === 'event').map((m) => m.ref_id))].sort().join(','), [messages])
+  useEffect(() => {
+    if (!eventIds) return
+    let off = false
+    createClient().from('events').select('id, title, event_date, time_start, time_end, location, approved').in('id', eventIds.split(','))
+      .then(({ data }) => { if (!off) { setEvents(Object.fromEntries((data || []).map((e) => [e.id, e]))); setEventsLoaded(true) } })
+    return () => { off = true }
+  }, [eventIds])
+
+  async function onVote(pollId, vote) {
+    const p = pollMap[pollId]
+    const r = p?.hasVoted ? await changeVote(pollId, vote) : await castVote(pollId, vote)
+    if (!r?.error) await reloadPolls()
+    return r
+  }
+
   return (
-    <ChatThreadView
-      title="Chat del condominio"
-      subtitle="Tutti i residenti verificati"
-      avatar={<ThreadAvatar t={{ kind: 'group' }} size={38} />}
-      messages={messages.filter((m) => !m.hidden)}
-      names={names}
-      userId={userId}
-      onSend={sendMessage}
-      onHide={isCondoAdmin ? hideMessage : null}
-      onBack={onBack}
-    />
+    <>
+      <ChatThreadView
+        title="Chat del condominio"
+        subtitle="Tutti i residenti verificati"
+        avatar={<ThreadAvatar t={{ kind: 'group' }} size={38} />}
+        messages={messages.filter((m) => !m.hidden)}
+        names={names}
+        userId={userId}
+        onSend={sendMessage}
+        onHide={isCondoAdmin ? hideMessage : null}
+        onBack={onBack}
+        composer={{ buildingId: building.id, isGroup: true, onAction: setSheet }}
+        ctx={{ polls: pollMap, events, eventsLoaded, onVote, onOpenContact, buildingId: building.id }}
+      />
+      <ChatSheets sheet={sheet} onClose={() => setSheet(null)} buildingId={building.id} send={sendMessage}
+        createPoll={async (v) => { const r = await createPoll(v); if (!r.error) await reloadPolls(); return r }}
+        createEvent={createEvent} isCondoAdmin={isCondoAdmin} />
+    </>
   )
 }
 
-function ThreadChat({ building, threadId, meta, onBack }) {
+function ThreadChat({ building, threadId, meta, onBack, onOpenContact }) {
   const { messages, members, names, userId, send, addMembers, loading } = useThreadMessages(threadId)
   const [adding, setAdding] = useState(false)
+  const [sheet, setSheet] = useState(null)
   const kind = meta?.kind
   const others = members.filter((m) => m.user_id !== userId).map((m) => names[m.user_id]?.display_name || 'Residente')
   const title = meta?.title || (loading ? 'Chat' : 'Conversazione')
@@ -280,7 +324,10 @@ function ThreadChat({ building, threadId, meta, onBack }) {
         userId={userId}
         onSend={send}
         onBack={onBack}
+        composer={{ buildingId: building.id, threadId, isGroup: false, onAction: setSheet }}
+        ctx={{ onOpenContact, buildingId: building.id }}
       />
+      <ChatSheets sheet={sheet} onClose={() => setSheet(null)} buildingId={building.id} send={send} />
       {adding && (
         <Sheet onClose={() => setAdding(false)} title="Aggiungi vicini" subtitle="Vedranno questa chat dell'intervento">
           <PeoplePicker buildingId={building.id} mode="multi" exclude={members.map((m) => m.user_id)}
@@ -290,6 +337,116 @@ function ThreadChat({ building, threadId, meta, onBack }) {
     </>
   )
 }
+
+/* ─────────────── Fogli del "+" (contatto, sondaggio, evento) ─────────────── */
+
+function ChatSheets({ sheet, onClose, buildingId, send, createPoll, createEvent, isCondoAdmin }) {
+  if (sheet === 'contact') {
+    return (
+      <Sheet onClose={onClose} title="Condividi un contatto" subtitle="Scegli un vicino da mandare in chat">
+        <PeoplePicker buildingId={buildingId} mode="single" onPick={async ([id]) => {
+          const people = await loadDirectory(buildingId)
+          const p = (people || []).find((x) => x.user_id === id)
+          const name = p?.display_name || 'Residente'
+          const r = await send(`Contatto: ${name}`, { kind: 'contact', meta: { user_id: id, name, role: p?.role || null, floor: p?.floor || null } })
+          if (!r.error) onClose()
+          return r.error
+        }} />
+      </Sheet>
+    )
+  }
+  if (sheet === 'poll') return <PollSheet onClose={onClose} createPoll={createPoll} />
+  if (sheet === 'event') return <EventSheet onClose={onClose} createEvent={createEvent} send={send} isCondoAdmin={isCondoAdmin} />
+  return null
+}
+
+function PollSheet({ onClose, createPoll }) {
+  const [question, setQuestion] = useState('')
+  const [days, setDays] = useState(7)
+  const [anon, setAnon] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState(null)
+  async function submit(e) {
+    e.preventDefault()
+    if (question.trim().length < 5) { setErr('Scrivi una domanda di almeno 5 caratteri.'); return }
+    setBusy(true); setErr(null)
+    const r = await createPoll({ question: question.trim(), durationDays: days, isAnonymous: anon })
+    setBusy(false)
+    if (r.error) setErr('Sondaggio non creato. Riprova.'); else onClose()
+  }
+  return (
+    <Sheet onClose={onClose} title="Nuovo sondaggio" subtitle="Compare in chat e nella sezione Decisioni. Si risponde Sì o No.">
+      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <label className="ep-field"><span className="ep-label">Domanda</span>
+          <span className="ep-input" style={{ height: 'auto' }}>
+            <textarea value={question} onChange={(e) => setQuestion(e.target.value)} rows={3} maxLength={300} placeholder="Es. Rifacciamo la facciata in primavera?"
+              style={{ flex: 1, border: 'none', outline: 'none', resize: 'none', font: 'inherit', fontSize: 16, padding: '12px 14px', background: 'transparent' }} />
+          </span>
+        </label>
+        <span className="ep-label">Durata</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 14 }}>
+          {[3, 7, 14].map((d) => (
+            <button key={d} type="button" onClick={() => setDays(d)} aria-pressed={days === d} style={chip(days === d)}>{d} giorni</button>
+          ))}
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, fontSize: 15, cursor: 'pointer' }}>
+          <input type="checkbox" checked={anon} onChange={(e) => setAnon(e.target.checked)} style={{ width: 20, height: 20, accentColor: 'var(--teal)' }} />
+          Voto anonimo (si vedono solo i totali)
+        </label>
+        {err && <p className="auth-err">{err}</p>}
+        <button type="submit" className="ep-save" disabled={busy}>{busy ? 'Creazione…' : 'Crea e invia in chat'}</button>
+      </form>
+    </Sheet>
+  )
+}
+
+function EventSheet({ onClose, createEvent, send, isCondoAdmin }) {
+  const today = new Date().toISOString().slice(0, 10)
+  const [v, setV] = useState({ title: '', date: today, start: '', end: '', location: '', type: 'general' })
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState(null)
+  const set = (k) => (e) => setV((x) => ({ ...x, [k]: e.target.value }))
+  async function submit(e) {
+    e.preventDefault()
+    if (!v.title.trim()) { setErr('Dai un titolo all\'evento.'); return }
+    setBusy(true); setErr(null)
+    const r = await createEvent({ title: v.title, eventDate: v.date, timeStart: v.start, timeEnd: v.end, eventType: v.type, location: v.location })
+    if (r.error || !r.id) { setBusy(false); setErr('Evento non creato. Riprova.'); return }
+    const when = new Date(`${v.date}T00:00:00`).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })
+    const s2 = await send(`Evento: ${v.title.trim()} · ${when}`, { kind: 'event', ref_id: r.id })
+    setBusy(false)
+    if (s2.error) setErr('Evento creato nel calendario, ma non inviato in chat.'); else onClose()
+  }
+  return (
+    <Sheet onClose={onClose} title="Nuovo evento" subtitle={isCondoAdmin ? 'Va subito nel calendario e in chat.' : 'Va in chat e nel calendario; l\'amministratore lo approva.'}>
+      <form onSubmit={submit}>
+        <label className="ep-field"><span className="ep-label">Titolo</span>
+          <span className="ep-input"><input value={v.title} onChange={set('title')} maxLength={120} placeholder="Es. Riunione per il cortile" /></span>
+        </label>
+        <label className="ep-field"><span className="ep-label">Giorno</span>
+          <span className="ep-input"><input type="date" value={v.date} min={today} onChange={set('date')} /></span>
+        </label>
+        <div className="ep-row2" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          <label className="ep-field"><span className="ep-label">Dalle</span><span className="ep-input"><input type="time" value={v.start} onChange={set('start')} /></span></label>
+          <label className="ep-field"><span className="ep-label">Alle</span><span className="ep-input"><input type="time" value={v.end} onChange={set('end')} /></span></label>
+        </div>
+        <label className="ep-field"><span className="ep-label">Luogo (facoltativo)</span>
+          <span className="ep-input"><input value={v.location} onChange={set('location')} maxLength={120} placeholder="Es. Androne, scala B" /></span>
+        </label>
+        <span className="ep-label">Tipo</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 14 }}>
+          {[['general', 'Generale'], ['meeting', 'Riunione'], ['maintenance', 'Manutenzione'], ['water', 'Acqua / utenze']].map(([id, label]) => (
+            <button key={id} type="button" onClick={() => setV((x) => ({ ...x, type: id }))} aria-pressed={v.type === id} style={chip(v.type === id)}>{label}</button>
+          ))}
+        </div>
+        {err && <p className="auth-err">{err}</p>}
+        <button type="submit" className="ep-save" disabled={busy}>{busy ? 'Creazione…' : 'Crea e invia in chat'}</button>
+      </form>
+    </Sheet>
+  )
+}
+
+const chip = (on) => ({ minHeight: 0, height: 44, borderRadius: 12, border: `1.5px solid ${on ? 'var(--teal)' : 'var(--border)'}`, background: on ? 'var(--teal-lt)' : 'var(--white)', color: on ? 'var(--teal-dk)' : 'var(--text-2)', fontWeight: 700, fontSize: 14.5, cursor: 'pointer' })
 
 /* ─────────────── Scelta persone ─────────────── */
 

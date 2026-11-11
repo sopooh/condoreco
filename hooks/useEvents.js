@@ -38,11 +38,11 @@ export function useEvents(buildingId) {
   // Creazione: i residenti creano proposte (approved = false via default DB).
   // L'admin puo' passare approved: true e l'evento e' subito in bacheca.
   const createEvent = useCallback(
-    async ({ title, eventDate, timeStart, timeEnd, eventType = 'general' }) => {
+    async ({ title, eventDate, timeStart, timeEnd, eventType = 'general', location }) => {
       if (!session?.user?.id) return { error: 'Devi essere autenticato' }
 
       const supabase = createClient()
-      const { error } = await supabase.from('events').insert({
+      const { data, error } = await supabase.from('events').insert({
         building_id: buildingId,
         created_by: session.user.id,
         title: title.trim(),
@@ -50,11 +50,12 @@ export function useEvents(buildingId) {
         time_start: timeStart || null,  // 'HH:MM'
         time_end: timeEnd || null,
         event_type: eventType,          // water | maintenance | meeting | general
+        ...(location ? { location: location.trim() } : {}),
         ...(isCondoAdmin ? { approved: true } : {}),
-      })
+      }).select('id').single()
 
       if (!error) await loadEvents()
-      return { error: error?.message ?? null }
+      return { error: error?.message ?? null, id: data?.id ?? null }
     },
     [buildingId, session?.user?.id, isCondoAdmin, loadEvents]
   )

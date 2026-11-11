@@ -6,6 +6,9 @@ import Link from 'next/link'
 import { useSession } from '@/components/providers/SessionProvider'
 import { getProfile } from '@/lib/profile'
 import { usePolls } from '@/hooks/usePolls'
+import { useCondoRole } from '@/hooks/useCondoRole'
+import { useMyAccount } from '@/hooks/useAccounting'
+import { euro, isOverdue } from '@/lib/accounting'
 import { useTickets, isTicketOpen } from '@/hooks/useTickets'
 import { useInterventions, isActiveIntervention } from '@/hooks/useInterventions'
 import { usePublicInterventions } from '@/hooks/usePublicInterventions'
@@ -53,6 +56,10 @@ export default function CondoDashboard({ building }) {
   const openPolls = polls.filter((p) => p.isOpen)
   const toVote = openPolls.filter((p) => !p.hasVoted).length
   const scheduledToday = todayInterventions.filter((i) => i.status === 'scheduled').length
+  const { isCondoAdmin } = useCondoRole(buildingId)
+  const myAcc = useMyAccount(buildingId)
+  const myOverdue = myAcc.charges.filter((c) => isOverdue(c, today))
+  const myOverdueSum = myOverdue.reduce((n, c) => n + Number(c.amount), 0)
 
   // appuntamenti del calendario da oggi in poi (griglia del mese corrente)
   const now = new Date()
@@ -113,12 +120,23 @@ export default function CondoDashboard({ building }) {
           title="Bacheca urgente"
           text="Avvisi, interventi programmati e segnalazioni importanti."
           status={[
+            myOverdueSum ? `Quote arretrate ${euro(myOverdueSum)}` : null,
             scheduledToday ? `${scheduledToday} ${scheduledToday === 1 ? 'intervento' : 'interventi'} oggi` : null,
             openTickets ? `${openTickets} ${openTickets === 1 ? 'ticket aperto' : 'ticket aperti'}` : null,
           ].filter(Boolean).join(' · ') || 'Nessun avviso aperto'}
-          highlight={scheduledToday > 0}
+          highlight={scheduledToday > 0 || myOverdueSum > 0}
           art={<MegaphoneArt />}
         />
+        {isCondoAdmin && (
+          <HubCard
+            href={`${base}/contabilita`}
+            tag="Amministratore"
+            title="Contabilità"
+            text="Preventivo, rate dei condomini, bonifici da confermare ed estratto conto."
+            status="Gestisci quote e pagamenti"
+            art={<CoinsArt />}
+          />
+        )}
         <HubCard
           href={`${base}/calendario`}
           tag="Area condominiale"
@@ -247,6 +265,20 @@ function CalendarArt() {
       {[0, 1, 2].map((r) => [0, 1, 2, 3].map((c) => (
         <rect key={`${r}-${c}`} x={18 + c * 13} y={41 + r * 10} width="9" height="6" rx="2" fill={r === 1 && c === 2 ? O : '#FFFFFF'} />
       )))}
+    </svg>
+  )
+}
+function CoinsArt() {
+  return (
+    <svg viewBox="0 0 84 84" width="100%" height="100%" aria-hidden="true">
+      <ellipse cx="42" cy="77" rx="30" ry="4" fill="rgba(13,103,111,0.12)" />
+      <ellipse cx="34" cy="58" rx="22" ry="8" fill={T} />
+      <rect x="12" y="44" width="44" height="14" fill={T} />
+      <ellipse cx="34" cy="44" rx="22" ry="8" fill={TL} />
+      <ellipse cx="50" cy="38" rx="22" ry="8" fill={O} />
+      <rect x="28" y="24" width="44" height="14" fill={O} />
+      <ellipse cx="50" cy="24" rx="22" ry="8" fill="#FFB27D" />
+      <text x="50" y="28" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff">€</text>
     </svg>
   )
 }

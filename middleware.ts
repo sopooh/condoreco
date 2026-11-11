@@ -73,6 +73,7 @@ export const config = {
     '/edificio/:id/condominio/interventi',
     '/edificio/:id/condominio/bacheca',
     '/edificio/:id/condominio/archivio',
+    '/edificio/:id/condominio/contabilita',
     '/edificio/:id/condominio/chat',
   ],
 }

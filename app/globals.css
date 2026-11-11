@@ -2192,3 +2192,37 @@ input, select, textarea { font-family: inherit; }
 .acc-rows .acc-pill { display: block; width: fit-content; margin-left: auto; }
 .acc-rows li > span:nth-child(3) { flex-shrink: 0; }
 #rendicontazione { scroll-margin-top: 72px; }
+
+/* ── Pagina Rendicontazione ── */
+.rp2 { background: var(--bg); min-height: 100%; padding-bottom: 48px; }
+.rp2-hero { position: relative; overflow: hidden; color: #fff; background: linear-gradient(160deg, #0D676F 0%, #0A5258 65%, #3E8E91 100%); padding: 16px 20px 64px; }
+.rp2-wave { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.rp2-inner { position: relative; max-width: 720px; margin: 0 auto; }
+.rp2-back { display: inline-flex; align-items: center; gap: 2px; color: rgba(255,255,255,.85); font-size: 14px; font-weight: 600; margin-bottom: 14px; }
+.rp2-building { display: flex; align-items: center; gap: 14px; }
+.rp2-thumb { width: 64px; height: 56px; border-radius: 12px; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,.18); }
+.rp2-building small { display: block; font-size: 14px; opacity: .9; }
+.rp2-building strong { display: block; font-size: 18px; font-weight: 800; letter-spacing: -.2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rp2-hero h1 { font-size: 32px; font-weight: 800; letter-spacing: -.8px; margin: 18px 0 2px; color: #fff; }
+.rp2-hero p { font-size: 15px; opacity: .92; margin: 0; }
+.rp2-body { position: relative; max-width: 720px; margin: -44px auto 0; padding: 0 10px; display: flex; flex-direction: column; gap: 14px; }
+.rp2-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; padding: 6px; border-radius: 20px; background: #fff; box-shadow: 0 8px 24px rgba(13,103,111,.14); }
+.rp2-tabs a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 0; padding: 10px 2px; border-radius: 14px; color: var(--text-2); font-size: 12.5px; font-weight: 600; text-align: center; }
+.rp2-tabs a span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rp2-tabs a.is-on { background: var(--teal-lt); color: var(--teal-dk); font-weight: 800; letter-spacing: -.3px; }
+.rp2-tabs a:not(.is-on):hover { background: var(--bg); }
+.rc-items { list-style: none; margin: 10px 0 0; padding: 10px 0 0; border-top: 1px solid var(--border-2); }
+.rc-items li { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 14px; }
+.rc-items small { display: block; font-size: 12px; color: var(--text-3); }
+.rc-items b { white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (min-width: 640px) { .rp2-tabs a { font-size: 13.5px; } .rp2-body { padding: 0 16px; } }
+.rp2-tabs { grid-template-columns: 1.55fr repeat(4, minmax(0, 1fr)); }
+.rp2-tabs a { font-size: 12px; letter-spacing: -.2px; }
+.rp2-tabs a.is-on { letter-spacing: -.45px; }
+.rc-box-head { flex-wrap: wrap; row-gap: 4px; }
+.rc-box-head > span { white-space: nowrap; }
+.rc-link { white-space: nowrap; margin-left: auto; }
+@media (max-width: 380px) { .rc-box-head em { display: none; } }
+.rp2-tabs { grid-template-columns: 1.45fr repeat(4, minmax(0, 1fr)); padding: 6px 4px; gap: 0; }
+.rp2-tabs a { font-size: 11.5px; padding: 10px 0; }
+.rc-donut-c b { font-size: 14.5px; }

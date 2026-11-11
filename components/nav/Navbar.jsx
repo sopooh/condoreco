@@ -1,12 +1,12 @@
 'use client'
 
-import { ChevronRight, Compass, LogOut, MailCheck, Settings, UserRound, Users, X, Wrench, ClipboardList } from 'lucide-react'
+import { ChevronRight, Compass, LogOut, Settings, UserRound, Users, X, Wrench, ClipboardList } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
-import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
+import AuthDialog from '@/components/auth/AuthDialog'
 import NotificationBell from '@/components/nav/NotificationBell'
 
 // Niente useIsMobile qui: nav desktop e hamburger sono renderizzati SEMPRE
@@ -18,12 +18,8 @@ export default function Navbar() {
   const session = useSession()
   const supabase = createClient()
   const [authOpen, setAuthOpen] = useState(false)
+  const [authMode, setAuthMode] = useState('login')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
-  const [busy, setBusy] = useState(false)
-  const [busyGoogle, setBusyGoogle] = useState(false)
-  const [err, setErr] = useState('')
   const [isAdminUser, setIsAdminUser] = useState(false)
   const [isSupplier, setIsSupplier] = useState(false)
 
@@ -46,6 +42,7 @@ export default function Navbar() {
   useEffect(() => {
     const open = (e) => {
       try { if (e.detail?.next) window.localStorage.setItem('condoreco:next', e.detail.next) } catch { /* ignore */ }
+      setAuthMode(e.detail?.mode || 'login')
       setAuthOpen(true)
     }
     window.addEventListener('condoreco:open-auth', open)
@@ -61,29 +58,6 @@ export default function Navbar() {
       }
     } catch { /* ignore */ }
   }, [session])
-
-  async function handleGoogleSignIn() {
-    setErr(''); setBusyGoogle(true)
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback`, skipBrowserRedirect: true },
-    })
-    setBusyGoogle(false)
-    if (error) { setErr(error.message); return }
-    if (data?.url) { window.location.assign(data.url); return }
-    setErr('Impossibile avviare l\'accesso con Google.')
-  }
-
-  async function handleMagicLink(e) {
-    e.preventDefault(); setErr(''); setBusy(true)
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    })
-    setBusy(false)
-    if (error) setErr(error.message)
-    else setSent(true)
-  }
 
   function closeMenu() { setMenuOpen(false) }
 
@@ -129,7 +103,7 @@ export default function Navbar() {
               <Button variant="ghost" onClick={() => supabase.auth.signOut()}>Esci</Button>
             </>
           ) : (
-            <Button variant="ghost" onClick={() => setAuthOpen(true)}>Accedi</Button>
+            <Button variant="ghost" onClick={() => { setAuthMode('login'); setAuthOpen(true) }}>Accedi</Button>
           )}
         </div>
 
@@ -208,7 +182,7 @@ export default function Navbar() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                 }}><MenuIcon name="logout" /> Esci</button>
               ) : (
-                <button onClick={() => { setAuthOpen(true); closeMenu() }} style={{
+                <button onClick={() => { setAuthMode('login'); setAuthOpen(true); closeMenu() }} style={{
                   width: '100%', height: 52, borderRadius: 14, border: 'none',
                   background: 'var(--teal)', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer',
                 }}>Accedi</button>
@@ -230,37 +204,7 @@ export default function Navbar() {
       )}
 
       {/* Auth Modal */}
-      <Modal open={authOpen} onClose={() => { setAuthOpen(false); setSent(false) }}
-             title="Accedi a CondoReco"
-             subtitle="Entra per scrivere recensioni e seguire i tuoi edifici.">
-        {sent ? (
-          <div style={{ textAlign: 'center', padding: '12px 0' }}>
-            <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--teal-lt)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--teal)' }}><MailCheck size={28} strokeWidth={1.8} aria-hidden="true" /></div>
-            <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>Controlla la tua email</div>
-            <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.7 }}>
-              Abbiamo inviato un link di accesso a <strong>{email}</strong>. Apri la mail e clicca per entrare.
-            </p>
-            <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 14 }}>Non la trovi? Controlla nello spam.</p>
-          </div>
-        ) : (
-          <>
-            <Button variant="ghost" block onClick={handleGoogleSignIn} disabled={busyGoogle} style={{ marginBottom: 16, padding: 12 }}>
-              {busyGoogle ? 'Reindirizzamento...' : 'Continua con Google'}
-            </Button>
-            <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-4)', margin: '8px 0 16px' }}>oppure con email</div>
-            <form onSubmit={handleMagicLink}>
-              <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="latua@email.com"
-                style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '11px 14px', fontSize: 14, marginBottom: 12, outline: 'none' }}
-              />
-              {err && <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 12 }}>{err}</p>}
-              <Button variant="primary" block type="submit" disabled={busy} style={{ padding: 12 }}>
-                {busy ? 'Invio in corso...' : 'Inviami il link di accesso'}
-              </Button>
-            </form>
-          </>
-        )}
-      </Modal>
+      {authOpen && <AuthDialog open initialMode={authMode} onClose={() => setAuthOpen(false)} />}
     </>
   )
 }

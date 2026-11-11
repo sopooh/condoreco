@@ -1,6 +1,6 @@
 'use client'
 
-import { Building2, Camera, ChevronRight, History, House, Map as LMap, MessageSquare, Pencil, Plus, ShieldCheck, Sparkles, UserRound, Users, Wrench, Zap, Bookmark } from 'lucide-react'
+import { Building2, Camera, ChevronRight, History, House, Map as LMap, MessageSquare, Pencil, Plus, ShieldCheck, Sparkles, UserRound, Users, Wrench, Zap, Bookmark, KeyRound } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Avatar from '@/components/ui/Avatar'
@@ -247,7 +247,8 @@ export default function ProfileClient() {
                 <ActionRow href="/cerca" icon={<MapIcon />} label="Esplora edifici" />
                 <ActionRow href="/amministratori" icon={<UsersIcon />} label="Cerca amministratori" />
                 <ActionRow href="/amministratori?salvati=1" icon={<Bookmark size={18} strokeWidth={2} aria-hidden="true" />} label="Amministratori salvati" />
-                <ActionRow href="/fornitori?salvati=1" icon={<Bookmark size={18} strokeWidth={2} aria-hidden="true" />} label="Fornitori salvati" last />
+                <ActionRow href="/fornitori?salvati=1" icon={<Bookmark size={18} strokeWidth={2} aria-hidden="true" />} label="Fornitori salvati" />
+                <ActionRow href="/reimposta-password" icon={<KeyRound size={18} strokeWidth={2} aria-hidden="true" />} label="Imposta o cambia password" last />
               </nav>
             </section>
 

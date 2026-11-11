@@ -5,6 +5,8 @@ import { AlertTriangle, ArrowRight, BarChart3, CheckCircle2, Clock3, Coins, Lock
 import { useMyAccount } from '@/hooks/useAccounting'
 import { SPESA_CATEGORIES, categoryOf, euro, fmtDay, isOverdue, todayISO } from '@/lib/accounting'
 import PayNowSheet from '@/components/condo/accounting/PayNowSheet'
+import { ReceiptSheet, ReceiptsBox } from '@/components/condo/accounting/Receipts'
+import { CHARGE_STATUS, statusKey } from '@/lib/accounting'
 
 // Prima sezione privata della Bacheca: situazione economica del condomino.
 export default function Rendicontazione({ building }) {
@@ -12,6 +14,7 @@ export default function Rendicontazione({ building }) {
   const [payOpen, setPayOpen] = useState(false)
   const [showAllPaid, setShowAllPaid] = useState(false)
   const [showItems, setShowItems] = useState(false)
+  const [receiptFor, setReceiptFor] = useState(null) // ids preselezionati
   // ritorno da Stripe: ?pagamento=ok | annullato
   const [returned] = useState(() => (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('pagamento')))
   const today = todayISO()
@@ -29,6 +32,7 @@ export default function Rendicontazione({ building }) {
       overdueSum: sum(overdue), pendingSum: sum(pending),
       installment: budgetCharges[0]?.amount ?? null,
       myYearly: sum(budgetCharges),
+      yearCharges: acc.charges.filter((c) => c.due_date.startsWith(today.slice(0, 4))),
     }
   }, [acc.charges, acc.budget, today])
 
@@ -99,20 +103,25 @@ export default function Rendicontazione({ building }) {
               <span className="rc-tile-ico"><Coins size={24} strokeWidth={1.8} aria-hidden="true" /></span>
               <span>
                 <small>Quote condominiali</small>
-                <b>{view.installment != null ? euro(view.installment) : '–'}<em> / {perInst}</em></b>
+                {view.installment != null ? <b>{euro(view.installment)}<em> / {perInst}</em></b> : <b style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-3)', whiteSpace: 'normal' }}>Preventivo non ancora caricato</b>}
               </span>
             </div>
           </div>
 
-          {acc.budget && items.length > 0 && (
-            <div className="rc-box">
-              <div className="rc-box-head">
-                <span><BarChart3 size={20} aria-hidden="true" />Riepilogo spese <em>(anno {acc.budget.year})</em></span>
+          <div className="rc-box">
+            <div className="rc-box-head">
+              <span><BarChart3 size={20} aria-hidden="true" />Riepilogo spese <em>(anno {acc.budget?.year || today.slice(0, 4)})</em></span>
+              {(items.length > 0 || view.yearCharges.length > 0) && (
                 <button type="button" className="rc-link" onClick={() => setShowItems((v) => !v)} aria-expanded={showItems}>
                   {showItems ? 'Chiudi' : 'Vedi dettaglio'}<ArrowRight size={16} aria-hidden="true" style={{ transform: showItems ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }} />
                 </button>
-              </div>
-              <div className="rc-spese">
+              )}
+            </div>
+
+            <YearSummary charges={view.yearCharges} />
+
+            {items.length > 0 ? (
+              <div className="rc-spese" style={{ marginTop: 6 }}>
                 <Donut items={items} total={total} />
                 <ul className="rc-legend">
                   {SPESA_CATEGORIES.map((cat) => {
@@ -129,20 +138,39 @@ export default function Rendicontazione({ building }) {
                   })}
                 </ul>
               </div>
-              {showItems && (
-                <ul className="rc-items">
-                  {[...items].sort((x, y) => x.position - y.position).map((i) => (
-                    <li key={i.id}>
-                      <span className="rc-dot" style={{ background: categoryOf(i.category).color }} />
-                      <span style={{ flex: 1, minWidth: 0 }}>{i.label}<small>{categoryOf(i.category).label}</small></span>
-                      <b>{euro(i.amount)}</b>
+            ) : (
+              <p className="rc-muted" style={{ margin: '4px 0 0', fontSize: 13 }}>Il preventivo del condominio non è ancora stato caricato: qui sotto trovi le spese che ti sono state addebitate.</p>
+            )}
+
+            {showItems && items.length > 0 && (
+              <ul className="rc-items">
+                {[...items].sort((x, y) => x.position - y.position).map((i) => (
+                  <li key={i.id}>
+                    <span className="rc-dot" style={{ background: categoryOf(i.category).color }} />
+                    <span style={{ flex: 1, minWidth: 0 }}>{i.label}<small>{categoryOf(i.category).label}</small></span>
+                    <b>{euro(i.amount)}</b>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {(showItems || items.length === 0) && view.yearCharges.length > 0 && (
+              <ul className="rc-lines" style={{ marginTop: 8 }}>
+                {view.yearCharges.map((c) => {
+                  const st = CHARGE_STATUS[statusKey(c, today)]
+                  return (
+                    <li key={c.id}>
+                      <span style={{ flex: 1, minWidth: 0 }}><strong>{c.title}</strong><small>Scadenza {fmtDay(c.due_date)}</small></span>
+                      <span style={{ textAlign: 'right' }}><b>{euro(c.amount)}</b><span className="acc-pill" style={{ display: 'block', width: 'fit-content', marginLeft: 'auto', background: st.bg, color: st.fg }}>{st.label}</span></span>
                     </li>
-                  ))}
-                </ul>
-              )}
-              {view.myYearly > 0 && <p className="rc-share">La tua quota per il {acc.budget.year}: <b>{euro(view.myYearly)}</b></p>}
-            </div>
-          )}
+                  )
+                })}
+              </ul>
+            )}
+            {view.myYearly > 0 && <p className="rc-share">La tua quota per il {acc.budget.year}: <b>{euro(view.myYearly)}</b></p>}
+          </div>
+
+          <ReceiptsBox receipts={acc.receipts} canUpload={view.open.length + view.pending.length > 0}
+            onUpload={() => setReceiptFor(view.overdue.map((c) => c.id))} />
 
           <div className="rc-box">
             <div className="rc-box-head">
@@ -174,9 +202,29 @@ export default function Rendicontazione({ building }) {
       {payOpen && (
         <PayNowSheet charges={view.open} overdueIds={view.overdue.map((c) => c.id)} settings={acc.settings}
           onClose={() => setPayOpen(false)}
-          onReport={acc.reportTransfer} onCheckout={acc.startCheckout} />
+          onReport={acc.reportTransfer} onCheckout={acc.startCheckout}
+          onUploadReceipt={(ids) => { setPayOpen(false); setReceiptFor(ids) }} />
+      )}
+      {receiptFor && (
+        <ReceiptSheet charges={[...view.open, ...view.pending].sort((a, b) => a.due_date.localeCompare(b.due_date))} preselected={receiptFor}
+          onClose={() => setReceiptFor(null)} onSubmit={acc.submitReceipt} />
       )}
     </section>
+  )
+}
+
+function YearSummary({ charges }) {
+  if (!charges.length) return null
+  const sum = (l) => l.reduce((n, c) => n + Number(c.amount), 0)
+  const live = charges.filter((c) => c.status !== 'cancelled')
+  const paid = live.filter((c) => c.status === 'paid')
+  const due = live.filter((c) => c.status !== 'paid')
+  return (
+    <div className="rc-sum">
+      <div><small>Totale addebitato</small><b>{euro(sum(live))}</b></div>
+      <div><small>Pagato</small><b style={{ color: '#067647' }}>{euro(sum(paid))}</b></div>
+      <div><small>Da pagare</small><b style={{ color: due.length ? '#C4320A' : undefined }}>{euro(sum(due))}</b></div>
+    </div>
   )
 }
 

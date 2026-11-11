@@ -109,7 +109,7 @@ export default function CondoDashboard({ building }) {
       <div style={{ maxWidth: 720, margin: '-36px auto 0', padding: '0 16px 48px', position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: 14 }}>
         <MyUnitBanner building={building} />
         <HubCard
-          href={`${base}/bacheca#rendicontazione`}
+          href={`${base}/rendicontazione`}
           personal
           tag="Area personale"
           title="Rendicontazione"

@@ -9,7 +9,6 @@ import { maintenanceCategoryLabel } from '@/lib/maintenanceCategories'
 import { toLocalISODate } from '@/lib/localDate'
 import TicketBoardCard from '@/components/condo/TicketBoardCard'
 import NoticesForMe from '@/components/condo/NoticesForMe'
-import Rendicontazione from '@/components/condo/accounting/Rendicontazione'
 
 // Bacheca urgente: interventi programmati dai residenti (visibili a tutti,
 // solo i dati pubblici) dal giorno corrente in avanti + ticket aperti/chiusi.
@@ -44,15 +43,6 @@ export default function BachecaPage({ building }) {
         <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', margin: 0 }}>Bacheca urgente</h1>
         <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '4px 0 0' }}>{building.address}{building.street_number ? `, ${building.street_number}` : ''}</p>
       </div>
-
-      {/* prima sezione privata: la situazione economica del condomino */}
-      <Rendicontazione building={building} />
-      {isCondoAdmin && (
-        <Link href={`${base}/contabilita`} className="rc-admin-link">
-          <span><strong>Contabilità del condominio</strong><small>Preventivo, rate, bonifici da confermare, estratto conto</small></span>
-          <span aria-hidden="true">›</span>
-        </Link>
-      )}
 
       {/* avvisi dei vicini per me + piano */}
       <NoticesForMe building={building} />

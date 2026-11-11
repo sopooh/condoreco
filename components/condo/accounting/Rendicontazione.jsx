@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AlertTriangle, ArrowRight, BarChart3, CheckCircle2, Clock3, Coins, Lock, ReceiptText } from 'lucide-react'
 import { useMyAccount } from '@/hooks/useAccounting'
 import { SPESA_CATEGORIES, categoryOf, euro, fmtDay, isOverdue, todayISO } from '@/lib/accounting'
@@ -11,6 +11,7 @@ export default function Rendicontazione({ building }) {
   const acc = useMyAccount(building.id)
   const [payOpen, setPayOpen] = useState(false)
   const [showAllPaid, setShowAllPaid] = useState(false)
+  const [showItems, setShowItems] = useState(false)
   // ritorno da Stripe: ?pagamento=ok | annullato
   const [returned] = useState(() => (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('pagamento')))
   const today = todayISO()
@@ -30,11 +31,6 @@ export default function Rendicontazione({ building }) {
       myYearly: sum(budgetCharges),
     }
   }, [acc.charges, acc.budget, today])
-
-  // arrivo dalla scheda "Rendicontazione" della home del condominio
-  useEffect(() => {
-    if (!acc.loading && window.location.hash === '#rendicontazione') document.getElementById('rendicontazione')?.scrollIntoView({ block: 'start' })
-  }, [acc.loading])
 
   if (acc.loading) return <section className="rc"><p className="rc-muted">Caricamento della rendicontazione…</p></section>
 
@@ -112,6 +108,9 @@ export default function Rendicontazione({ building }) {
             <div className="rc-box">
               <div className="rc-box-head">
                 <span><BarChart3 size={20} aria-hidden="true" />Riepilogo spese <em>(anno {acc.budget.year})</em></span>
+                <button type="button" className="rc-link" onClick={() => setShowItems((v) => !v)} aria-expanded={showItems}>
+                  {showItems ? 'Chiudi' : 'Vedi dettaglio'}<ArrowRight size={16} aria-hidden="true" style={{ transform: showItems ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }} />
+                </button>
               </div>
               <div className="rc-spese">
                 <Donut items={items} total={total} />
@@ -130,6 +129,17 @@ export default function Rendicontazione({ building }) {
                   })}
                 </ul>
               </div>
+              {showItems && (
+                <ul className="rc-items">
+                  {[...items].sort((x, y) => x.position - y.position).map((i) => (
+                    <li key={i.id}>
+                      <span className="rc-dot" style={{ background: categoryOf(i.category).color }} />
+                      <span style={{ flex: 1, minWidth: 0 }}>{i.label}<small>{categoryOf(i.category).label}</small></span>
+                      <b>{euro(i.amount)}</b>
+                    </li>
+                  ))}
+                </ul>
+              )}
               {view.myYearly > 0 && <p className="rc-share">La tua quota per il {acc.budget.year}: <b>{euro(view.myYearly)}</b></p>}
             </div>
           )}
@@ -187,7 +197,7 @@ function Donut({ items, total }) {
             strokeDasharray={`${Math.max(0, s.len - 1.5)} ${C}`} strokeDashoffset={-s.offset} transform="rotate(-90 70 70)" />
         ))}
       </svg>
-      <span className="rc-donut-c"><b>{euro(total, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}</b><small>Totale spese</small></span>
+      <span className="rc-donut-c"><b>{euro(total)}</b><small>Totale spese</small></span>
     </div>
   )
 }

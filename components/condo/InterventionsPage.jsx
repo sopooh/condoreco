@@ -267,6 +267,9 @@ function DetailSheet({ intervention: i, maintainer, onClose, onContact, onSchedu
           )}
         </div>
         {i.description && <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap' }}>{i.description}</p>}
+        <Link href={`/edificio/${i.building_id}/condominio/chat?intervento=${i.id}`} style={{ ...primaryBtn, height: 50, textDecoration: 'none' }}>
+          <ChatIcon /> Vai alla chat
+        </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14, background: '#F5F7F7' }}>
           <span style={{ color: 'var(--teal)' }}><PersonIcon /></span>
           <span style={{ flex: 1, fontSize: 14.5, fontWeight: 600 }}>{maintainer ? maintainer.name : 'Nessun fornitore scelto'}</span>

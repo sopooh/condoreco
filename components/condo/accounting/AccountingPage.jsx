@@ -398,7 +398,7 @@ function MarkPaidSheet({ count, onClose, onSave }) {
 }
 
 function AddChargeSheet({ members, onClose, onSave }) {
-  const [v, setV] = useState({ title: '', amount: '', due: todayISO(), split: true, userId: '' })
+  const [v, setV] = useState({ title: '', amount: '', due: todayISO(), split: true, userId: '', kind: 'ordinaria' })
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState(null)
   const set = (k) => (e) => setV((x) => ({ ...x, [k]: e.target.value }))
@@ -409,7 +409,7 @@ function AddChargeSheet({ members, onClose, onSave }) {
     if (!(amount > 0)) return setErr('Importo non valido.')
     if (!v.split && !v.userId) return setErr('Scegli il condomino.')
     setBusy(true); setErr(null)
-    const e2 = await onSave({ title: v.title.trim(), amount, due: v.due, split: v.split, userId: v.userId })
+    const e2 = await onSave({ title: v.title.trim(), amount, due: v.due, split: v.split, userId: v.userId, kind: v.kind })
     setBusy(false)
     if (e2) setErr(e2)
   }
@@ -426,6 +426,11 @@ function AddChargeSheet({ members, onClose, onSave }) {
           <label className="ep-field"><span className="ep-label">Scadenza</span>
             <span className="ep-input"><input type="date" value={v.due} onChange={set('due')} /></span>
           </label>
+        </div>
+        <span className="ep-label">Tipo di spesa</span>
+        <div className="p2-chips" style={{ marginBottom: 12 }}>
+          <button type="button" className={`p2-chip${v.kind === 'ordinaria' ? ' is-on' : ''}`} onClick={() => setV((x) => ({ ...x, kind: 'ordinaria' }))}>Ordinaria</button>
+          <button type="button" className={`p2-chip${v.kind === 'straordinaria' ? ' is-on' : ''}`} onClick={() => setV((x) => ({ ...x, kind: 'straordinaria' }))}>Straordinaria</button>
         </div>
         <span className="ep-label">A chi</span>
         <div className="p2-chips" style={{ marginBottom: 12 }}>
@@ -468,7 +473,7 @@ function Budgets({ acc }) {
 
 function NewBudgetSheet({ onClose, onSave }) {
   const y = new Date().getFullYear()
-  const [v, setV] = useState({ year: y, title: 'Preventivo ordinario', installments: 12, first_due: `${y}-01-10` })
+  const [v, setV] = useState({ year: y, title: 'Preventivo ordinario', installments: 12, first_due: `${y}-01-10`, kind: 'ordinaria' })
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState(null)
   return (
@@ -480,6 +485,10 @@ function NewBudgetSheet({ onClose, onSave }) {
         <label className="ep-field"><span className="ep-label">Nome</span>
           <span className="ep-input"><input value={v.title} onChange={(e) => setV({ ...v, title: e.target.value })} maxLength={120} /></span>
         </label>
+      </div>
+      <span className="ep-label">Gestione</span>
+      <div className="p2-chips" style={{ marginBottom: 12 }}>
+        {[['ordinaria', 'Ordinaria'], ['straordinaria', 'Straordinaria']].map(([k, l]) => <button key={k} type="button" className={`p2-chip${v.kind === k ? ' is-on' : ''}`} onClick={() => setV({ ...v, kind: k, title: v.title === 'Preventivo ordinario' || v.title === 'Preventivo straordinario' ? `Preventivo ${k === 'ordinaria' ? 'ordinario' : 'straordinario'}` : v.title })}>{l}</button>)}
       </div>
       <span className="ep-label">Rate</span>
       <div className="p2-chips" style={{ marginBottom: 12 }}>

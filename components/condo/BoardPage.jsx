@@ -1,7 +1,7 @@
 'use client'
 
-import { AlignLeft, CalendarDays, Check, ChevronDown as LChevronDown, ChevronLeft as LChevronLeft, ChevronRight as LChevronRight, Clock, Droplet, Ellipsis, Layers, MapPin, Plus, Search, Users, Wrench, X, Zap } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { AlignLeft, CalendarDays, Check, ChevronDown as LChevronDown, ChevronLeft as LChevronLeft, ChevronRight as LChevronRight, Clock, Droplet, Ellipsis, Layers, MapPin, Plus, Search, Users, Wrench, X, Zap, CalendarCheck, CalendarRange, List } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { useCalendarEvents } from '@/hooks/useCalendarEvents'
 import { usePublicInterventions } from '@/hooks/usePublicInterventions'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -57,6 +57,27 @@ export default function BoardPage({ buildingId }) {
   const [justCreated, setJustCreated] = useState(null) // evento appena creato (conferma)
   const [query, setQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
+  const [view, setViewState] = useState('month')     // 'week' | 'month' | 'list'
+  const [viewMenu, setViewMenu] = useState(false)
+  const [weekStart, setWeekStart] = useState(() => mondayOf(today))
+
+  // vista preferita ricordata sul dispositivo
+  useEffect(() => {
+    try {
+      const v = window.localStorage.getItem('condoreco:calendar-view')
+      if (v === 'week' || v === 'month' || v === 'list') setViewState(v)
+    } catch { /* storage non disponibile */ }
+  }, [])
+  function setView(v) {
+    setViewState(v)
+    setViewMenu(false)
+    try { window.localStorage.setItem('condoreco:calendar-view', v) } catch { /* ignore */ }
+    if (v === 'week') {
+      // settimana: quella di oggi se e' nel mese mostrato, altrimenti la prima del mese
+      const ref = today.getFullYear() === year && today.getMonth() === month ? today : new Date(year, month, 1)
+      goToWeek(mondayOf(ref))
+    }
+  }
 
   const { events, loading, error, isCondoAdmin, createEvent, updateEvent, deleteEvent, approveEvent } =
     useCalendarEvents(buildingId, year, month)
@@ -94,6 +115,25 @@ export default function BoardPage({ buildingId }) {
     setOpenDay(null)
   }
 
+  function goToWeek(start) {
+    setWeekStart(start)
+    setYear(start.getFullYear())
+    setMonth(start.getMonth())
+    setSelected(null)
+    setOpenDay(null)
+  }
+  const step = (dir) => {
+    if (view === 'week') goToWeek(addDays(weekStart, 7 * dir))
+    else goTo(year, month + dir)
+  }
+  const goToday = () => {
+    setViewMenu(false)
+    if (view === 'week') goToWeek(mondayOf(today))
+    else goTo(today.getFullYear(), today.getMonth())
+  }
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
+  const periodLabel = view === 'week' ? weekLabel(weekStart) : `${MONTH_NAMES[month]} ${year}`
+
   const maxChips = isMobile ? 3 : 4
   const grid = buildGrid(year, month)
 
@@ -101,29 +141,60 @@ export default function BoardPage({ buildingId }) {
     <div style={{ maxWidth: 1180, margin: '0 auto', padding: isMobile ? '14px 6px 96px' : '24px 24px 96px' }}>
       {/* ---- Toolbar ---- */}
       <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 10, padding: isMobile ? '0 6px' : 0, marginBottom: 14 }}>
-        <IconButton onClick={() => goTo(year, month - 1)} label="Mese precedente"><ChevronLeft /></IconButton>
+        <IconButton onClick={() => step(-1)} label={view === 'week' ? 'Settimana precedente' : 'Mese precedente'}><ChevronLeft /></IconButton>
 
         {/* mese/anno: tap apre il selettore nativo del mese */}
         <label style={{ ...pill, position: 'relative', flex: isMobile ? 1 : '0 0 auto', justifyContent: 'center', minWidth: isMobile ? 0 : 200 }}>
-          <span style={{ fontWeight: 700, fontSize: isMobile ? 16 : 17, whiteSpace: 'nowrap' }}>{MONTH_NAMES[month]} {year}</span>
+          <span style={{ fontWeight: 700, fontSize: isMobile ? (view === 'week' ? 14.5 : 16) : 17, whiteSpace: 'nowrap' }}>{periodLabel}</span>
           <CaretDown />
           <input
             type="month"
             aria-label="Scegli il mese"
             value={`${year}-${String(month + 1).padStart(2, '0')}`}
-            onChange={(e) => { const [y, m] = e.target.value.split('-').map(Number); if (y && m) goTo(y, m - 1) }}
+            onChange={(e) => {
+              const [y, m] = e.target.value.split('-').map(Number)
+              if (!y || !m) return
+              if (view === 'week') goToWeek(mondayOf(new Date(y, m - 1, 1)))
+              else goTo(y, m - 1)
+            }}
             style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', minHeight: 0 }}
           />
         </label>
 
-        <IconButton onClick={() => goTo(year, month + 1)} label="Mese successivo"><ChevronRight /></IconButton>
+        <IconButton onClick={() => step(1)} label={view === 'week' ? 'Settimana successiva' : 'Mese successivo'}><ChevronRight /></IconButton>
 
         <div style={{ flex: isMobile ? '0 0 auto' : 1 }} />
 
         <IconButton onClick={() => setSearchOpen((o) => !o)} label="Cerca negli eventi" active={searchOpen || !!q}><SearchIcon /></IconButton>
-        <IconButton onClick={() => goTo(today.getFullYear(), today.getMonth())} label="Torna a oggi">
-          <TodayIcon day={today.getDate()} />
-        </IconButton>
+        <div style={{ position: 'relative' }}>
+          <IconButton onClick={() => setViewMenu((o) => !o)} label="Vista del calendario e oggi" active={viewMenu}>
+            <TodayIcon day={today.getDate()} />
+          </IconButton>
+          {viewMenu && (
+            <>
+              <div onClick={() => setViewMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 450 }} />
+              <div role="menu" style={{
+                position: 'absolute', right: 0, top: 'calc(100% + 8px)', zIndex: 451, width: 230,
+                background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 16,
+                boxShadow: '0 12px 32px rgba(0,0,0,0.14)', padding: 6,
+              }}>
+                <button role="menuitem" onClick={goToday} style={menuItem}>
+                  <span style={menuIcon}><CalendarCheck size={18} strokeWidth={2} aria-hidden="true" /></span>Vai a oggi
+                </button>
+                <div style={{ height: 1, background: 'var(--border)', margin: '6px 4px' }} />
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: 'var(--text-4)', padding: '4px 10px' }}>VISTA</div>
+                {[['week', 'Settimana', CalendarRange], ['month', 'Mese', CalendarDays], ['list', 'Lista appuntamenti', List]].map(([v, l, Icon]) => (
+                  <button key={v} role="menuitemradio" aria-checked={view === v} onClick={() => setView(v)}
+                    style={{ ...menuItem, background: view === v ? 'var(--teal-lt)' : 'transparent', color: view === v ? 'var(--teal-dk)' : 'var(--text)', fontWeight: view === v ? 800 : 600 }}>
+                    <span style={menuIcon}><Icon size={18} strokeWidth={2} aria-hidden="true" /></span>
+                    <span style={{ flex: 1 }}>{l}</span>
+                    {view === v && <Check size={16} strokeWidth={2.6} aria-hidden="true" />}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
         {!isMobile && (
           <button onClick={() => setCreating({ date: todayIso })} style={{ ...primaryBtn, marginLeft: 6 }}>
             + Nuovo appuntamento
@@ -161,6 +232,8 @@ export default function BoardPage({ buildingId }) {
         </p>
       )}
 
+      {view === 'month' && (
+        <>
       {/* ---- Griglia ---- */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', marginBottom: 6 }}>
         {WEEKDAYS.map((wd) => (
@@ -227,9 +300,71 @@ export default function BoardPage({ buildingId }) {
         })}
       </div>
 
+        </>
+      )}
+
+      {/* ---- Settimana: un giorno per riga, titoli interi ---- */}
+      {view === 'week' && (
+        <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', opacity: loading ? 0.6 : 1 }}>
+          {weekDays.map((day, i) => {
+            const iso = toLocalISODate(day)
+            const isToday = iso === todayIso
+            const dayEvents = eventsByDay[iso] ?? []
+            return (
+              <div key={iso} style={{ display: 'flex', gap: 12, padding: '12px 14px', borderTop: i ? '1px solid var(--border)' : 'none', background: isToday ? 'rgba(13,103,111,0.05)' : 'transparent' }}>
+                <button type="button" onClick={() => setOpenDay(iso)} aria-label={`${longDate(iso)}, ${dayEvents.length} eventi`}
+                  style={{ width: 52, flexShrink: 0, minHeight: 0, border: 'none', background: 'none', padding: 0, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: isToday ? 'var(--teal)' : 'var(--text-4)' }}>{WEEKDAYS[i]}</span>
+                  <span style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 800, background: isToday ? 'var(--teal)' : 'transparent', color: isToday ? '#fff' : 'var(--text)' }}>{day.getDate()}</span>
+                </button>
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6, justifyContent: 'center' }}>
+                  {dayEvents.length === 0 ? (
+                    <button type="button" onClick={() => setOpenDay(iso)} style={{ minHeight: 0, border: 'none', background: 'none', padding: '6px 0', textAlign: 'left', fontSize: 13, color: 'var(--text-4)', cursor: 'pointer' }}>Nessun appuntamento</button>
+                  ) : dayEvents.map((ev) => <AgendaRow key={ev.id} ev={ev} onClick={() => setSelected(ev)} />)}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ---- Lista appuntamenti del mese ---- */}
+      {view === 'list' && (() => {
+        const days = Object.keys(eventsByDay)
+          .filter((iso) => { const d = new Date(iso + 'T00:00:00'); return d.getMonth() === month && d.getFullYear() === year })
+          .sort()
+        if (!loading && days.length === 0) {
+          return (
+            <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 16, padding: '28px 18px', textAlign: 'center' }}>
+              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Nessun appuntamento a {MONTH_NAMES[month].toLowerCase()}</div>
+              <p style={{ fontSize: 13.5, color: 'var(--text-3)', margin: '0 0 14px' }}>Puoi aggiungerne uno con il pulsante +.</p>
+              <button onClick={() => setCreating({ date: todayIso })} style={{ ...primaryBtn, height: 44 }}>+ Nuovo appuntamento</button>
+            </div>
+          )
+        }
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, opacity: loading ? 0.6 : 1 }}>
+            {days.map((iso) => {
+              const past = iso < todayIso
+              return (
+                <section key={iso} style={{ opacity: past ? 0.6 : 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, padding: '0 6px 6px' }}>
+                    <span style={{ fontSize: 14, fontWeight: 800, textTransform: 'capitalize', color: iso === todayIso ? 'var(--teal)' : 'var(--text)' }}>{iso === todayIso ? 'Oggi' : longDate(iso)}</span>
+                    {iso === todayIso && <span style={{ fontSize: 12.5, color: 'var(--text-3)', textTransform: 'capitalize' }}>{longDate(iso)}</span>}
+                  </div>
+                  <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 16, padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {eventsByDay[iso].map((ev) => <AgendaRow key={ev.id} ev={ev} onClick={() => setSelected(ev)} />)}
+                  </div>
+                </section>
+              )
+            })}
+          </div>
+        )
+      })()}
+
       {q && !loading && Object.keys(eventsByDay).length === 0 && (
         <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 12, textAlign: 'center' }}>
-          Nessun evento corrisponde a &quot;{query}&quot; in questo mese.
+          Nessun evento corrisponde a &quot;{query}&quot; in questo {view === 'week' ? 'periodo' : 'mese'}.
         </p>
       )}
 
@@ -396,6 +531,43 @@ export default function BoardPage({ buildingId }) {
     </div>
   )
 }
+
+function AgendaRow({ ev, onClick }) {
+  const meta = typeMeta(ev.event_type)
+  return (
+    <button type="button" onClick={onClick} style={{
+      display: 'flex', alignItems: 'stretch', gap: 10, width: '100%', minHeight: 0, padding: '8px 10px', borderRadius: 12, cursor: 'pointer', textAlign: 'left',
+      border: ev.approved ? '1px solid var(--border)' : '1.5px dashed var(--text-4)', background: 'var(--white)', color: 'var(--text)',
+    }}>
+      <span style={{ width: 4, borderRadius: 4, background: meta.color, flexShrink: 0 }} />
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: 'block', fontSize: 14.5, fontWeight: 700, lineHeight: 1.3 }}>{ev.title}</span>
+        <span style={{ display: 'block', fontSize: 12.5, color: 'var(--text-3)', marginTop: 2 }}>
+          {timeRange(ev)}{ev.location ? ` · ${ev.location}` : ''} · {meta.label}{!ev.approved ? ' · In attesa' : ''}
+        </span>
+      </span>
+    </button>
+  )
+}
+
+function mondayOf(d) {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7))
+  return x
+}
+function addDays(d, n) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)
+}
+function weekLabel(start) {
+  const end = addDays(start, 6)
+  const m = (d) => d.toLocaleDateString('it-IT', { month: 'short' }).replace('.', '')
+  return start.getMonth() === end.getMonth()
+    ? `${start.getDate()}–${end.getDate()} ${m(end)} ${end.getFullYear()}`
+    : `${start.getDate()} ${m(start)} – ${end.getDate()} ${m(end)} ${end.getFullYear()}`
+}
+
+const menuItem = { display: 'flex', alignItems: 'center', gap: 10, width: '100%', minHeight: 0, padding: '10px 10px', border: 'none', borderRadius: 10, background: 'transparent', color: 'var(--text)', fontSize: 14.5, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }
+const menuIcon = { display: 'inline-flex', color: 'var(--teal)' }
 
 function EventChip({ ev, compact, dim, onClick }) {
   const color = typeMeta(ev.event_type).color

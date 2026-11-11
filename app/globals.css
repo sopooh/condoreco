@@ -2453,14 +2453,14 @@ input, select, textarea { font-family: inherit; }
 .vas-picker { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 20px; }
 .vas-label { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 700; color: var(--text-3); }
 .vas-seg { margin-bottom: 0 !important; }
-.vas-float { position: fixed; top: 66px; left: 50%; transform: translateX(-50%); z-index: 900; display: flex; flex-direction: column-reverse; align-items: center; gap: 8px; }
-.vas-pill { display: inline-flex; align-items: center; gap: 6px; height: 34px; min-height: 0; padding: 0 14px; white-space: nowrap; border: none; border-radius: 999px; background: #1F2937; color: #fff; font-size: 13.5px; font-weight: 600; box-shadow: 0 6px 18px rgba(0,0,0,.22); cursor: pointer; opacity: .94; }
+.vas-float { position: relative; display: flex; flex-direction: column-reverse; align-items: flex-end; }
+.vas-pill { display: inline-flex; align-items: center; gap: 5px; height: 32px; min-height: 0; padding: 0 11px; white-space: nowrap; border: none; border-radius: 999px; background: #1F2937; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
 .vas-pill strong { font-weight: 800; }
-.vas-menu { width: 250px; padding: 6px; border-radius: 16px; background: #fff; border: 1px solid var(--border); box-shadow: 0 16px 40px rgba(0,0,0,.18); display: flex; flex-direction: column; gap: 2px; }
+.vas-menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 950; width: 250px; padding: 6px; border-radius: 16px; background: #fff; border: 1px solid var(--border); box-shadow: 0 16px 40px rgba(0,0,0,.18); display: flex; flex-direction: column; gap: 2px; }
 .vas-menu button { display: flex; align-items: center; gap: 10px; min-height: 0; padding: 10px 12px; border: none; border-radius: 11px; background: none; text-align: left; cursor: pointer; color: var(--text); font: inherit; }
 .vas-menu button:hover { background: var(--bg); }
 .vas-menu button.is-on { background: var(--teal-lt); color: var(--teal-dk); }
 .vas-menu strong { display: block; font-size: 14.5px; }
 .vas-menu small { display: block; font-size: 12px; color: var(--text-3); }
 .vas-menu .vas-exit { border-top: 1px solid var(--border-2); border-radius: 0 0 11px 11px; color: #B42318; }
-@media print { .vas-float { display: none; } }
+@media print { .vas-float { position: relative; display: flex; flex-direction: column-reverse; align-items: flex-end; } }

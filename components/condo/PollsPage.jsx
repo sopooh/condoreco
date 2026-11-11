@@ -83,7 +83,8 @@ function NewPollForm({ onCancel, onCreate, onDone }) {
   const [withPhase2, setWithPhase2] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
-  const canSave = question.trim().length > 3 && minVotes > 0 && !saving
+  const qLen = question.trim().length
+  const canSave = qLen >= 5 && qLen <= 300 && minVotes > 0 && !saving
 
   return (
     <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 18, padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -93,8 +94,12 @@ function NewPollForm({ onCancel, onCreate, onDone }) {
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
         placeholder="Es. Sostituire l'illuminazione delle scale con LED a basso consumo"
+        maxLength={300}
         style={{ ...field, minHeight: 80, resize: 'vertical' }}
       />
+      <div style={{ fontSize: 12.5, color: qLen > 0 && qLen < 5 ? '#B42318' : 'var(--text-4)', marginTop: -8, textAlign: 'right' }}>
+        {qLen > 0 && qLen < 5 ? 'Scrivi almeno 5 caratteri' : `${qLen}/300`}
+      </div>
       <div>
         <div style={fieldLabel}>Durata della votazione</div>
         <div style={{ display: 'flex', gap: 8 }}>

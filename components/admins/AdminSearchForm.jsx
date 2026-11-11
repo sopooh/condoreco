@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 
-export default function AdminSearchForm() {
+export default function AdminSearchForm({ placeholder = 'Cerca amministratore o studio...' } = {}) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -36,7 +36,7 @@ export default function AdminSearchForm() {
             router.push(`${pathname}?${params.toString()}`)
           }
         }}
-        placeholder="Cerca amministratore o studio..."
+        placeholder={placeholder}
         style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', padding: '11px 14px', fontSize: 14 }}
       />
       <button type="submit" className="btn btn-primary" style={{ borderRadius: 0, padding: '0 20px' }}>

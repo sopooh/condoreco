@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { BadgeCheck, Building2, ChevronDown, MapPin, MessageCircle, Wrench } from 'lucide-react'
+import { BadgeCheck, Bookmark, Building2, ChevronDown, MapPin, MessageCircle, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
 import { maintenanceCategory } from '@/lib/maintenanceCategories'
@@ -14,7 +14,7 @@ const initials = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w)
 
 // Card fornitore, stesso schema della card amministratore.
 // Telefono ed email si leggono solo da registrati (RLS su suppliers).
-export default function SupplierRow({ supplier: s }) {
+export default function SupplierRow({ supplier: s, saved = false, onToggleSave }) {
   const session = useSession()
   const [open, setOpen] = useState(false)
   const [contact, setContact] = useState(null)
@@ -54,6 +54,10 @@ export default function SupplierRow({ supplier: s }) {
           </h2>
           <span style={{ display: 'inline-block', marginTop: 6, fontSize: 12, fontWeight: 700, color: '#6D28D9', background: '#F3EEFF', padding: '3px 10px', borderRadius: 999 }}>Recofixer</span>
         </div>
+        <button type="button" className={`dir-bookmark${saved ? ' is-on' : ''}`} onClick={onToggleSave}
+          aria-pressed={saved} aria-label={saved ? 'Rimuovi dai salvati' : 'Salva fornitore'}>
+          <Bookmark size={24} strokeWidth={2} fill={saved ? 'currentColor' : 'none'} aria-hidden="true" />
+        </button>
       </div>
 
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>

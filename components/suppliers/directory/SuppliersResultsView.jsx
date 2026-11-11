@@ -9,6 +9,7 @@ import CitySelect from '@/components/directory/CitySelect'
 import QuickTabs from '@/components/directory/QuickTabs'
 import SortSelect from '@/components/directory/SortSelect'
 import { useParamNav } from '@/components/directory/useParamNav'
+import { useSaved } from '@/components/directory/useSaved'
 import SupplierFilterSidebar, { SUPPLIER_SORTS } from '@/components/suppliers/directory/SupplierFilterSidebar'
 import SupplierRow from '@/components/suppliers/directory/SupplierRow'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -24,7 +25,10 @@ const TABS = [
 // senza mappa: i fornitori lavorano per zona, non per indirizzo.
 export default function SuppliersResultsView({ suppliers, cities, categoryCounts, city, total }) {
   const isMobile = useIsMobile()
-  const { searchParams } = useParamNav()
+  const { searchParams, setParams } = useParamNav()
+  const { saved, toggle } = useSaved('saved_suppliers', 'supplier_id', '/fornitori')
+  const onlySaved = searchParams.get('salvati') === '1'
+  const list = onlySaved ? suppliers.filter((s) => saved.has(s.id)) : suppliers
   const [showFilters, setShowFilters] = useState(false)
   const filtersActive = Boolean(searchParams.get('cat'))
 
@@ -67,15 +71,21 @@ export default function SuppliersResultsView({ suppliers, cities, categoryCounts
 
         <div style={{ minWidth: 0 }}>
           <div className="dir-listhead">
-            <span>{`${suppliers.length} fornitor${suppliers.length !== 1 ? 'i' : 'e'} trovat${suppliers.length !== 1 ? 'i' : 'o'}${city ? ` a ${city}` : ''}`}</span>
+            <span>{`${list.length} fornitor${list.length !== 1 ? 'i' : 'e'} trovat${list.length !== 1 ? 'i' : 'o'}${city ? ` a ${city}` : ''}`}</span>
             <SortSelect sorts={SUPPLIER_SORTS} defaultId="verified" tabsThatSort={['attivi', 'nuovi']} />
           </div>
+          {onlySaved && (
+            <button type="button" onClick={() => setParams({ salvati: null })} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 0, marginBottom: 12, padding: '6px 12px', borderRadius: 999,
+              border: '1px solid var(--teal)', background: 'var(--teal-lt)', color: 'var(--teal-dk)', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+            }}>Solo salvati <X size={14} aria-hidden="true" /></button>
+          )}
           <div className="dir-list">
-            {suppliers.map((s) => <SupplierRow key={s.id} supplier={s} />)}
-            {suppliers.length === 0 && (
+            {list.map((s) => <SupplierRow key={s.id} supplier={s} saved={saved.has(s.id)} onToggleSave={() => toggle(s.id)} />)}
+            {list.length === 0 && (
               <div className="empty">
-                <div className="empty-title">{total === 0 ? 'Ancora nessun Recofixer' : 'Nessun fornitore trovato'}</div>
-                <p>{total === 0 ? 'I primi fornitori stanno arrivando. Lavori con i condomini? Iscriviti gratis.' : 'Prova a cambiare categoria o città.'}</p>
+                <div className="empty-title">{onlySaved ? 'Nessun fornitore salvato' : total === 0 ? 'Ancora nessun Recofixer' : 'Nessun fornitore trovato'}</div>
+                <p>{onlySaved ? 'Tocca il segnalibro su una card per ritrovarla qui.' : total === 0 ? 'I primi fornitori stanno arrivando. Lavori con i condomini? Iscriviti gratis.' : 'Prova a cambiare categoria o città.'}</p>
               </div>
             )}
           </div>

@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import Composer from '@/components/condo/chat/Composer'
 import MessageBody from '@/components/condo/chat/MessageBody'
+import MessageMenu, { EditMessageSheet, SelectTextSheet, useMessagePress } from '@/components/condo/chat/MessageMenu'
 
 const time = (iso) => new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
 function dayLabel(iso) {
@@ -17,8 +18,19 @@ function dayLabel(iso) {
 
 // Vista di una conversazione: intestazione, bolle dei messaggi, campo di scrittura.
 // composer: { buildingId, threadId, isGroup, onAction }; ctx: dati per sondaggi, eventi, contatti
-export default function ChatThreadView({ title, subtitle, avatar, headerRight, messages, names, userId, onSend, onBack, onHide, banner, emptyText, composer = {}, ctx }) {
+export default function ChatThreadView({ title, subtitle, avatar, headerRight, messages, names, userId, onSend, onEdit, onBack, onHide, banner, emptyText, composer = {}, ctx }) {
   const endRef = useRef(null)
+  const [menu, setMenu] = useState(null) // { m, x, y, mine, canEdit, canHide }
+  const [editing, setEditing] = useState(null)
+  const [selecting, setSelecting] = useState(null)
+  const [toastMsg, setToastMsg] = useState(null)
+  const toastTimer = useRef(null)
+  const toast = useCallback((t) => {
+    setToastMsg(t)
+    clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToastMsg(null), 1600)
+  }, [])
+  const closeMenu = useCallback(() => setMenu(null), [])
 
   useEffect(() => { endRef.current?.scrollIntoView({ block: 'end' }) }, [messages.length])
 
@@ -55,30 +67,43 @@ export default function ChatThreadView({ title, subtitle, avatar, headerRight, m
                   <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 999, padding: '3px 10px', textTransform: 'capitalize' }}>{dayLabel(m.created_at)}</span>
                 </div>
               )}
-              <div style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginTop: showName ? 6 : 0 }}>
-                <div className={`chat-bubble kind-${m.kind || 'text'}`} style={{
-                  maxWidth: '80%', padding: ['image', 'video'].includes(m.kind) ? 4 : '8px 12px 6px', borderRadius: 16,
-                  borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4,
-                  background: mine ? 'var(--teal)' : 'var(--white)', color: mine ? '#fff' : 'var(--text)',
-                  border: mine ? 'none' : '1px solid var(--border)', boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-                }}>
-                  {showName && <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--teal-dk)', margin: ['image', 'video'].includes(m.kind) ? '4px 8px 4px' : '0 0 2px' }}>{who}</div>}
-                  <MessageBody m={m} mine={mine} ctx={{ ...ctx, userId }} />
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 2, padding: ['image', 'video'].includes(m.kind) ? '0 8px 2px' : 0 }}>
-                    {onHide && !mine && (
-                      <button type="button" onClick={() => onHide(m.id)} style={{ minHeight: 0, border: 'none', background: 'none', padding: 0, fontSize: 11, color: 'var(--text-4)', cursor: 'pointer' }}>Nascondi</button>
-                    )}
-                    <span style={{ fontSize: 11, opacity: 0.7 }}>{time(m.created_at)}</span>
-                  </div>
-                </div>
-              </div>
+              <Bubble m={m} mine={mine} showName={showName} who={who} ctx={{ ...ctx, userId }}
+                active={menu?.m.id === m.id}
+                onOpen={(x, y, rect) => setMenu({ m, x, y, rect, mine, canEdit: mine && !!onEdit && (m.kind || 'text') === 'text', canHide: !!onHide && !mine })} />
             </div>
           )
         })}
         <div ref={endRef} />
       </div>
 
+      {menu && <MessageMenu menu={menu} onClose={closeMenu} onEdit={setEditing} onSelect={setSelecting} onHide={(id) => onHide?.(id)} toast={toast} />}
+      {editing && <EditMessageSheet m={editing} onClose={() => setEditing(null)} onSave={onEdit} />}
+      {selecting && <SelectTextSheet m={selecting} onClose={() => setSelecting(null)} toast={toast} />}
+      {toastMsg && <div className="msgm-toast" role="status">{toastMsg}</div>}
+
       <Composer onSend={onSend} buildingId={composer.buildingId} threadId={composer.threadId} isGroup={composer.isGroup} onAction={composer.onAction} />
+    </div>
+  )
+}
+
+function Bubble({ m, mine, showName, who, ctx, active, onOpen }) {
+  const press = useMessagePress(onOpen)
+  const media = ['image', 'video'].includes(m.kind)
+  return (
+    <div style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginTop: showName ? 6 : 0 }}>
+      <div {...press} className={`chat-bubble kind-${m.kind || 'text'}${active ? ' is-pressed' : ''}`} style={{
+        maxWidth: '80%', padding: media ? 4 : '8px 12px 6px', borderRadius: 16,
+        borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4,
+        background: mine ? 'var(--teal)' : 'var(--white)', color: mine ? '#fff' : 'var(--text)',
+        border: mine ? 'none' : '1px solid var(--border)', boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+      }}>
+        {showName && <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--teal-dk)', margin: media ? '4px 8px 4px' : '0 0 2px' }}>{who}</div>}
+        <MessageBody m={m} mine={mine} ctx={ctx} />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginTop: 2, padding: media ? '0 8px 2px' : 0 }}>
+          {m.edited_at && <span style={{ fontSize: 11, opacity: 0.7, fontStyle: 'italic' }}>modificato</span>}
+          <span style={{ fontSize: 11, opacity: 0.7 }}>{time(m.created_at)}</span>
+        </div>
+      </div>
     </div>
   )
 }

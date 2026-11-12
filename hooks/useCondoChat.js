@@ -15,7 +15,7 @@ export function useCondoChat(buildingId) {
     const supabase = createClient()
     const { data, error } = await supabase
       .from('messages')
-      .select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta, profiles:created_by(display_name, avatar_url, role)')
+      .select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta, edited_at, profiles:created_by(display_name, avatar_url, role)')
       .eq('building_id', buildingId)
       .order('created_at', { ascending: false })
       .limit(50)
@@ -57,6 +57,9 @@ export function useCondoChat(buildingId) {
           })
         }
       )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `building_id=eq.${buildingId}` }, (payload) => {
+        setMessages((prev) => prev.map((m) => (m.id === payload.new.id ? { ...m, ...payload.new, profiles: m.profiles } : m)))
+      })
       .subscribe()
 
     return () => {
@@ -80,7 +83,7 @@ export function useCondoChat(buildingId) {
         attachment: extra.attachment || null,
         ref_id: extra.ref_id || null,
         meta: extra.meta || null,
-      }).select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta').single()
+      }).select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta, edited_at').single()
 
       if (error) return { error: 'Messaggio non inviato. Riprova.' }
       // subito visibile anche se Realtime arriva in ritardo
@@ -103,5 +106,13 @@ export function useCondoChat(buildingId) {
     return { error: error?.message ?? null }
   }, [])
 
-  return { messages, loading, error, sendMessage, hideMessage, reload: loadMessages }
+  // Modifica di un proprio messaggio di testo
+  const editMessage = useCallback(async (messageId, content) => {
+    const { data, error } = await createClient().rpc('edit_chat_message', { p_id: messageId, p_content: content, p_thread: false })
+    if (error) return { error: 'Messaggio non modificato. Riprova.' }
+    setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, content: content.trim().slice(0, 2000), edited_at: data } : m)))
+    return { error: null }
+  }, [])
+
+  return { messages, loading, error, sendMessage, hideMessage, editMessage, reload: loadMessages }
 }

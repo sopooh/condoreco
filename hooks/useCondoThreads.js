@@ -69,7 +69,7 @@ export function useThreadMessages(threadId) {
     if (!threadId || !userId) return
     const supabase = createClient()
     const [{ data: msgs }, { data: mem }] = await Promise.all([
-      supabase.from('condo_thread_messages').select('id, content, created_at, created_by, kind, attachment, ref_id, meta').eq('thread_id', threadId).order('created_at', { ascending: true }).limit(300),
+      supabase.from('condo_thread_messages').select('id, content, created_at, created_by, kind, attachment, ref_id, meta, edited_at').eq('thread_id', threadId).order('created_at', { ascending: true }).limit(300),
       supabase.from('condo_thread_members').select('user_id, joined_at').eq('thread_id', threadId),
     ])
     setMessages(msgs || [])
@@ -90,16 +90,26 @@ export function useThreadMessages(threadId) {
         fetchProfiles([payload.new.created_by])
         supabase.rpc('mark_thread_read', { p_thread: threadId })
       })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'condo_thread_messages', filter: `thread_id=eq.${threadId}` }, (payload) => {
+        setMessages((prev) => prev.map((m) => (m.id === payload.new.id ? { ...m, ...payload.new } : m)))
+      })
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [threadId, load, fetchProfiles])
+
+  async function edit(messageId, content) {
+    const { data, error } = await createClient().rpc('edit_chat_message', { p_id: messageId, p_content: content, p_thread: true })
+    if (error) return { error: 'Messaggio non modificato. Riprova.' }
+    setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, content: content.trim().slice(0, 2000), edited_at: data } : m)))
+    return { error: null }
+  }
 
   async function send(content, extra = {}) {
     const text = content.trim()
     if (!text) return { error: 'Messaggio vuoto' }
     const { data, error } = await createClient().from('condo_thread_messages')
       .insert({ thread_id: threadId, created_by: userId, content: text.slice(0, 2000), kind: extra.kind || 'text', attachment: extra.attachment || null, meta: extra.meta || null })
-      .select('id, content, created_at, created_by, kind, attachment, ref_id, meta').single()
+      .select('id, content, created_at, created_by, kind, attachment, ref_id, meta, edited_at').single()
     if (error) return { error: 'Messaggio non inviato. Riprova.' }
     setMessages((prev) => (prev.some((m) => m.id === data.id) ? prev : [...prev, data]))
     return { error: null }
@@ -112,7 +122,7 @@ export function useThreadMessages(threadId) {
     return { error: null }
   }
 
-  return { messages, members, names, loading, userId, send, addMembers }
+  return { messages, members, names, loading, userId, send, edit, addMembers }
 }
 
 export async function markGroupRead(buildingId, userId) {

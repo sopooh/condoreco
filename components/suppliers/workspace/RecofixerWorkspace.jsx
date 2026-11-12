@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, CalendarClock, CalendarDays, CheckCircle2, ChevronRight, CircleCheck, Clock3,
-  FileText, Filter, Image as ImageIcon, MapPin, MessageCircle, Navigation, Pencil, Phone, Plus, Search, DoorStairwell as Stairs, Trash2,
+  FileText, Filter, Image as ImageIcon, MapPin, MessageCircle, Navigation, Pencil,  Search, DoorStairwell as Stairs,
   UserRound, Users, Wrench, X,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { maintenanceCategoryLabel, MAINTENANCE_CATEGORIES } from '@/lib/maintenanceCategories'
 import { useInterventionFiles, FILE_KINDS, euro } from '@/hooks/useInterventionFiles'
 import InterventionFiles from '@/components/suppliers/InterventionFiles'
+import TeamWorkspace from '@/components/team/TeamWorkspace'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
 // Area Recofixer: interventi, calendario, squadra e documenti del fornitore.
@@ -73,6 +74,14 @@ export default function RecofixerWorkspace({ supplier, items, demo = false, team
   }, [openId, firstId])
 
   const goIntervention = (id) => { setTab('interventi'); setOpenId(id) }
+  // dopo aver gestito il team, aggiorna l'elenco dei tecnici assegnabili
+  const reloadTeam = team?.reload
+  useEffect(() => { if (tab !== 'team') reloadTeam?.() }, [tab]) // eslint-disable-line react-hooks/exhaustive-deps
+  const teamBuildings = useMemo(() => {
+    const seen = new Map()
+    list.forEach((i) => { if (i.building_id && !seen.has(i.building_id)) seen.set(i.building_id, { id: i.building_id, label: (i.building_address || '').split(' · ')[0] }) })
+    return [...seen.values()]
+  }, [list])
 
   return (
     <div className="rfx">
@@ -107,7 +116,7 @@ export default function RecofixerWorkspace({ supplier, items, demo = false, team
           team={team} onChat={onChat} onChanged={onChanged} demo={demo} />
       )}
       {tab === 'calendario' && <CalendarTab list={list} onOpen={goIntervention} />}
-      {tab === 'team' && <TeamTab team={team} list={list} demo={demo} />}
+      {tab === 'team' && <TeamTab team={team} demo={demo} buildings={teamBuildings} />}
       {tab === 'documenti' && <DocumentsTab list={list} onOpen={goIntervention} demo={demo} />}
     </div>
   )
@@ -535,92 +544,48 @@ const DEMO_TEAM = [{ id: 't1', name: 'Marco Bianchi', role: 'Idraulico', phone: 
 
 export function useTeam(demo) {
   const [real, setMembers] = useState([])
+  const [teamRow, setTeamRow] = useState(null)
   const [loadingReal, setLoading] = useState(true)
   const members = demo ? DEMO_TEAM : real
   const loading = demo ? false : loadingReal
   const load = async () => {
     if (demo) return
-    const { data } = await createClient().from('supplier_team_members').select('id, name, role, phone').order('name')
-    setMembers(data || []); setLoading(false)
+    const s = createClient()
+    const { data: id, error } = await s.rpc('ensure_my_team', { p_kind: 'supplier' })
+    if (error || !id) { setLoading(false); return }
+    const [{ data: teams }, { data: list }] = await Promise.all([
+      s.rpc('my_teams'),
+      s.from('team_members').select('id, name, job, phone, role').eq('team_id', id).order('name'),
+    ])
+    setTeamRow((teams || []).find((t) => t.id === id) || null)
+    setMembers((list || []).map((m) => ({ ...m, role: m.job })))
+    setLoading(false)
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load() }, [demo])
-  const save = async (m) => {
-    if (demo) return { error: 'Anteprima: nessuna modifica salvata.' }
-    const row = { name: m.name.trim(), role: m.role?.trim() || null, phone: m.phone?.trim() || null }
-    const s = createClient().from('supplier_team_members')
-    const { error } = m.id ? await s.update(row).eq('id', m.id) : await s.insert(row)
-    if (!error) await load()
-    return { error: error ? 'Non salvato. Riprova.' : null }
-  }
-  const remove = async (id) => {
-    if (demo) return
-    await createClient().from('supplier_team_members').delete().eq('id', id)
-    await load()
-  }
-  return { members, loading, save, remove, reload: load }
+  return { members, loading, team: teamRow, reload: load }
 }
 
-function TeamTab({ team, list, demo }) {
-  const [edit, setEdit] = useState(null)
-  const activeBy = (id) => list.filter((i) => i.tech_id === id && (i.status === 'requested' || i.status === 'scheduled')).length
-  return (
-    <section className="rfx-card">
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-        <div style={{ flex: 1 }}><h1 className="rfx-h1">Team</h1><p className="rfx-sub">I tecnici a cui assegni gli interventi</p></div>
-        <button type="button" className="rfx-btn is-primary" onClick={() => setEdit({})}><Plus size={17} aria-hidden="true" />Aggiungi</button>
-      </div>
-      {team.loading ? <p className="rfx-muted">Caricamento…</p> : team.members.length === 0 ? (
-        <div className="rfx-empty"><Users size={26} aria-hidden="true" /><strong>Nessun tecnico</strong><span>Aggiungi chi lavora con te: potrai assegnarlo agli interventi e vederlo nel calendario.</span></div>
-      ) : (
-        <ul className="rfx-team">
-          {team.members.map((m) => (
-            <li key={m.id}>
-              <span className="rfx-avatar">{m.name.split(/\s+/).map((x) => x[0]).slice(0, 2).join('').toUpperCase()}</span>
-              <span style={{ flex: 1, minWidth: 0 }}>
-                <strong>{m.name}</strong>
-                <small>{[m.role, `${activeBy(m.id)} ${activeBy(m.id) === 1 ? 'intervento attivo' : 'interventi attivi'}`].filter(Boolean).join(' · ')}</small>
-              </span>
-              {m.phone && <a className="rfx-iconbtn" href={`tel:${m.phone.replace(/\s+/g, '')}`} aria-label={`Chiama ${m.name}`}><Phone size={17} aria-hidden="true" /></a>}
-              <button type="button" className="rfx-iconbtn" aria-label={`Modifica ${m.name}`} onClick={() => setEdit(m)}><Pencil size={16} aria-hidden="true" /></button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {edit && <MemberSheet m={edit} demo={demo} onClose={() => setEdit(null)} onSave={team.save} onRemove={team.remove} />}
-    </section>
-  )
-}
-
-function MemberSheet({ m, onClose, onSave, onRemove }) {
-  const [v, setV] = useState({ name: m.name || '', role: m.role || '', phone: m.phone || '' })
-  const [err, setErr] = useState(null)
-  const [busy, setBusy] = useState(false)
-  return (
-    <div className="dir-sheet-wrap" role="dialog" aria-modal="true" aria-label="Tecnico">
-      <div className="dir-sheet-backdrop" onClick={onClose} />
-      <div className="dir-sheet">
-        <div className="dir-sheet-head">
-          <div className="dir-sheet-title">{m.id ? 'Modifica tecnico' : 'Nuovo tecnico'}</div>
-          <button type="button" className="dir-sheet-close" onClick={onClose} aria-label="Chiudi"><X size={22} /></button>
-        </div>
-        <label className="rfx-field"><span>Nome e cognome</span><input value={v.name} onChange={(e) => setV({ ...v, name: e.target.value })} maxLength={80} /></label>
-        <label className="rfx-field"><span>Ruolo (facoltativo)</span><input value={v.role} onChange={(e) => setV({ ...v, role: e.target.value })} maxLength={60} placeholder="Es. Idraulico, Apprendista" /></label>
-        <label className="rfx-field"><span>Telefono (facoltativo)</span><input type="tel" value={v.phone} onChange={(e) => setV({ ...v, phone: e.target.value })} maxLength={30} /></label>
-        {err && <p className="auth-err">{err}</p>}
-        <button type="button" className="ep-save" disabled={busy || v.name.trim().length < 2}
-          onClick={async () => { setBusy(true); const r = await onSave({ ...m, ...v }); setBusy(false); if (r.error) setErr(r.error); else onClose() }}>
-          {busy ? 'Salvataggio…' : 'Salva'}
-        </button>
-        {m.id && (
-          <button type="button" className="rfx-btn is-danger" style={{ width: '100%', marginTop: 10 }}
-            onClick={async () => { if (window.confirm(`Rimuovere ${m.name} dal team?`)) { await onRemove(m.id); onClose() } }}>
-            <Trash2 size={16} aria-hidden="true" />Rimuovi dal team
-          </button>
+function TeamTab({ team, demo, buildings }) {
+  if (demo || !team.team) {
+    return (
+      <section className="rfx-card">
+        <h1 className="rfx-h1">Team</h1>
+        <p className="rfx-sub">{demo ? 'Nell\'anteprima vedi un team di esempio.' : 'Caricamento…'}</p>
+        {demo && (
+          <ul className="rfx-team">
+            {DEMO_TEAM.map((m) => (
+              <li key={m.id}>
+                <span className="rfx-avatar">{m.name.split(/\s+/).map((x) => x[0]).slice(0, 2).join('').toUpperCase()}</span>
+                <span style={{ flex: 1, minWidth: 0 }}><strong>{m.name}</strong><small>{m.role}</small></span>
+              </li>
+            ))}
+          </ul>
         )}
-      </div>
-    </div>
-  )
+      </section>
+    )
+  }
+  return <TeamWorkspace team={team.team} buildings={buildings} />
 }
 
 /* ───────────── Documenti ───────────── */

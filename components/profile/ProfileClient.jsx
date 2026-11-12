@@ -12,6 +12,7 @@ import { ROLES } from '@/lib/avatars'
 import { getProfile, upsertProfile, markBuildingAsFormerHome, markBuildingAsCurrentHome } from '@/lib/profile'
 import { useUserBuildings } from '@/hooks/useUserBuildings'
 import { useSupplierBuildings } from '@/hooks/useSupplierBuildings'
+import { useMyTeams } from '@/hooks/useTeams'
 import { useSession } from '@/components/providers/SessionProvider'
 import { useAdminOverview } from '@/hooks/useAdminArea'
 import { AdminBuildingRow, AdminInbox, AdminKpis } from '@/components/profile/AdminProfile'
@@ -57,6 +58,7 @@ export default function ProfileClient() {
   const view = admin.isAdmin ? (canSwitch ? 'admin' : (viewPick || 'admin')) : 'resident'
   const asSupplier = viewAs === 'recofixer'
   const clients = useSupplierBuildings(asSupplier)
+  const myTeams = useMyTeams(!!session)
   const [pastClientsOpen, setPastClientsOpen] = useState(false)
 
   // ── Carica profilo reale da Supabase ──
@@ -325,6 +327,7 @@ export default function ProfileClient() {
             <section>
               <SectionTitle icon={<BoltIcon />}>Azioni rapide</SectionTitle>
               <nav style={{ ...card, overflow: 'hidden' }}>
+                {(view === 'admin' || asSupplier || (myTeams.teams?.length ?? 0) > 0) && <ActionRow href="/team" icon={<Users size={18} strokeWidth={2} aria-hidden="true" />} label="Team e attività" />}
                 {view === 'admin' && <ActionRow href="/notifiche" icon={<Bell size={18} strokeWidth={2} aria-hidden="true" />} label="Notifiche e avvisi" />}
                 {view === 'admin' && <ActionRow href="/fornitori" icon={<Wrench size={18} strokeWidth={2} aria-hidden="true" />} label="Fornitori per i preventivi" />}
                 {view !== 'admin' && <ActionRow href="/fornitore" icon={<Wrench size={18} strokeWidth={2} aria-hidden="true" />} label={profile.role === 'condofixer' || asSupplier ? 'I miei interventi (Recofixer)' : 'Sei un fornitore? Diventa Recofixer'} />}

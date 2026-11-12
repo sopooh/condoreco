@@ -54,6 +54,7 @@ export default function BoardPage({ buildingId }) {
   const [month, setMonth] = useState(today.getMonth())
   const [selected, setSelected] = useState(null)     // evento aperto
   const [openDay, setOpenDay] = useState(null)       // giorno aperto (YYYY-MM-DD)
+  const [pickedIso, setPickedIso] = useState(null)   // ultima data scelta dal selettore
   const [creating, setCreating] = useState(false)    // false | { date } | evento da modificare
   const [justCreated, setJustCreated] = useState(null) // evento appena creato (conferma)
   const [query, setQuery] = useState('')
@@ -134,6 +135,15 @@ export default function BoardPage({ buildingId }) {
   }
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const periodLabel = view === 'week' ? weekLabel(weekStart) : `${MONTH_NAMES[month]} ${year}`
+  // data del selettore: l'ultima scelta (o oggi) se cade nel periodo visibile
+  const pickedBase = pickedIso ? new Date(`${pickedIso}T00:00:00`) : today
+  const pickerInView = view === 'week'
+    ? pickedBase >= weekStart && pickedBase < addDays(weekStart, 7)
+    : pickedBase.getFullYear() === year && pickedBase.getMonth() === month
+  const pickerDate = pickerInView ? pickedBase : view === 'week' ? weekStart : new Date(year, month, 1)
+  const pickerLabel = pickerInView && view !== 'week'
+    ? `${pickedBase.getDate()} ${isMobile ? MONTH_NAMES[pickedBase.getMonth()].slice(0, 3) : MONTH_NAMES[pickedBase.getMonth()]} ${pickedBase.getFullYear()}`
+    : periodLabel
 
   const maxChips = isMobile ? 3 : 4
   const grid = buildGrid(year, month)
@@ -148,28 +158,20 @@ export default function BoardPage({ buildingId }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 10, padding: isMobile ? '0 6px' : 0, marginBottom: 14 }}>
         <IconButton onClick={() => step(-1)} label={view === 'week' ? 'Settimana precedente' : 'Mese precedente'}><ChevronLeft /></IconButton>
 
-        {/* mese/anno: su mobile la rotella nativa, da computer un pannello con i 12 mesi */}
-        {isMobile ? (
-          <label style={{ ...pill, position: 'relative', flex: 1, justifyContent: 'center', minWidth: 0 }}>
-            <span style={{ fontWeight: 700, fontSize: view === 'week' ? 14.5 : 16, whiteSpace: 'nowrap' }}>{periodLabel}</span>
-            <CaretDown />
-            <input
-              type="month"
-              aria-label="Scegli il mese"
-              value={`${year}-${String(month + 1).padStart(2, '0')}`}
-              onChange={(e) => {
-                const [y, m] = e.target.value.split('-').map(Number)
-                if (!y || !m) return
-                if (view === 'week') goToWeek(mondayOf(new Date(y, m - 1, 1)))
-                else goTo(y, m - 1)
-              }}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', minHeight: 0 }}
-            />
-          </label>
-        ) : (
-          <MonthPicker year={year} month={month} label={periodLabel} today={today}
-            onPick={(y, m) => { if (view === 'week') goToWeek(mondayOf(new Date(y, m, 1))); else goTo(y, m) }} />
-        )}
+        {/* scelta della data: Anno -> Mese -> Giorno, uguale su mobile e computer */}
+        <DatePicker
+          isMobile={isMobile}
+          today={today}
+          label={pickerLabel}
+          initial={pickerDate}
+          onApply={(d) => {
+            const iso = toLocalISODate(d)
+            setPickedIso(iso)
+            if (view === 'week') goToWeek(mondayOf(d))
+            else goTo(d.getFullYear(), d.getMonth())
+            if (view !== 'list') setOpenDay(iso)
+          }}
+        />
 
         <IconButton onClick={() => step(1)} label={view === 'week' ? 'Settimana successiva' : 'Mese successivo'}><ChevronRight /></IconButton>
 
@@ -841,51 +843,179 @@ function TodayIcon({ day }) {
   )
 }
 
-// Selettore del mese da computer: anno con frecce e griglia dei 12 mesi
-function MonthPicker({ year, month, label, today, onPick }) {
+// Selettore della data: tre livelli, Anno -> Mese -> Giorno.
+// Giorno: griglia del mese; tocca "Novembre" per i mesi, "2026" per gli anni.
+function DatePicker({ isMobile, today, label, initial, onApply }) {
   const [open, setOpen] = useState(false)
-  const [y, setY] = useState(year)
+  const [mode, setMode] = useState('day')          // 'day' | 'month' | 'year'
+  const [pending, setPending] = useState(initial)  // giorno evidenziato
+  const [vy, setVy] = useState(initial.getFullYear())
+  const [vm, setVm] = useState(initial.getMonth())
+  const [pos, setPos] = useState(null)
   const ref = useRef(null)
+  const btnRef = useRef(null)
+
   useEffect(() => {
     if (!open) return
     const onDown = (e) => { if (!ref.current?.contains(e.target)) setOpen(false) }
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
     document.addEventListener('mousedown', onDown)
+    document.addEventListener('touchstart', onDown, { passive: true })
     document.addEventListener('keydown', onKey)
-    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('touchstart', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
   }, [open])
+
+  const toggle = () => {
+    if (open) { setOpen(false); return }
+    setPending(initial); setVy(initial.getFullYear()); setVm(initial.getMonth()); setMode('day')
+    const r = btnRef.current?.getBoundingClientRect()
+    if (r) {
+      const w = Math.min(340, window.innerWidth - 24)
+      const left = Math.max(12, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - 12))
+      setPos({ top: r.bottom + 8, left, width: w })
+    }
+    setOpen(true)
+  }
+
+  const apply = (d) => { onApply(d); setOpen(false) }
+  const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+
+  const yearStart = vy - (((vy - 4) % 12) + 12) % 12 // pagine di 12 anni: 2020-2031, 2032-2043...
+  const prev = () => {
+    if (mode === 'day') { const d = new Date(vy, vm - 1, 1); setVy(d.getFullYear()); setVm(d.getMonth()) }
+    else if (mode === 'month') setVy(vy - 1)
+    else setVy(vy - 12)
+  }
+  const next = () => {
+    if (mode === 'day') { const d = new Date(vy, vm + 1, 1); setVy(d.getFullYear()); setVm(d.getMonth()) }
+    else if (mode === 'month') setVy(vy + 1)
+    else setVy(vy + 12)
+  }
+  const prevLabel = mode === 'day' ? 'Mese precedente' : mode === 'month' ? 'Anno precedente' : 'Anni precedenti'
+  const nextLabel = mode === 'day' ? 'Mese successivo' : mode === 'month' ? 'Anno successivo' : 'Anni successivi'
+
+  // griglia giorni: 6 settimane da lunedì
+  const first = new Date(vy, vm, 1)
+  const gridStart = mondayOf(first)
+  const days = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i))
+
+  const cell = (on, now, faded) => ({
+    minHeight: 0, border: 'none', cursor: 'pointer', font: 'inherit',
+    background: on ? 'var(--teal)' : 'transparent',
+    color: on ? '#fff' : faded ? 'var(--text-4)' : now ? 'var(--teal)' : 'var(--text)',
+    fontWeight: on || now ? 800 : 600,
+    boxShadow: now && !on ? 'inset 0 0 0 1.5px var(--teal-lt)' : 'none',
+  })
+
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button type="button" aria-haspopup="dialog" aria-expanded={open} onClick={() => { setY(year); setOpen((o) => !o) }}
-        style={{ ...pill, justifyContent: 'center', minWidth: 200, cursor: 'pointer', font: 'inherit', color: 'var(--text)' }}>
-        <span style={{ fontWeight: 700, fontSize: 17, whiteSpace: 'nowrap' }}>{label}</span>
+    <div ref={ref} style={{ position: 'relative', flex: isMobile ? 1 : '0 0 auto', minWidth: 0 }}>
+      <button ref={btnRef} type="button" aria-haspopup="dialog" aria-expanded={open} onClick={toggle}
+        style={{ ...pill, width: '100%', justifyContent: 'center', minWidth: isMobile ? 0 : 220, cursor: 'pointer', font: 'inherit', color: 'var(--text)' }}>
+        <span style={{ fontWeight: 700, fontSize: isMobile ? 15 : 17, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
         <CaretDown />
       </button>
-      {open && (
-        <div role="dialog" aria-label="Scegli il mese" style={{
-          position: 'absolute', left: 0, top: 'calc(100% + 8px)', zIndex: 451, width: 300, padding: 14,
-          background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 18, boxShadow: '0 12px 32px rgba(0,0,0,0.14)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <button type="button" onClick={() => setY(y - 1)} aria-label="Anno precedente" style={yearBtn}><ChevronLeft /></button>
-            <strong style={{ fontSize: 17 }}>{y}</strong>
-            <button type="button" onClick={() => setY(y + 1)} aria-label="Anno successivo" style={yearBtn}><ChevronRight /></button>
+
+      {open && pos && (
+        <div role="dialog" aria-label={mode === 'day' ? 'Scegli il giorno' : mode === 'month' ? 'Scegli il mese' : "Scegli l'anno"}
+          style={{
+            position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 451, padding: 14,
+            background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 20, boxShadow: '0 14px 36px rgba(0,0,0,0.16)',
+          }}>
+          {/* intestazione */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+            <button type="button" onClick={prev} aria-label={prevLabel} style={dpArrow}><ChevronLeft /></button>
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: 6 }}>
+              {mode === 'day' && (
+                <>
+                  <button type="button" onClick={() => setMode('month')} aria-label="Scegli il mese" style={dpHead}>{MONTH_NAMES[vm]} <CaretDown /></button>
+                  <button type="button" onClick={() => setMode('year')} aria-label="Scegli l'anno" style={dpHead}>{vy} <CaretDown /></button>
+                </>
+              )}
+              {mode === 'month' && (
+                <button type="button" onClick={() => setMode('year')} aria-label="Scegli l'anno" style={dpHead}>{vy} <CaretDown /></button>
+              )}
+              {mode === 'year' && (
+                <span style={{ ...dpHead, cursor: 'default' }}>{yearStart}–{yearStart + 11}</span>
+              )}
+            </div>
+            <button type="button" onClick={next} aria-label={nextLabel} style={dpArrow}><ChevronRight /></button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-            {MONTH_NAMES.map((n, i) => {
-              const on = y === year && i === month
-              const isNow = y === today.getFullYear() && i === today.getMonth()
-              return (
-                <button key={n} type="button" aria-label={`${n} ${y}`} onClick={() => { onPick(y, i); setOpen(false) }} aria-current={on ? 'date' : undefined}
-                  style={{
-                    height: 42, minHeight: 0, borderRadius: 12, cursor: 'pointer', font: 'inherit', fontSize: 14.5, fontWeight: on ? 800 : 600,
-                    border: `1.5px solid ${on ? 'var(--teal)' : isNow ? 'var(--teal-lt)' : 'transparent'}`,
-                    background: on ? 'var(--teal)' : 'var(--bg)', color: on ? '#fff' : 'var(--text)',
-                  }}>
-                  {n.slice(0, 3)}
-                </button>
-              )
-            })}
+
+          {mode === 'day' && (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
+                {['L', 'M', 'M', 'G', 'V', 'S', 'D'].map((d, i) => (
+                  <span key={i} style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 700, color: 'var(--text-3)', padding: '4px 0' }}>{d}</span>
+                ))}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', rowGap: 2 }}>
+                {days.map((d) => {
+                  const on = sameDay(d, pending)
+                  const faded = d.getMonth() !== vm
+                  const now = sameDay(d, today)
+                  return (
+                    <div key={d.toISOString()} style={{ display: 'flex', justifyContent: 'center' }}>
+                      <button type="button" aria-label={`${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`} aria-pressed={on}
+                        onClick={() => { setPending(d); if (faded) { setVy(d.getFullYear()); setVm(d.getMonth()) } }}
+                        onDoubleClick={() => apply(d)}
+                        style={{ ...cell(on, now, faded), width: 38, height: 38, borderRadius: 999, fontSize: 14.5 }}>
+                        {d.getDate()}
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
+
+          {mode === 'month' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              {MONTH_NAMES.map((n, i) => {
+                const on = vy === pending.getFullYear() && i === pending.getMonth()
+                const now = vy === today.getFullYear() && i === today.getMonth()
+                return (
+                  <button key={n} type="button" aria-label={`${n} ${vy}`} aria-pressed={on}
+                    onClick={() => { setVm(i); setPending(new Date(vy, i, Math.min(pending.getDate(), new Date(vy, i + 1, 0).getDate()))); setMode('day') }}
+                    style={{ ...cell(on, now, false), height: 46, borderRadius: 14, fontSize: 15 }}>
+                    {n.slice(0, 3)}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {mode === 'year' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              {Array.from({ length: 12 }, (_, i) => yearStart + i).map((y) => {
+                const on = y === pending.getFullYear()
+                const now = y === today.getFullYear()
+                return (
+                  <button key={y} type="button" aria-label={`Anno ${y}`} aria-pressed={on}
+                    onClick={() => { setVy(y); setPending(new Date(y, pending.getMonth(), Math.min(pending.getDate(), new Date(y, pending.getMonth() + 1, 0).getDate()))); setMode('month') }}
+                    style={{ ...cell(on, now, false), height: 46, borderRadius: 14, fontSize: 15 }}>
+                    {y}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {/* piede */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+            {mode === 'day' ? (
+              <>
+                <button type="button" onClick={() => apply(today)} style={{ minHeight: 0, border: 'none', background: 'none', padding: '8px 4px', font: 'inherit', fontWeight: 700, fontSize: 14.5, color: 'var(--teal)', cursor: 'pointer' }}>Oggi</button>
+                <button type="button" onClick={() => apply(pending)} style={{ minHeight: 0, height: 40, padding: '0 16px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--white)', font: 'inherit', fontWeight: 700, fontSize: 14.5, color: 'var(--text)', cursor: 'pointer' }}>Vai alla data</button>
+              </>
+            ) : (
+              <span style={{ width: '100%', textAlign: 'center', fontSize: 13.5, color: 'var(--text-3)', fontWeight: 600 }}>
+                {mode === 'month' ? 'Seleziona un mese' : 'Seleziona un anno'}
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -893,4 +1023,6 @@ function MonthPicker({ year, month, label, today, onPick }) {
   )
 }
 
-const yearBtn = { width: 36, height: 36, minHeight: 0, borderRadius: 10, border: '1px solid var(--border)', background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text)' }
+const dpArrow = { width: 36, height: 36, minHeight: 0, borderRadius: 10, border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text)', flexShrink: 0 }
+const dpHead = { minHeight: 0, height: 36, padding: '0 10px', borderRadius: 10, border: 'none', background: 'transparent', display: 'inline-flex', alignItems: 'center', gap: 4, font: 'inherit', fontSize: 16, fontWeight: 800, color: 'var(--text)', cursor: 'pointer', whiteSpace: 'nowrap' }
+

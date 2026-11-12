@@ -47,6 +47,13 @@ export default function InterventionsPage({ building }) {
   const [scheduling, setScheduling] = useState(null)
   const [contacting, setContacting] = useState(null)
   const [addingMaintainer, setAddingMaintainer] = useState(false)
+  // link diretti dalla panoramica: ?nuova=1 apre il modulo, ?i=<id> apre la scheda
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search)
+    if (sp.get('nuova') === '1') setCreating(true)
+    const i = sp.get('i')
+    if (i) setDetail(i)
+  }, [])
 
   const byId = useMemo(() => Object.fromEntries(maintainers.map((m) => [m.id, m])), [maintainers])
   // in corso prima, poi conclusi; dentro, i piu' recenti prima

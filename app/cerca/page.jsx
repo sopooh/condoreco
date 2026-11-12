@@ -4,6 +4,7 @@ import { AMENITY_DB } from '@/lib/amenities'
 import { attachCoverPhotos } from '@/lib/photos'
 
 export const metadata = {
+  alternates: { canonical: '/cerca' },
   title: 'Cerca condominio',
   description: 'Cerca edifici per città, via o quartiere e filtra per servizi disponibili.',
 }

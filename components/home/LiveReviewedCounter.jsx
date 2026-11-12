@@ -47,7 +47,7 @@ export default function LiveReviewedCounter({ value }) {
         <span style={{ color: '#FFFFFF', fontWeight: 700 }}>
           {new Intl.NumberFormat('it-IT').format(displayValue)}
         </span>{' '}
-        condomini gia recensiti
+        condomini già recensiti
       </span>
     </div>
   )

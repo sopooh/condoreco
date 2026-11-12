@@ -110,8 +110,8 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540, v
   }
 
   const isMobile = useIsMobile()
-  const pad = size === 'lg' ? '15px 18px' : '11px 14px'
-  const fs  = size === 'lg' ? 15 : 14
+  const pad = variant === 'hero' ? '16px 20px' : size === 'lg' ? '15px 18px' : '11px 14px'
+  const fs  = variant === 'hero' ? 16 : size === 'lg' ? 15 : 14
 
   const input = (style) => (
     <input
@@ -138,7 +138,8 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540, v
         </form>
       ) : (
       <form onSubmit={handleSubmit} style={{
-        display: 'flex', border: '1.5px solid var(--border)', borderRadius: 8,
+        display: 'flex', border: variant === 'hero' ? '1.5px solid rgba(255,255,255,0.9)' : '1.5px solid var(--border)', borderRadius: variant === 'hero' ? 14 : 8,
+        minHeight: variant === 'hero' ? 56 : undefined,
         overflow: 'hidden', background: 'var(--white)',
         boxShadow: open ? '0 2px 12px rgba(0,0,0,0.10)' : '0 1px 4px rgba(0,0,0,0.06)',
         transition: 'box-shadow 0.15s',

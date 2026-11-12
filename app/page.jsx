@@ -44,37 +44,36 @@ export default async function HomePage() {
       <div style={{
         background: 'radial-gradient(circle at left center, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 24%, rgba(13, 103, 111, 0) 48%), linear-gradient(145deg, #094B50 0%, var(--teal) 56%, #0E7E82 100%)',
         borderBottom: '1px solid rgba(255,255,255,0.10)',
-        padding: '54px 0 40px',
+        padding: '64px 0 44px',
       }}>
         <div className="home-hero-wrap" style={{ margin: '0 auto', textAlign: 'center' }}>
           <h1 style={{
             fontSize: 'clamp(34px, 6vw, 54px)',
             fontWeight: 800,
-            lineHeight: 1.02,
-            letterSpacing: '-1.4px',
+            lineHeight: 1.12,
+            letterSpacing: '-1.2px',
             marginBottom: 14,
             color: '#FFFFFF',
             maxWidth: 760,
-            margin: '0 auto 14px',
+            margin: '0 auto 22px',
           }}>
-            Scopri com'è <span style={{ color: '#BFEDEF' }}>davvero</span>
+            Trasparenza condominiale
             <br />
-            vivere qui
+            <span style={{ color: '#BFEDEF' }}>per davvero</span>
           </h1>
           <p style={{
-            fontSize: 16,
-            color: 'rgba(255,255,255,0.74)',
-            lineHeight: 1.6,
-            marginBottom: 20,
-            maxWidth: 700,
+            fontSize: 'clamp(17px, 2.2vw, 20px)',
+            color: 'rgba(255,255,255,0.86)',
+            lineHeight: 1.5,
+            marginBottom: 36,
+            maxWidth: 320,
             marginInline: 'auto',
           }}>
-            Recensioni reali di residenti su amministratori, manutenzione e qualita della vita.
-            Uno strumento chiaro per capire meglio un edificio prima di comprare, affittare o trasferirti.
+            Uno strumento chiaro per scegliere e vivere il condominio.
           </p>
 
           <div style={{ maxWidth: 980, margin: '0 auto' }}>
-            <SearchBar maxWidth="100%" />
+            <SearchBar maxWidth="100%" variant="hero" />
           </div>
 
           <div style={{ marginTop: 24 }}>

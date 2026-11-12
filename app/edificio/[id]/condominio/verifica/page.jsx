@@ -70,7 +70,7 @@ export default function VerificaResidenzaPage({ params }) {
       if (cancelled) return
       if (!upsertError && unit) {
         const { error: unitError } = await supabase.rpc('set_my_unit', {
-          p_building: condominiumId, p_floor: normalizeFloor(unit.floor), p_millesimi: unit.millesimi, p_tenure: unit.tenure,
+          p_building: condominiumId, p_floor: normalizeFloor(unit.floor), p_millesimi: null, p_tenure: unit.tenure,
         })
         if (unitError) console.error('[verifica] set_my_unit failed', unitError.message)
       }
@@ -153,8 +153,8 @@ export default function VerificaResidenzaPage({ params }) {
           <>
             <IconTile><House size={28} strokeWidth={1.8} aria-hidden="true" /></IconTile>
             <h2 style={titleStyle}>La tua casa nel condominio</h2>
-            <p style={subStyle}>Dicci se sei proprietario o in affitto. Se sei proprietario, indica anche i tuoi millesimi.</p>
-            <UnitForm building={{}} initial={unit} submitLabel="Continua" onSubmit={(v) => { setUnit(v); next(); return null }} />
+            <p style={subStyle}>Dicci se sei proprietario o in affitto e a che piano abiti.</p>
+            <UnitForm building={{}} initial={unit} askMillesimi={false} submitLabel="Continua" onSubmit={(v) => { setUnit(v); next(); return null }} />
           </>
         )}
 

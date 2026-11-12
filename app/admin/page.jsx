@@ -16,6 +16,7 @@ import FundingAnalytics from '@/components/admin/FundingAnalytics.jsx'
 import ExportData from '@/components/admin/ExportData.jsx'
 import AdminLogs from '@/components/admin/AdminLogs.jsx'
 import PhotoModeration from '@/components/admin/PhotoModeration.jsx'
+import MillesimiReviewList from '@/components/condo/MillesimiReviewList'
 import { AdminIcon } from '@/components/admin/AdminIcons'
 
 const SECTIONS = [
@@ -26,6 +27,7 @@ const SECTIONS = [
   { id: 'analytics', label: 'Statistiche', icon: 'chart' },
   { id: 'recensioni', label: 'Recensioni', icon: 'star' },
   { id: 'foto', label: 'Foto', icon: 'camera' },
+  { id: 'millesimi', label: 'Millesimi', icon: 'fileCheck' },
   { id: 'export', label: 'Export', icon: 'download' },
   { id: 'log', label: 'Log', icon: 'list' },
 ]
@@ -93,6 +95,13 @@ export default function AdminDashboard() {
       {section === 'condomini' && <BuildingsAdminTable adminId={adminId} />}
       {section === 'recensioni' && <ReviewsModeration adminId={adminId} />}
       {section === 'foto' && <PhotoModeration />}
+      {section === 'millesimi' && (
+        <div style={{ maxWidth: 820 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 6px' }}>Millesimi da verificare</h1>
+          <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '0 0 16px' }}>Richieste dei condomini senza un amministratore che possa esaminarle.</p>
+          <MillesimiReviewList buildingId={null} />
+        </div>
+      )}
       {section === 'segnalazioni' && <ReportsSection adminId={adminId} />}
       {section === 'analytics' && <FundingAnalytics />}
       {section === 'export' && <ExportData />}

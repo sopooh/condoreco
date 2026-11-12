@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
+import { fetchMyMillesimiVerification, submitMillesimiVerification } from '@/lib/millesimiVerification'
 
 export const NOTICE_KINDS = [
   { value: 'elevator_doors', label: "Porte dell'ascensore aperte", short: 'Porte ascensore', icon: 'elevator',
@@ -21,18 +22,20 @@ export function useNeighbourNotices(buildingId) {
   const session = useSession()
   const userId = session?.user?.id ?? null
   const [myFloor, setMyFloor] = useState(undefined) // undefined = in caricamento, null = non indicato
-  const [myUnit, setMyUnit] = useState(undefined)   // { floor, millesimi, tenure }
+  const [myUnit, setMyUnit] = useState(undefined)   // { floor, millesimi, tenure, verification }
   const [floorCounts, setFloorCounts] = useState({})
 
   const load = useCallback(async () => {
     if (!userId || !buildingId) return
     const supabase = createClient()
-    const [{ data: me }, { data: counts }] = await Promise.all([
+    const [{ data: me }, { data: counts }, verification] = await Promise.all([
       supabase.from('condo_members').select('floor, millesimi, tenure').eq('building_id', buildingId).eq('user_id', userId).maybeSingle(),
       supabase.rpc('condo_floor_counts', { p_building: buildingId }),
+      fetchMyMillesimiVerification(buildingId, userId),
     ])
     setMyFloor(me?.floor ?? null)
-    setMyUnit(me ? { floor: me.floor ?? null, millesimi: me.millesimi ?? null, tenure: me.tenure ?? null } : null)
+    // millesimi in condo_members = solo quelli verificati; verification = ultima richiesta (in attesa o respinta)
+    setMyUnit(me ? { floor: me.floor ?? null, millesimi: me.millesimi ?? null, tenure: me.tenure ?? null, verification } : null)
     setFloorCounts(Object.fromEntries((counts || []).map((r) => [r.floor, r.residents])))
   }, [userId, buildingId])
 
@@ -42,12 +45,20 @@ export function useNeighbourNotices(buildingId) {
     return saveUnit({ floor })
   }
 
-  // piano, millesimi e titolo (proprietario/inquilino) del residente
-  async function saveUnit({ floor = null, millesimi = null, tenure = null }) {
+  // piano e titolo (proprietario/inquilino) del residente. I millesimi non si
+  // scrivono qui: passano dalla verifica del documento (proof).
+  async function saveUnit({ floor = null, tenure = null, proof = null }) {
     const { error } = await createClient().rpc('set_my_unit', {
-      p_building: buildingId, p_floor: normalizeFloor(floor), p_millesimi: millesimi, p_tenure: tenure,
+      p_building: buildingId, p_floor: normalizeFloor(floor), p_millesimi: null, p_tenure: tenure,
     })
-    if (error) return { error: 'Non riesco a salvare. Riprova.' }
+    if (error) {
+      console.error('[set_my_unit]', error.message)
+      return { error: 'Non riesco a salvare. Riprova.' }
+    }
+    if (proof) {
+      const res = await submitMillesimiVerification({ buildingId, userId, ...proof })
+      if (res.error) { await load(); return res }
+    }
     await load()
     return { error: null }
   }

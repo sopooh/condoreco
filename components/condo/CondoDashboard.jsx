@@ -19,6 +19,7 @@ import { useDocuments } from '@/hooks/useDocuments'
 import { ToolboxArt } from '@/components/condo/CondoArt'
 import { useAdminOverview } from '@/hooks/useAdminArea'
 import { AdminInbox } from '@/components/profile/AdminProfile'
+import AdminCondoOverview from '@/components/condo/admin/AdminCondoOverview'
 
 // Home dell'area condominio: saluto + sezioni.
 //  - Rendicontazione e I tuoi interventi (area personale, privata)
@@ -93,6 +94,9 @@ export default function CondoDashboard({ building }) {
   const admAccState = !adm ? 'loading' : admLate > 0 ? 'late' : admDue > 0 ? 'ok' : 'none'
 
   const address = `${building.address}${building.street_number ? `, ${building.street_number}` : ''}`
+
+  // l'amministratore vede la pagina di riepilogo del condominio
+  if (isCondoAdmin) return <AdminCondoOverview building={building} />
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100%' }}>

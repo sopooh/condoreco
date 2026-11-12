@@ -1690,7 +1690,6 @@ input, select, textarea { font-family: inherit; }
 
 /* ── Liste Amministratori / Fornitori: testata con onda, controlli, card ── */
 .dir-hero { position: relative; overflow: hidden; background: linear-gradient(180deg, #fff 0%, #F4F8F8 100%); border-bottom: 1px solid var(--border); }
-.dir-hero-wave { position: absolute; top: 0; right: 0; width: min(78%, 620px); height: 110px; pointer-events: none; }
 .dir-hero-inner { position: relative; max-width: 1360px; margin: 0 auto; padding: 34px 40px 18px; }
 .dir-hero-title { display: flex; align-items: center; gap: 14px; }
 .dir-hero-title h1 { font-size: 38px; font-weight: 800; letter-spacing: -1.2px; margin: 0; line-height: 1.1; }
@@ -1759,7 +1758,6 @@ input, select, textarea { font-family: inherit; }
   .dir-sheet { border-radius: 20px; }
 }
 @media (max-width: 767px) {
-  .dir-hero-wave { width: 82%; height: 76px; }
   .dir-hero-inner { padding: 24px 16px 14px; }
   .dir-hero-title { gap: 12px; }
   .dir-hero-title h1 { font-size: 32px; letter-spacing: -1px; }

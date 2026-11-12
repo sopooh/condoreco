@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Search } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout'
@@ -48,7 +48,7 @@ async function photon(query) {
   }
 }
 
-export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540 }) {
+export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540, variant = 'default' }) {
   const [q, setQ] = useState(initial)
   const [results, setResults] = useState([])
   const [open, setOpen] = useState(false)
@@ -113,8 +113,30 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540 })
   const pad = size === 'lg' ? '15px 18px' : '11px 14px'
   const fs  = size === 'lg' ? 15 : 14
 
+  const input = (style) => (
+    <input
+      value={q}
+      onChange={e => { touchedRef.current = true; setQ(e.target.value) }}
+      onFocus={() => results.length > 0 && setOpen(true)}
+      onKeyDown={e => e.key === 'Escape' && setOpen(false)}
+      placeholder={isMobile ? 'Cerca via, città...' : 'Cerca via, quartiere, città (es. Via Manzoni 14, Milano)'}
+      aria-label="Cerca via, quartiere o città"
+      style={style}
+    />
+  )
+
   return (
-    <div ref={wrapRef} style={{ position: 'relative', maxWidth, width: '100%' }}>
+    <div ref={wrapRef} style={{ position: 'relative', maxWidth: variant === 'dir' ? 720 : maxWidth, width: '100%' }}>
+      {variant === 'dir' ? (
+        <form className="dir-search" role="search" onSubmit={handleSubmit}>
+          <label className="dir-search-field">
+            <Search size={20} strokeWidth={2} aria-hidden="true" />
+            {input()}
+            {loading && <span style={{ color: 'var(--text-4)', fontSize: 12 }}>…</span>}
+          </label>
+          <button type="submit" className="dir-search-btn">Cerca</button>
+        </form>
+      ) : (
       <form onSubmit={handleSubmit} style={{
         display: 'flex', border: '1.5px solid var(--border)', borderRadius: 8,
         overflow: 'hidden', background: 'var(--white)',
@@ -150,6 +172,7 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540 })
           {isMobile ? <ArrowRight size={22} strokeWidth={2} aria-hidden="true" /> : 'Cerca'}
         </button>
       </form>
+      )}
 
       {open && results.length > 0 && (
         <div style={{

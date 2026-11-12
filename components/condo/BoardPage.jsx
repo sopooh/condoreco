@@ -1,7 +1,7 @@
 'use client'
 
 import { AlignLeft, CalendarDays, Check, ChevronDown as LChevronDown, ChevronLeft as LChevronLeft, ChevronRight as LChevronRight, Clock, Droplet, Ellipsis, Layers, MapPin, Plus, Search, Users, Wrench, X, Zap, CalendarCheck, CalendarRange, List } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useCalendarEvents } from '@/hooks/useCalendarEvents'
 import { usePublicInterventions } from '@/hooks/usePublicInterventions'
@@ -148,23 +148,28 @@ export default function BoardPage({ buildingId }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 10, padding: isMobile ? '0 6px' : 0, marginBottom: 14 }}>
         <IconButton onClick={() => step(-1)} label={view === 'week' ? 'Settimana precedente' : 'Mese precedente'}><ChevronLeft /></IconButton>
 
-        {/* mese/anno: tap apre il selettore nativo del mese */}
-        <label style={{ ...pill, position: 'relative', flex: isMobile ? 1 : '0 0 auto', justifyContent: 'center', minWidth: isMobile ? 0 : 200 }}>
-          <span style={{ fontWeight: 700, fontSize: isMobile ? (view === 'week' ? 14.5 : 16) : 17, whiteSpace: 'nowrap' }}>{periodLabel}</span>
-          <CaretDown />
-          <input
-            type="month"
-            aria-label="Scegli il mese"
-            value={`${year}-${String(month + 1).padStart(2, '0')}`}
-            onChange={(e) => {
-              const [y, m] = e.target.value.split('-').map(Number)
-              if (!y || !m) return
-              if (view === 'week') goToWeek(mondayOf(new Date(y, m - 1, 1)))
-              else goTo(y, m - 1)
-            }}
-            style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', minHeight: 0 }}
-          />
-        </label>
+        {/* mese/anno: su mobile la rotella nativa, da computer un pannello con i 12 mesi */}
+        {isMobile ? (
+          <label style={{ ...pill, position: 'relative', flex: 1, justifyContent: 'center', minWidth: 0 }}>
+            <span style={{ fontWeight: 700, fontSize: view === 'week' ? 14.5 : 16, whiteSpace: 'nowrap' }}>{periodLabel}</span>
+            <CaretDown />
+            <input
+              type="month"
+              aria-label="Scegli il mese"
+              value={`${year}-${String(month + 1).padStart(2, '0')}`}
+              onChange={(e) => {
+                const [y, m] = e.target.value.split('-').map(Number)
+                if (!y || !m) return
+                if (view === 'week') goToWeek(mondayOf(new Date(y, m - 1, 1)))
+                else goTo(y, m - 1)
+              }}
+              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', minHeight: 0 }}
+            />
+          </label>
+        ) : (
+          <MonthPicker year={year} month={month} label={periodLabel} today={today}
+            onPick={(y, m) => { if (view === 'week') goToWeek(mondayOf(new Date(y, m, 1))); else goTo(y, m) }} />
+        )}
 
         <IconButton onClick={() => step(1)} label={view === 'week' ? 'Settimana successiva' : 'Mese successivo'}><ChevronRight /></IconButton>
 
@@ -835,3 +840,57 @@ function TodayIcon({ day }) {
     </svg>
   )
 }
+
+// Selettore del mese da computer: anno con frecce e griglia dei 12 mesi
+function MonthPicker({ year, month, label, today, onPick }) {
+  const [open, setOpen] = useState(false)
+  const [y, setY] = useState(year)
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e) => { if (!ref.current?.contains(e.target)) setOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
+  }, [open])
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button type="button" aria-haspopup="dialog" aria-expanded={open} onClick={() => { setY(year); setOpen((o) => !o) }}
+        style={{ ...pill, justifyContent: 'center', minWidth: 200, cursor: 'pointer', font: 'inherit', color: 'var(--text)' }}>
+        <span style={{ fontWeight: 700, fontSize: 17, whiteSpace: 'nowrap' }}>{label}</span>
+        <CaretDown />
+      </button>
+      {open && (
+        <div role="dialog" aria-label="Scegli il mese" style={{
+          position: 'absolute', left: 0, top: 'calc(100% + 8px)', zIndex: 451, width: 300, padding: 14,
+          background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 18, boxShadow: '0 12px 32px rgba(0,0,0,0.14)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <button type="button" onClick={() => setY(y - 1)} aria-label="Anno precedente" style={yearBtn}><ChevronLeft /></button>
+            <strong style={{ fontSize: 17 }}>{y}</strong>
+            <button type="button" onClick={() => setY(y + 1)} aria-label="Anno successivo" style={yearBtn}><ChevronRight /></button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+            {MONTH_NAMES.map((n, i) => {
+              const on = y === year && i === month
+              const isNow = y === today.getFullYear() && i === today.getMonth()
+              return (
+                <button key={n} type="button" aria-label={`${n} ${y}`} onClick={() => { onPick(y, i); setOpen(false) }} aria-current={on ? 'date' : undefined}
+                  style={{
+                    height: 42, minHeight: 0, borderRadius: 12, cursor: 'pointer', font: 'inherit', fontSize: 14.5, fontWeight: on ? 800 : 600,
+                    border: `1.5px solid ${on ? 'var(--teal)' : isNow ? 'var(--teal-lt)' : 'transparent'}`,
+                    background: on ? 'var(--teal)' : 'var(--bg)', color: on ? '#fff' : 'var(--text)',
+                  }}>
+                  {n.slice(0, 3)}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const yearBtn = { width: 36, height: 36, minHeight: 0, borderRadius: 10, border: '1px solid var(--border)', background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text)' }

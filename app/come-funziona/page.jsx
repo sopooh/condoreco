@@ -1,4 +1,5 @@
 export const metadata = {
+  alternates: { canonical: '/come-funziona' },
   title: 'Come funziona',
   description: 'Come funziona CondoReco: cerca un condominio o un amministratore, leggi le recensioni e racconta la tua esperienza.',
 }

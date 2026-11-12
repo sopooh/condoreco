@@ -18,6 +18,8 @@ import ReportsHistory from '@/components/buildings/ReportsHistory'
 import BuildingFacts from '@/components/buildings/BuildingFacts'
 import { buildingPercentiles } from '@/lib/percentile'
 import { reviewTrend } from '@/lib/trend'
+import JsonLd from '@/components/seo/JsonLd'
+import { SITE_URL } from '@/lib/site'
 
 export const revalidate = 3600
 
@@ -103,19 +105,22 @@ export async function generateMetadata({ params }) {
   if (!data) return {}
 
   const { building, photos } = data
-  const title = `${building.address}${building.street_number ? ' ' + building.street_number : ''}, ${building.city} — Recensioni e punteggi`
+  const place = `${building.address}${building.street_number ? ' ' + building.street_number : ''}, ${building.city}`
+  const title = `${place}: recensioni del condominio`
 
-  const scoreText = building.score != null ? `Punteggio ${building.score.toFixed(1)}/5` : null
-  const reviewText = building.review_count != null ? `${building.review_count} recensioni` : null
-  const description = [scoreText, reviewText].filter(Boolean).join(' · ')
-    || `Recensioni ed esperienze reali su ${building.address}, ${building.city}.`
+  const hasReviews = building.review_count > 0 && building.score != null
+  const description = hasReviews
+    ? `Com'è vivere in ${place}: punteggio ${building.score.toFixed(1)}/5 su ${building.review_count} ${building.review_count === 1 ? 'recensione' : 'recensioni'} dei residenti. Amministratore, spese condominiali, manutenzione e qualità della vita.`
+    : `Com'è vivere in ${place}? Scopri chi amministra il condominio, servizi e spese, e racconta la tua esperienza se ci abiti.`
 
   const cover = photos[0]
 
   return {
     title,
     description,
+    alternates: { canonical: `/edificio/${id}` },
     openGraph: {
+      url: `/edificio/${id}`,
       title,
       description,
       images: cover ? [{ url: photoUrl(cover.storage_path) }] : undefined,
@@ -135,8 +140,31 @@ export default async function BuildingPage({ params }) {
   const trend = reviewTrend(reviews)
   const reportStats = reports.length === 0 ? null : buildReportStats(reports)
 
+  // Place/ApartmentComplex: niente aggregateRating, Google non mostra le
+  // stelline per questo tipo di entità (sono supportate sugli amministratori).
+  const buildingJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ApartmentComplex',
+    name: `${fullAddress}, ${building.city}`,
+    url: `${SITE_URL}/edificio/${building.id}`,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: fullAddress,
+      addressLocality: building.city,
+      ...(building.postal_code && { postalCode: building.postal_code }),
+      ...(building.province && { addressRegion: building.province }),
+      addressCountry: 'IT',
+    },
+    ...(building.lat != null && building.lng != null && {
+      geo: { '@type': 'GeoCoordinates', latitude: building.lat, longitude: building.lng },
+    }),
+    ...(building.units && { numberOfAccommodationUnits: building.units }),
+    ...(photos[0] && { photo: photoUrl(photos[0].storage_path) }),
+  }
+
   return (
     <>
+      <JsonLd data={buildingJsonLd} />
       <BuildingGallery photos={photos} address={fullAddress} />
       <BuildingHeader building={building} hideScore={photos.length > 0} />
 
@@ -165,7 +193,7 @@ export default async function BuildingPage({ params }) {
               table="reviews"
               column="building_id"
               entityId={building.id}
-              subtitle={`${building.address}${building.street_number ? ', ' + building.street_number : ''} — ${building.city}`}
+              subtitle={`${building.address}${building.street_number ? ', ' + building.street_number : ''} · ${building.city}`}
               residentTypes={RESIDENT_TYPES}
               categories={BUILDING_REVIEW_CATEGORIES}
               extras={{ issues: ISSUES, residentSince: true, amenities: true, photos: true }}

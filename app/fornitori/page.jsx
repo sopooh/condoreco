@@ -2,12 +2,14 @@ import { createStaticClient } from '@/lib/supabase/static'
 import SuppliersResultsView from '@/components/suppliers/directory/SuppliersResultsView'
 import { fuzzyFilter } from '@/lib/fuzzySearch'
 import { maintenanceCategoryLabel } from '@/lib/maintenanceCategories'
+import SeoIntro from '@/components/seo/SeoIntro'
 
 export const revalidate = 300
 
 export const metadata = {
-  title: 'Fornitori Recofixer',
-  description: 'Idraulici, elettricisti, ascensoristi e imprese che lavorano con i condomini su Condoreco, divisi per categoria e città.',
+  title: 'Fornitori per condomini: idraulici, elettricisti, imprese',
+  description: 'Idraulici, elettricisti, ascensoristi e imprese che lavorano con i condomini su CondoReco, divisi per categoria e città.',
+  alternates: { canonical: '/fornitori' },
 }
 
 const SORTS = {
@@ -49,6 +51,13 @@ export default async function SuppliersPage({ searchParams }) {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <SuppliersResultsView suppliers={suppliers} cities={cities} categoryCounts={categoryCounts} city={city} total={all.length} />
+      <SeoIntro title="Fornitori e imprese per la manutenzione del condominio">
+        <p>
+          I Recofixer sono idraulici, elettricisti, ascensoristi, imprese edili e di pulizia che lavorano con
+          i condomini iscritti a CondoReco. Per ognuno vedi la categoria, le zone servite e quanti interventi
+          ha già svolto nei condomini della piattaforma.
+        </p>
+      </SeoIntro>
     </div>
   )
 }

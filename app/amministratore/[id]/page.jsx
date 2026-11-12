@@ -6,6 +6,8 @@ import AdminBuildings from '@/components/admins/AdminBuildings'
 import AdminActions from '@/components/admins/AdminActions'
 import ReviewsSection from '@/components/reviews/ReviewsSection'
 import { ADMIN_RESIDENT_TYPES, ADMIN_REVIEW_CATEGORIES } from '@/lib/reviewOptions'
+import JsonLd from '@/components/seo/JsonLd'
+import { SITE_URL } from '@/lib/site'
 
 export const revalidate = 3600
 
@@ -55,17 +57,19 @@ export async function generateMetadata({ params }) {
   if (!data) return {}
 
   const { admin } = data
-  const title = `${admin.name} — Recensioni amministratore condominio ${admin.city}`
+  const where = admin.city ? ` a ${admin.city}` : ''
+  const title = `${admin.name}, amministratore di condominio${where}: recensioni`
 
-  const scoreText = admin.score != null ? `Punteggio ${admin.score.toFixed(1)}/5` : null
-  const reviewText = admin.review_count != null ? `${admin.review_count} recensioni` : null
-  const description = [scoreText, reviewText].filter(Boolean).join(' · ')
-    || `Recensioni ed esperienze reali sull'amministratore ${admin.name}, ${admin.city}.`
+  const hasReviews = admin.review_count > 0 && admin.score != null
+  const description = hasReviews
+    ? `Opinioni su ${admin.name}${where}: punteggio ${admin.score.toFixed(1)}/5 su ${admin.review_count} ${admin.review_count === 1 ? 'recensione' : 'recensioni'} dei residenti. Trasparenza, rapidità, assemblee e condomini gestiti.`
+    : `${admin.name}, amministratore di condominio${where}: condomini gestiti e opinioni dei residenti. Lo conosci? Lascia la tua recensione.`
 
   return {
     title,
     description,
-    openGraph: { title, description },
+    alternates: { canonical: `/amministratore/${id}` },
+    openGraph: { title, description, url: `/amministratore/${id}` },
   }
 }
 
@@ -76,8 +80,37 @@ export default async function AdminPage({ params }) {
 
   const { admin, buildings, reviews } = data
 
+  // Recensioni scritte da residenti terzi, non dall'amministratore stesso:
+  // AggregateRating ammesso per le stelline nei risultati Google.
+  const adminJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfessionalService',
+    name: admin.studio_name || admin.name,
+    ...(admin.studio_name && admin.studio_name !== admin.name && { alternateName: admin.name }),
+    description: 'Amministratore di condominio',
+    url: `${SITE_URL}/amministratore/${admin.id}`,
+    ...(admin.city && {
+      address: {
+        '@type': 'PostalAddress',
+        ...(admin.address && { streetAddress: admin.address }),
+        addressLocality: admin.city,
+        addressCountry: 'IT',
+      },
+    }),
+    ...(admin.review_count > 0 && admin.score != null && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: Number(admin.score.toFixed(1)),
+        reviewCount: admin.review_count,
+        bestRating: 5,
+        worstRating: 1,
+      },
+    }),
+  }
+
   return (
     <>
+      <JsonLd data={adminJsonLd} />
       <AdminHeader admin={admin} />
 
       <div className="wrap" style={{ padding: '24px 40px' }}>

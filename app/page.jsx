@@ -3,8 +3,14 @@ import { createStaticClient } from '@/lib/supabase/static'
 import SearchBar from '@/components/search/SearchBar'
 import LiveReviewedCounter from '@/components/home/LiveReviewedCounter'
 import BuildingList from '@/components/buildings/BuildingList'
+import SeoIntro from '@/components/seo/SeoIntro'
 
 export const revalidate = 3600
+
+export const metadata = {
+  title: { absolute: 'CondoReco | Recensioni di condomini e amministratori' },
+  alternates: { canonical: '/' },
+}
 
 // "Più recensiti questa settimana" limitava a un numero ragionevole di card;
 // l'originale renderizzava l'intera lista senza ordinamento (la heading non
@@ -69,7 +75,7 @@ export default async function HomePage() {
             maxWidth: 700,
             marginInline: 'auto',
           }}>
-            Recensioni reali di residenti su amministratori, manutenzione e qualita della vita.
+            Recensioni reali di residenti su amministratori, manutenzione e qualità della vita.
             Uno strumento chiaro per capire meglio un edificio prima di comprare, affittare o trasferirti.
           </p>
 
@@ -121,6 +127,19 @@ export default async function HomePage() {
         <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Più recensiti questa settimana</div>
         <BuildingList buildings={topBuildings} />
       </div>
+
+      <SeoIntro title="Recensioni di condomini e amministratori, scritte da chi ci vive">
+        <p>
+          CondoReco raccoglie le esperienze di residenti, proprietari e inquilini sui condomini italiani:
+          come lavora l’amministratore, quanto costano davvero le spese condominiali, com’è la manutenzione,
+          quanto rumore c’è e come si vive nel palazzo e nel quartiere.
+        </p>
+        <p>
+          Prima di comprare o affittare casa puoi cercare l’edificio per via o città, leggere le recensioni,
+          confrontare i punteggi con gli altri condomini della zona e scoprire chi lo amministra.
+          Se ci abiti, puoi raccontare la tua esperienza e aiutare chi arriverà dopo di te.
+        </p>
+      </SeoIntro>
     </>
   )
 }

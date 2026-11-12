@@ -1,6 +1,7 @@
 import { createStaticClient } from '@/lib/supabase/static'
 import AdminsResultsView from '@/components/admins/AdminsResultsView'
 import { attachCoverPhotos } from '@/lib/photos'
+import SeoIntro from '@/components/seo/SeoIntro'
 
 export const revalidate = 3600
 
@@ -17,8 +18,9 @@ const ADMIN_SORTS = {
 }
 
 export const metadata = {
-  title: 'Amministratori di condominio',
-  description: 'Scopri reputazione, stabili gestiti e recensioni degli amministratori di condominio prima di averci a che fare.',
+  title: 'Amministratori di condominio: recensioni e opinioni',
+  description: 'Recensioni e opinioni sugli amministratori di condominio scritte dai residenti: trasparenza, rapidità, gestione delle assemblee e condomini gestiti.',
+  alternates: { canonical: '/amministratori' },
 }
 
 async function getAdminsData(searchParams) {
@@ -99,6 +101,18 @@ export default async function AdminsPage({ searchParams }) {
         feeCounts={feeCounts}
         city={city}
       />
+      <SeoIntro title="Come scegliere un amministratore di condominio">
+        <p>
+          Su CondoReco trovi le recensioni degli amministratori di condominio scritte da chi vive negli stabili
+          che gestiscono. Ogni profilo mostra il punteggio medio, i condomini amministrati e le valutazioni su
+          disponibilità, trasparenza dei conti, rapidità negli interventi e gestione delle assemblee.
+        </p>
+        <p>
+          Puoi filtrare per città e ordinare per valutazione, numero di recensioni o anni di attività:
+          utile se il tuo condominio sta cambiando amministratore o se vuoi capire chi gestisce il palazzo
+          dove stai per comprare o affittare.
+        </p>
+      </SeoIntro>
     </div>
   )
 }

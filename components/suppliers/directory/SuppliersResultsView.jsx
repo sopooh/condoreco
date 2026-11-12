@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { SlidersHorizontal, Wrench, X } from 'lucide-react'
+import { List, Map as MapIcon, SlidersHorizontal, Wrench, X } from 'lucide-react'
+import ResultsMap from '@/components/map/ResultsMap'
 import PageHero from '@/components/directory/PageHero'
 import DirectorySearch from '@/components/directory/DirectorySearch'
 import CitySelect from '@/components/directory/CitySelect'
@@ -21,9 +22,10 @@ const TABS = [
   { id: 'nuovi', label: 'Nuovi' },
 ]
 
-// Stessa impaginazione di Amministratori (testata con onda, tab, colonna filtri),
-// senza mappa: i fornitori lavorano per zona, non per indirizzo.
-export default function SuppliersResultsView({ suppliers, cities, categoryCounts, city, total }) {
+// Stessa impaginazione di Amministratori (testata, tab, colonna filtri, mappa).
+// I fornitori lavorano per zona: sulla mappa c'è un pin per città servita
+// con il numero di fornitori; toccandolo si filtra per quella città.
+export default function SuppliersResultsView({ suppliers, cities, categoryCounts, city, total, cityPins = [] }) {
   const isMobile = useIsMobile()
   const { searchParams, setParams } = useParamNav()
   const { saved, toggle } = useSaved('saved_suppliers', 'supplier_id', '/fornitori')
@@ -31,6 +33,15 @@ export default function SuppliersResultsView({ suppliers, cities, categoryCounts
   const list = onlySaved ? suppliers.filter((s) => saved.has(s.id)) : suppliers
   const [showFilters, setShowFilters] = useState(false)
   const filtersActive = Boolean(searchParams.get('cat'))
+  const [showMap, setShowMap] = useState(false)
+  const pickCity = (pin) => { setShowMap(false); setParams({ city: pin.city }) }
+
+  useEffect(() => {
+    if (isMobile && showMap) {
+      document.body.style.overflow = 'hidden'
+      return () => { document.body.style.overflow = '' }
+    }
+  }, [isMobile, showMap])
 
   return (
     <>
@@ -38,12 +49,17 @@ export default function SuppliersResultsView({ suppliers, cities, categoryCounts
         subtitle="I Recofixer che lavorano con i condomini: idraulici, elettricisti, ascensoristi, imprese e non solo.">
         <DirectorySearch placeholder="Cerca fornitore o servizio" />
         <div className="dir-ctrls">
-          <CitySelect cities={cities} />
-          {isMobile ? (
+          <CitySelect cities={cities} allLabel="Tutte" />
+          {isMobile && (
             <button type="button" className={`dir-ctrl${filtersActive ? ' is-on' : ''}`} onClick={() => setShowFilters(true)}>
               <SlidersHorizontal size={20} strokeWidth={2} aria-hidden="true" />Filtri
             </button>
-          ) : (
+          )}
+          <button type="button" className={`dir-ctrl${showMap ? ' is-on' : ''}`} onClick={() => setShowMap((v) => !v)} aria-pressed={showMap}>
+            {showMap && !isMobile ? <List size={20} strokeWidth={2} aria-hidden="true" /> : <MapIcon size={20} strokeWidth={2} aria-hidden="true" />}
+            {showMap && !isMobile ? 'Lista' : 'Mappa'}
+          </button>
+          {!isMobile && (
             <Link href="/fornitore" className="dir-ctrl" style={{ color: '#6D28D9', borderColor: '#C4B5FD', background: '#F7F3FF' }}>
               <Wrench size={18} strokeWidth={2} aria-hidden="true" />Diventa Recofixer
             </Link>
@@ -66,7 +82,23 @@ export default function SuppliersResultsView({ suppliers, cities, categoryCounts
         </div>
       )}
 
-      <div className="dir-results">
+      {isMobile && showMap && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', flexDirection: 'column', background: '#fff' }}>
+          <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+            <ResultsMap results={cityPins} height="100%" onResultSelect={pickCity} containerStyle={{ borderRadius: 0, border: 'none' }} />
+            <button onClick={() => setShowMap(false)} style={{
+              position: 'absolute', top: 12, left: 12, zIndex: 1000, minHeight: 0, background: 'var(--white)', border: '1px solid var(--border)',
+              borderRadius: 20, padding: '8px 14px', fontWeight: 600, fontSize: 13, cursor: 'pointer', color: 'var(--teal-dk)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', gap: 6,
+            }}><List size={16} aria-hidden="true" />Lista</button>
+          </div>
+          <div style={{ padding: '10px 16px', background: 'var(--white)', borderTop: '1px solid var(--border)', fontSize: 13, color: 'var(--text-3)' }}>
+            {cityPins.length ? 'Tocca una città per vedere i fornitori che ci lavorano.' : 'Nessuna città con fornitori da mostrare.'}
+          </div>
+        </div>
+      )}
+
+      <div className={`dir-results${!isMobile && showMap ? ' has-map' : ''}`}>
         {!isMobile && <SupplierFilterSidebar categoryCounts={categoryCounts} />}
 
         <div style={{ minWidth: 0 }}>
@@ -103,6 +135,15 @@ export default function SuppliersResultsView({ suppliers, cities, categoryCounts
             </Link>
           )}
         </div>
+
+        {!isMobile && showMap && (
+          <div style={{ position: 'sticky', top: 80 }}>
+            <ResultsMap results={cityPins} height={520} onResultSelect={pickCity} />
+            <p style={{ margin: '8px 0 0 2px', fontSize: 13, color: 'var(--text-3)' }}>
+              {cityPins.length ? 'Ogni pin è una città servita, con il numero di fornitori. Toccala per filtrare.' : 'Nessuna città con fornitori da mostrare.'}
+            </p>
+          </div>
+        )}
       </div>
     </>
   )

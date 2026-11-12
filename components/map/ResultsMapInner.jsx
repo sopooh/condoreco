@@ -27,6 +27,16 @@ function clusterByPixel(map, pts) {
 // Pin singolo: pallino colorato col voto (stessi colori della legenda) e,
 // se nota, la quota mensile in chiaro accanto. Mai due etichette sovrapposte.
 function pinIcon(r) {
+  // pin con etichetta libera (es. città con N fornitori)
+  if (r.pinBadge != null) {
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+    const html = `
+    <div style="position:absolute;left:0;top:0;transform:translate(-50%,-100%);display:inline-flex;align-items:center;gap:6px;background:#fff;border:2px solid #0D676F;border-radius:999px;padding:2px 10px 2px 2px;box-shadow:0 2px 8px rgba(0,0,0,.22);white-space:nowrap;font-family:inherit;cursor:pointer">
+      <span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;padding:0 6px;border-radius:999px;background:#0D676F;color:#fff;font-size:12px;font-weight:800">${esc(r.pinBadge)}</span>
+      <span style="font-size:12px;font-weight:700;color:#1F2937">${esc(r.pinLabel || '')}</span>
+    </div>`
+    return L.divIcon({ className: '', html, iconSize: [0, 0] })
+  }
   const score = r.score == null ? null : Number(r.score)
   const color = scoreHex(score)
   const scoreText = score == null ? 'N/D' : score.toFixed(1)
@@ -135,7 +145,7 @@ export default function ResultsMapInner({
   const resultsRef = useRef(results)
   useEffect(() => { resultsRef.current = results })
   const resultsSig = results
-    .map((r) => `${r.id}:${r.lat}:${r.lng}:${r.score}:${r.monthly_fee}:${r.status}`)
+    .map((r) => `${r.id}:${r.lat}:${r.lng}:${r.score}:${r.monthly_fee}:${r.status}:${r.pinBadge}`)
     .join('|')
 
   // aggiorna i pin quando cambiano i risultati, e li ri-raggruppa a ogni zoom

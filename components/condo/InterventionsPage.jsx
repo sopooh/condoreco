@@ -338,7 +338,7 @@ function NewInterventionSheet({ maintainers, defaultCategory, onClose, onAddMain
   const [mode, setMode] = useState(null) // null = scelta, 'repair' = guasto, 'notice' = avviso ai vicini
   const [step, setStep] = useState(0)
   const tpl = (c) => maintenanceCategory(c).template || { title: '', description: '' }
-  const [v, setV] = useState({ title: tpl(defaultCategory).title, category: defaultCategory, location: '', description: tpl(defaultCategory).description, maintainerId: null })
+  const [v, setV] = useState({ title: tpl(defaultCategory).title, category: defaultCategory, location: '', description: tpl(defaultCategory).description, maintainerId: null, urgent: false })
   // testo precompilato per la categoria finche' l'utente non lo modifica
   const [edited, setEdited] = useState({ title: false, description: false })
   const [addingNew, setAddingNew] = useState(false)
@@ -415,6 +415,10 @@ function NewInterventionSheet({ maintainers, defaultCategory, onClose, onAddMain
           <div><div style={label}>Categoria</div><CategoryPills value={v.category} onChange={pickCategory} /></div>
           <label><div style={label}>Dove</div>
             <input style={field} placeholder="Es. Scala B, 3° piano, cantina" value={v.location} onChange={set('location')} />
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${v.urgent ? '#F79009' : 'var(--border)'}`, background: v.urgent ? '#FFF7ED' : 'var(--white)', cursor: 'pointer' }}>
+            <input type="checkbox" checked={v.urgent} onChange={(e) => setV((x) => ({ ...x, urgent: e.target.checked }))} style={{ width: 20, height: 20, accentColor: '#C2410C' }} />
+            <span><span style={{ display: 'block', fontWeight: 800, fontSize: 15 }}>È urgente</span><span style={{ display: 'block', fontSize: 13, color: 'var(--text-3)' }}>Perdite, guasti che bloccano, rischi per la sicurezza</span></span>
           </label>
           <label><div style={label}>Dettagli (solo per te e il manutentore)</div>
             <textarea style={{ ...field, minHeight: 80, resize: 'vertical' }} placeholder="Da quando, cosa hai notato, orari in cui sei disponibile" value={v.description} onChange={set('description')} />

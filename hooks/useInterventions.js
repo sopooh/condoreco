@@ -54,6 +54,7 @@ export function useInterventions(buildingId) {
       description: values.description?.trim() || null,
       location: values.location?.trim() || null,
       maintainer_id: values.maintainerId || null,
+      urgent: !!values.urgent,
     }).select('id').single()
     if (error) { console.error('[useInterventions] insert failed', error); return { error: error.message } }
     await load()

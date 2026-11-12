@@ -11,6 +11,7 @@ import ProfileHomeRow from '@/components/profile/ProfileHomeRow'
 import { ROLES } from '@/lib/avatars'
 import { getProfile, upsertProfile, markBuildingAsFormerHome, markBuildingAsCurrentHome } from '@/lib/profile'
 import { useUserBuildings } from '@/hooks/useUserBuildings'
+import { useSupplierBuildings } from '@/hooks/useSupplierBuildings'
 import { useSession } from '@/components/providers/SessionProvider'
 import { useAdminOverview } from '@/hooks/useAdminArea'
 import { AdminBuildingRow, AdminInbox, AdminKpis } from '@/components/profile/AdminProfile'
@@ -55,6 +56,8 @@ export default function ProfileClient() {
   const { viewAs, canSwitch } = useViewAs()
   const view = admin.isAdmin ? (canSwitch ? 'admin' : (viewPick || 'admin')) : 'resident'
   const asSupplier = viewAs === 'recofixer'
+  const clients = useSupplierBuildings(asSupplier)
+  const [pastClientsOpen, setPastClientsOpen] = useState(false)
 
   // ── Carica profilo reale da Supabase ──
   // Onboarding automatico al primo accesso: la fonte di verità è il profilo
@@ -163,7 +166,7 @@ export default function ProfileClient() {
 
           <div className="profile-header-row">
             <div className="profile-avatar-col">
-              <Avatar userId={userId} avatarId={profile.avatar_id} photoUrl={profile.photo_url} role={profile.role} size={avatarSize} />
+              <Avatar userId={userId} avatarId={profile.avatar_id} photoUrl={profile.photo_url} role={profile.role} size={avatarSize} showRole={view !== 'admin' && !asSupplier} />
             </div>
 
             <div className="profile-id">
@@ -220,12 +223,48 @@ export default function ProfileClient() {
             </div>
             <div>
               <div className="profile-section-head">
-                <SectionTitle icon={<BuildingIcon size={16} />}>I miei condomini</SectionTitle>
+                <SectionTitle icon={<BuildingIcon size={16} />}>Gestisco</SectionTitle>
                 <span className="cadm-count">{admin.buildings.length}</span>
               </div>
               <div style={{ ...card, overflow: 'hidden' }}>
                 {admin.buildings.map((b) => <AdminBuildingRow key={b.id} b={b} />)}
               </div>
+            </div>
+          </section>
+          ) : asSupplier ? (
+          /* RECOFIXER: CONDOMINI CLIENTI */
+          <section>
+            <div className="profile-section-head">
+              <SectionTitle icon={<Wrench size={16} strokeWidth={2} aria-hidden="true" />}>Lavoro</SectionTitle>
+              {!clients.loading && <span className="cadm-count">{clients.current.length}</span>}
+            </div>
+            <div style={{ ...card, overflow: 'hidden' }}>
+              {clients.loading ? (
+                <div style={{ fontSize: 14, color: 'var(--text-3)', padding: 20 }}>Caricamento...</div>
+              ) : (
+                <>
+                  {clients.current.length > 0 ? (
+                    clients.current.map(b => <ProfileHomeRow key={b.id} building={b} />)
+                  ) : (
+                    <div style={{ padding: 20, fontSize: 14, color: 'var(--text-3)' }}>
+                      Nessun condominio ti ha ancora aggiunto tra i suoi fornitori.
+                    </div>
+                  )}
+                  {clients.past.length > 0 && (
+                    <>
+                      <button type="button" className="profile-past-toggle"
+                        onClick={() => setPastClientsOpen(o => !o)} aria-expanded={pastClientsOpen}>
+                        <span className="profile-past-icon"><HistoryIcon /></span>
+                        <span style={{ flex: 1, textAlign: 'left' }}>Ex clienti ({clients.past.length})</span>
+                        <span style={{ display: 'inline-flex', transform: pastClientsOpen ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }}>
+                          <ChevronRightIcon />
+                        </span>
+                      </button>
+                      {pastClientsOpen && clients.past.map(b => <ProfileHomeRow key={b.id} building={b} />)}
+                    </>
+                  )}
+                </>
+              )}
             </div>
           </section>
           ) : (

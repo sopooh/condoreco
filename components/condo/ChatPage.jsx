@@ -237,7 +237,7 @@ function ThreadAvatar({ t, size = 44 }) {
 
 function GroupChat({ building, onBack, onOpenContact }) {
   const { isCondoAdmin, userId } = useCondoRole(building.id)
-  const { messages, sendMessage, hideMessage } = useCondoChat(building.id)
+  const { messages, sendMessage, hideMessage, editMessage } = useCondoChat(building.id)
   const { polls, castVote, changeVote, createPoll, voteOption, reload: reloadPolls } = usePolls(building.id)
   const { createEvent } = useEvents(building.id)
   const [sheet, setSheet] = useState(null) // 'contact' | 'poll' | 'event'
@@ -278,6 +278,7 @@ function GroupChat({ building, onBack, onOpenContact }) {
         names={names}
         userId={userId}
         onSend={sendMessage}
+        onEdit={editMessage}
         onHide={isCondoAdmin ? hideMessage : null}
         onBack={onBack}
         composer={{ buildingId: building.id, isGroup: true, onAction: setSheet }}
@@ -291,7 +292,7 @@ function GroupChat({ building, onBack, onOpenContact }) {
 }
 
 function ThreadChat({ building, threadId, meta, onBack, onOpenContact }) {
-  const { messages, members, names, userId, send, addMembers, loading } = useThreadMessages(threadId)
+  const { messages, members, names, userId, send, edit, addMembers, loading } = useThreadMessages(threadId)
   const [adding, setAdding] = useState(false)
   const [sheet, setSheet] = useState(null)
   const kind = meta?.kind
@@ -323,6 +324,7 @@ function ThreadChat({ building, threadId, meta, onBack, onOpenContact }) {
         names={names}
         userId={userId}
         onSend={send}
+        onEdit={edit}
         onBack={onBack}
         composer={{ buildingId: building.id, threadId, isGroup: false, onAction: setSheet }}
         ctx={{ onOpenContact, buildingId: building.id }}

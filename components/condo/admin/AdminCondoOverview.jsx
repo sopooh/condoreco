@@ -247,7 +247,7 @@ function Tile({ href, icon: I, title, sub }) {
   )
 }
 
-function NewActivity({ base }) {
+export function NewActivity({ base, options }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   useEffect(() => {
@@ -256,7 +256,7 @@ function NewActivity({ base }) {
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
   }, [open])
-  const opts = [
+  const opts = options || [
     { href: `${base}/bacheca`, icon: Megaphone, label: 'Avviso in bacheca' },
     { href: `${base}/decisioni`, icon: Vote, label: 'Proposta da votare' },
     { href: `${base}/calendario`, icon: CalendarDays, label: 'Appuntamento' },

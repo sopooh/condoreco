@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
-  ArrowRight, Building2, CalendarDays, Check, ChevronDown, ChevronRight, FolderOpen, House, Lock, Megaphone,
+  ArrowRight, Building2, CalendarDays, Coins, Home, Check, ChevronDown, ChevronRight, FolderOpen, House, Lock, Megaphone,
   MessageCircle, MessagesSquare, Phone, Plus, Upload, UserRound, Users, Vote, Wrench,
 } from 'lucide-react'
 import { useMyAccount } from '@/hooks/useAccounting'
@@ -19,6 +19,7 @@ import { useNeighbourNotices, floorLabel } from '@/hooks/useNeighbourNotices'
 import { toLocalISODate } from '@/lib/localDate'
 import { telLink } from '@/lib/contact'
 import { maintenanceCategoryLabel } from '@/lib/maintenanceCategories'
+import { NewActivity } from '@/components/condo/admin/AdminCondoOverview'
 import UnitForm from '@/components/condo/UnitForm'
 import { Sheet } from '@/components/condo/InterventionsPage'
 
@@ -120,46 +121,62 @@ export default function ResidentCondoOverview({ building }) {
     : [myUnit.floor ? floorLabel(myUnit.floor) : null, myUnit.tenure === 'owner' ? 'Proprietario' : myUnit.tenure === 'tenant' ? 'In affitto' : null].filter(Boolean).join(' · ') || 'La tua casa'
 
   const TABS = [
-    { label: 'Panoramica', href: base, on: true },
-    { label: 'Le mie quote', href: `${base}/rendicontazione` },
-    { label: 'Segnalazioni', href: `${base}/interventi` },
-    { label: 'Documenti', href: `${base}/archivio` },
-    { label: 'Calendario', href: `${base}/calendario` },
-    { label: 'Decisioni', href: `${base}/decisioni`, badge: toVote },
-    { label: 'Chat', href: `${base}/chat`, badge: unreadTotal },
+    { label: 'Panoramica', icon: Home, href: base, on: true },
+    { label: 'Le mie quote', icon: Coins, href: `${base}/rendicontazione` },
+    { label: 'Chat', icon: MessageCircle, href: `${base}/chat`, badge: unreadTotal },
+    { label: 'Segnalazioni', icon: Wrench, href: `${base}/interventi` },
+    { label: 'Documenti', icon: FolderOpen, href: `${base}/archivio` },
+    { label: 'Calendario', icon: CalendarDays, href: `${base}/calendario` },
+    { label: 'Decisioni', icon: Vote, href: `${base}/decisioni`, badge: toVote },
   ]
 
   return (
     <div className="aco rco">
-      <header className="rco-head">
-        <div className="rco-title">
-          <h1>Il mio condominio</h1>
-          <p>{addr}{building.city ? ` · ${building.city}` : ''}</p>
+      <nav className="aco-crumbs" aria-label="Percorso">
+        <Link href="/profilo"><Home size={15} aria-hidden="true" />Le mie abitazioni</Link>
+        <span aria-hidden="true">/</span>
+        <strong>{addr}</strong>
+      </nav>
+
+      <header className="aco-head">
+        <span className="aco-head-ico"><Building2 size={28} strokeWidth={1.8} aria-hidden="true" /></span>
+        <div className="aco-head-txt">
+          <h1>{addr}</h1>
+          <div className="aco-head-meta">
+            {building.city && <span>{building.city}</span>}
+            {unitLabel && (
+              <button type="button" className={`rco-unit${unitMissing ? ' is-warn' : ''}`} onClick={() => setUnitOpen(true)}>
+                <House size={15} aria-hidden="true" />{unitLabel}<ChevronDown size={15} aria-hidden="true" />
+              </button>
+            )}
+          </div>
         </div>
-        {unitLabel && (
-          <button type="button" className={`rco-unit${unitMissing ? ' is-warn' : ''}`} onClick={() => setUnitOpen(true)}>
-            <House size={16} aria-hidden="true" />{unitLabel}<ChevronDown size={16} aria-hidden="true" />
-          </button>
-        )}
-        <div className="rco-head-act">
-          <Link href={`${base}/interventi?nuova=1`} className="aco-btn is-primary"><Plus size={19} aria-hidden="true" />Segnala un problema</Link>
-          <Link href={`${base}/chat`} className="aco-btn">
-            <MessageCircle size={19} aria-hidden="true" />Apri chat{unreadTotal > 0 && <span className="rco-badge">{unreadTotal}</span>}
+        <div className="aco-head-act">
+          <Link href={`${base}/chat`} className="aco-btn rco-chat-btn" aria-label="Apri chat">
+            <MessageCircle size={19} aria-hidden="true" /><span className="aco-hide-sm">Chat</span>{unreadTotal > 0 && <span className="rco-badge">{unreadTotal}</span>}
           </Link>
+          <NewActivity base={base} options={[
+            { href: `${base}/interventi?nuova=1`, icon: Wrench, label: 'Segnala un problema' },
+            { href: `${base}/bacheca`, icon: Megaphone, label: 'Avviso in bacheca' },
+            { href: `${base}/decisioni`, icon: Vote, label: 'Proposta da votare' },
+            { href: `${base}/calendario`, icon: CalendarDays, label: 'Appuntamento' },
+            { href: `${base}/rendicontazione`, icon: Upload, label: 'Ricevuta di pagamento' },
+            { href: `${base}/chat?admin=1`, icon: MessageCircle, label: 'Messaggio all\'amministratore' },
+          ]} />
         </div>
       </header>
 
-      <nav className="rco-tabs" aria-label="Sezioni del condominio">
+      <nav className="aco-tabs" aria-label="Sezioni del condominio">
         {TABS.map((t) => (
           <Link key={t.label} href={t.href} className={t.on ? 'is-on' : ''} aria-current={t.on ? 'page' : undefined}>
-            {t.label}{t.badge > 0 && <span className="rco-badge">{t.badge}</span>}
+            <t.icon size={18} strokeWidth={1.9} aria-hidden="true" />{t.label}{t.badge > 0 && <span className="rco-badge">{t.badge}</span>}
           </Link>
         ))}
       </nav>
 
-      <div className="rco-row rco-row-a">
+      <div className="rco-top">
         {/* la mia situazione */}
-        <section className="aco-card rco-me">
+        <section className="aco-card rco-me" style={{ gridArea: 'me' }}>
           <div className="rco-me-head">
             <span className="rco-pill"><Lock size={15} aria-hidden="true" />La mia situazione</span>
             <small>Visibile solo a te e all&apos;amministratore</small>
@@ -182,7 +199,7 @@ export default function ResidentCondoOverview({ building }) {
         </section>
 
         {/* da non perdere */}
-        <section className="aco-card">
+        <section className="aco-card" style={{ gridArea: 'hl' }}>
           <div className="aco-card-head"><Megaphone size={22} aria-hidden="true" /><h2>Da non perdere</h2></div>
           {highlights.length === 0 ? <p className="aco-muted">Niente di urgente nei prossimi giorni.</p> : (
             <ul className="rco-hl">
@@ -196,37 +213,36 @@ export default function ResidentCondoOverview({ building }) {
             </ul>
           )}
         </section>
+        {/* conversazioni */}
+        <section className="aco-card" style={{ gridArea: 'conv' }}>
+          <div className="aco-card-head">
+            <MessagesSquare size={24} aria-hidden="true" /><h2>Le tue conversazioni</h2>
+            {unreadTotal > 0 && <span className="rco-new">{unreadTotal} {unreadTotal === 1 ? 'nuovo messaggio' : 'nuovi messaggi'}</span>}
+            <Link href={`${base}/chat`} className="aco-link aco-push rco-hide-xs">Apri tutte le chat<ArrowRight size={16} aria-hidden="true" /></Link>
+          </div>
+          <div className="rco-convs">
+            {convs.map((t) => (
+              <Link key={t.thread_id || t.kind} href={threadHref(t)} className={`rco-conv${t.kind === 'group' ? ' is-group' : ''}`}>
+                <ThreadAvatar t={t} />
+                <span className="rco-conv-main">
+                  <span className="rco-conv-top"><strong>{t.kind === 'group' ? 'Chat del condominio' : t.title}</strong><small>{when(t.last_message_at)}</small></span>
+                  <span className="rco-conv-msg">
+                    <span>{t.last_message_preview
+                      ? <>{t.kind !== 'direct' && t.last_message_author ? <b>{t.last_message_author}: </b> : null}{t.last_message_preview}</>
+                      : t.virtual ? 'Scrivi all\'amministratore' : 'Nessun messaggio'}</span>
+                    {t.unread > 0 && <em>{t.unread}</em>}
+                    <ChevronRight size={18} aria-hidden="true" />
+                  </span>
+                  <span className="rco-conv-foot">
+                    {t.kind === 'group' ? `Gruppo · ${addr}` : t.kind === 'intervention' ? <span className="rco-tag">{t.subtitle || 'Intervento'}</span> : 'Conversazione privata'}
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+          <Link href={`${base}/chat`} className="aco-link rco-show-xs" style={{ marginTop: 8 }}>Apri tutte le chat<ArrowRight size={16} aria-hidden="true" /></Link>
+        </section>
       </div>
-
-      {/* conversazioni */}
-      <section className="aco-card">
-        <div className="aco-card-head">
-          <MessagesSquare size={24} aria-hidden="true" /><h2>Le tue conversazioni</h2>
-          {unreadTotal > 0 && <span className="rco-new">{unreadTotal} {unreadTotal === 1 ? 'nuovo messaggio' : 'nuovi messaggi'}</span>}
-          <Link href={`${base}/chat`} className="aco-link aco-push rco-hide-xs">Apri tutte le chat<ArrowRight size={16} aria-hidden="true" /></Link>
-        </div>
-        <div className="rco-convs">
-          {convs.map((t) => (
-            <Link key={t.thread_id || t.kind} href={threadHref(t)} className={`rco-conv${t.kind === 'group' ? ' is-group' : ''}`}>
-              <ThreadAvatar t={t} />
-              <span className="rco-conv-main">
-                <span className="rco-conv-top"><strong>{t.kind === 'group' ? 'Chat del condominio' : t.title}</strong><small>{when(t.last_message_at)}</small></span>
-                <span className="rco-conv-msg">
-                  <span>{t.last_message_preview
-                    ? <>{t.kind !== 'direct' && t.last_message_author ? <b>{t.last_message_author}: </b> : null}{t.last_message_preview}</>
-                    : t.virtual ? 'Scrivi all\'amministratore' : 'Nessun messaggio'}</span>
-                  {t.unread > 0 && <em>{t.unread}</em>}
-                  <ChevronRight size={18} aria-hidden="true" />
-                </span>
-                <span className="rco-conv-foot">
-                  {t.kind === 'group' ? `Gruppo · ${addr}` : t.kind === 'intervention' ? <span className="rco-tag">{t.subtitle || 'Intervento'}</span> : 'Conversazione privata'}
-                </span>
-              </span>
-            </Link>
-          ))}
-        </div>
-        <Link href={`${base}/chat`} className="aco-link rco-show-xs" style={{ marginTop: 8 }}>Apri tutte le chat<ArrowRight size={16} aria-hidden="true" /></Link>
-      </section>
 
       <div className="rco-row rco-row-b">
         {/* segnalazioni */}

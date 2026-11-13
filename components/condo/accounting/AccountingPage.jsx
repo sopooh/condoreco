@@ -3,7 +3,7 @@
 import { Suspense, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { AlertTriangle, Check, CheckCircle2, ChevronDown, Clock3, CreditCard, FileSpreadsheet, FileText, Landmark, Paperclip, Plus, Search, Settings, Trash2, Upload, Wallet, X } from 'lucide-react'
+import { AlertTriangle, Check, CheckCircle2, ChevronDown, Clock3, CreditCard, FileSpreadsheet, FileText, Landmark, Paperclip, Plus, Search, Trash2, Upload, Wallet, X } from 'lucide-react'
 import { RECEIPT_STATUS, openReceipt } from '@/components/condo/accounting/Receipts'
 import { useAccountingAdmin } from '@/hooks/useAccounting'
 import { useCondoRole } from '@/hooks/useCondoRole'
@@ -15,7 +15,7 @@ const TABS = [
   { id: 'rate', label: 'Rate', icon: CreditCard },
   { id: 'preventivo', label: 'Preventivo', icon: FileSpreadsheet },
   { id: 'importa', label: 'Estratto conto', icon: Upload },
-  { id: 'impostazioni', label: 'Impostazioni', icon: Settings },
+  { id: 'impostazioni', label: 'Conto del condominio', icon: Landmark },
 ]
 
 export default function AccountingPage({ building }) {
@@ -724,7 +724,8 @@ function SettingsTab({ acc, buildingId }) {
   return (
     <>
       <form className="acc-card" onSubmit={save}>
-        <h2 className="acc-h2"><Landmark size={20} aria-hidden="true" />Conto per i bonifici</h2>
+        <h2 className="acc-h2"><Landmark size={20} aria-hidden="true" />Imposta il conto del condominio</h2>
+        <p className="rc-muted" style={{ margin: "0 0 10px" }}>È il conto che i condomini vedono quando pagano con bonifico.</p>
         <label className="ep-field"><span className="ep-label">IBAN del condominio</span>
           <span className="ep-input"><input value={v.iban} onChange={(e) => setV({ ...v, iban: e.target.value.toUpperCase() })} placeholder="IT60 X054 2811 1010 0000 0123 456" autoComplete="off" spellCheck={false} /></span>
         </label>

@@ -2892,3 +2892,21 @@ input, select, textarea { font-family: inherit; }
 @media (min-width: 900px) {
   .rco-top { grid-template-columns: 1.55fr 1fr; grid-template-areas: "me hl" "conv conv"; }
 }
+/* bilancio: intestazione */
+.bil-head { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+.bil-head-txt { min-width: 0; }
+.bil-head-act { display: flex; gap: 10px; align-items: stretch; }
+.bil-head-act .acc-btn { flex: 1; justify-content: center; white-space: nowrap; }
+.bil-pdf-short { display: none; }
+@media (max-width: 420px) { .bil-pdf-long { display: none; } .bil-pdf-short { display: inline; } }
+@media (min-width: 720px) {
+  .bil-head { flex-direction: row; align-items: flex-end; }
+  .bil-head-txt { flex: 1; }
+  .bil-head-act .acc-btn { flex: 0 0 auto; }
+}
+.rc-admin-tiles { margin-top: 4px; }
+@media (min-width: 900px) { .rc-admin-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* tab interne (contabilità, bilancio) come quelle della panoramica */
+.acc-tabs { gap: 4px; padding: 0 0 10px; border: none; border-bottom: 1px solid var(--border); border-radius: 0; background: none; }
+.acc-tabs button { font-size: 15px; white-space: nowrap; }
+.acc-tabs button.is-on { background: var(--teal); color: #fff; }

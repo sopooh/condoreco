@@ -5,10 +5,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   AlertTriangle, ArrowRight, Building2, CalendarDays, ChevronRight, ClipboardCheck, Clock3, Coins, FileText, FolderOpen,
-  Gavel, Home, Layers, ListChecks, Megaphone, Plus, RefreshCw, Settings, Users, Vote, Wrench,
+  Gavel, Home, Layers, ListChecks, Megaphone, Plus, RefreshCw, MessageCircle, Users, Vote, Wrench,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useAdminOverview } from '@/hooks/useAdminArea'
+import { useCondoThreads } from '@/hooks/useCondoThreads'
+import ConversationsCard from '@/components/condo/ConversationsCard'
 import { useInterventions } from '@/hooks/useInterventions'
 import { useCalendarEvents } from '@/hooks/useCalendarEvents'
 import { usePublicInterventions } from '@/hooks/usePublicInterventions'
@@ -108,6 +110,9 @@ export default function AdminCondoOverview({ building }) {
     setBusy(null)
   }
 
+  const { threads } = useCondoThreads(building.id)
+  const unreadTotal = threads.reduce((n, t) => n + (t.unread || 0), 0)
+
   const TABS = [
     { label: 'Panoramica', icon: Home, href: base, on: true },
     { label: 'Persone', icon: Users, href: `${base}/persone` },
@@ -136,7 +141,9 @@ export default function AdminCondoOverview({ building }) {
           </div>
         </div>
         <div className="aco-head-act">
-          <Link href={`${base}/contabilita?tab=impostazioni`} className="aco-btn" aria-label="Impostazioni"><Settings size={18} aria-hidden="true" /><span className="aco-hide-sm">Impostazioni</span></Link>
+          <Link href={`${base}/chat`} className="aco-btn rco-chat-btn" aria-label="Apri chat">
+            <MessageCircle size={19} aria-hidden="true" /><span className="aco-hide-sm">Chat</span>{unreadTotal > 0 && <span className="rco-badge">{unreadTotal}</span>}
+          </Link>
           <NewActivity base={base} />
         </div>
       </header>
@@ -203,6 +210,8 @@ export default function AdminCondoOverview({ building }) {
           )}
         </section>
       </div>
+
+      <ConversationsCard threads={threads} base={base} addr={addr} asAdmin />
 
       <h2 className="aco-h2"><Layers size={22} aria-hidden="true" />Gestisci il condominio</h2>
       <div className="aco-grid">

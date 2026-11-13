@@ -60,15 +60,17 @@ function Inner({ building }) {
   return (
     <div className="acc-wrap">
       <Link href={base} className="acc-back">‹ Torna al condominio</Link>
-      <header className="acc-toolbar" style={{ marginBottom: 14, alignItems: 'flex-end' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+      <header className="bil-head">
+        <div className="bil-head-txt">
           <h1 className="acc-h1">Bilancio</h1>
           <p className="rc-muted" style={{ margin: 0 }}>{building.address}{building.street_number ? `, ${building.street_number}` : ''}</p>
         </div>
-        <label className="bil-year"><span>Anno</span>
-          <select value={year} onChange={(e) => setYear(Number(e.target.value))}>{years.map((y) => <option key={y} value={y}>{y}</option>)}</select>
-        </label>
-        <Link href={`${base}/bilancio/stampa?anno=${year}`} className="acc-btn is-primary"><FileDown size={16} aria-hidden="true" />PDF bilancio provvisorio</Link>
+        <div className="bil-head-act">
+          <label className="bil-year"><span>Anno</span>
+            <select value={year} onChange={(e) => setYear(Number(e.target.value))}>{years.map((y) => <option key={y} value={y}>{y}</option>)}</select>
+          </label>
+          <Link href={`${base}/bilancio/stampa?anno=${year}`} className="acc-btn is-primary"><FileDown size={16} aria-hidden="true" /><span className="bil-pdf-long">PDF bilancio provvisorio</span><span className="bil-pdf-short">PDF provvisorio</span></Link>
+        </div>
       </header>
 
       <nav className="acc-tabs" aria-label="Sezioni bilancio">

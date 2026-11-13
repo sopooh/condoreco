@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { BadgeCheck, BarChart3, ChevronRight, FileDown, Landmark } from 'lucide-react'
 import { useCondoRole } from '@/hooks/useCondoRole'
 import { useBilancio } from '@/hooks/useAdminArea'
 import { KIND_LABEL, euro } from '@/lib/accounting'
@@ -52,20 +53,22 @@ function AdminRendicontazione({ building, base }) {
         </ul>
       </div>
 
-      <div className="cadm-links">
-        <Link href={`${base}/contabilita`} className="rc-admin-link">
-          <span><strong>Valida pagamenti</strong><small>Contabili, bonifici da confermare, rate, estratto conto</small></span>
-          <span aria-hidden="true">›</span>
-        </Link>
-        <Link href={`${base}/bilancio`} className="rc-admin-link">
-          <span><strong>Bilancio</strong><small>Spese sostenute, confronto con il preventivo</small></span>
-          <span aria-hidden="true">›</span>
-        </Link>
-        <Link href={`${base}/bilancio/stampa?anno=${year}`} className="rc-admin-link">
-          <span><strong>PDF bilancio provvisorio</strong><small>Da stampare o inviare ai condomini</small></span>
-          <span aria-hidden="true">›</span>
-        </Link>
+      <div className="rco-tiles rc-admin-tiles">
+        <AdminTile href={`${base}/contabilita`} icon={BadgeCheck} title="Valida pagamenti" sub="Contabili, bonifici da confermare, rate, estratto conto" />
+        <AdminTile href={`${base}/bilancio`} icon={BarChart3} title="Bilancio" sub="Spese sostenute, confronto con il preventivo" />
+        <AdminTile href={`${base}/bilancio/stampa?anno=${year}`} icon={FileDown} title="PDF bilancio provvisorio" sub="Da stampare o inviare ai condomini" />
+        <AdminTile href={`${base}/contabilita?tab=impostazioni`} icon={Landmark} title="Conto del condominio" sub="IBAN per i bonifici e pagamenti online" />
       </div>
     </>
+  )
+}
+
+function AdminTile({ href, icon: I, title, sub }) {
+  return (
+    <Link href={href} className="aco-tile">
+      <span className="aco-tile-ico"><I size={22} strokeWidth={1.9} aria-hidden="true" /></span>
+      <span className="aco-tile-txt"><strong>{title}</strong><small>{sub}</small></span>
+      <span className="rco-tile-go"><ChevronRight size={18} aria-hidden="true" /></span>
+    </Link>
   )
 }

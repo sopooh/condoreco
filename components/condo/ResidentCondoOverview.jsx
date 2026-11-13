@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight, Building2, CalendarDays, Coins, Home, Check, ChevronDown, ChevronRight, FolderOpen, House, Lock, Megaphone,
-  MessageCircle, MessagesSquare, Phone, Plus, Upload, UserRound, Users, Vote, Wrench,
+  MessageCircle, Phone, Plus, Upload, UserRound, Vote, Wrench,
 } from 'lucide-react'
 import { useMyAccount } from '@/hooks/useAccounting'
 import { euro, isOverdue } from '@/lib/accounting'
@@ -20,6 +20,7 @@ import { toLocalISODate } from '@/lib/localDate'
 import { telLink } from '@/lib/contact'
 import { maintenanceCategoryLabel } from '@/lib/maintenanceCategories'
 import { NewActivity } from '@/components/condo/admin/AdminCondoOverview'
+import ConversationsCard from '@/components/condo/ConversationsCard'
 import UnitForm from '@/components/condo/UnitForm'
 import { Sheet } from '@/components/condo/InterventionsPage'
 
@@ -97,16 +98,6 @@ export default function ResidentCondoOverview({ building }) {
 
   // ---- conversazioni
   const unreadTotal = threads.reduce((n, t) => n + (t.unread || 0), 0)
-  const convs = useMemo(() => {
-    const group = threads.find((t) => t.kind === 'group')
-    const rest = threads.filter((t) => t !== group)
-      .sort((a, b) => (b.unread > 0) - (a.unread > 0) || String(b.last_message_at || '').localeCompare(String(a.last_message_at || '')))
-    const list = [group, ...rest].filter(Boolean)
-    if (!list.some((t) => t.kind === 'admin')) list.splice(1, 0, { thread_id: null, kind: 'admin', title: 'Amministratore', virtual: true, unread: 0 })
-    return list.slice(0, 3)
-  }, [threads])
-  const threadHref = (t) => t.kind === 'group' ? `${base}/chat?c=gruppo` : t.virtual ? `${base}/chat?admin=1` : `${base}/chat?t=${t.thread_id}`
-
   // ---- segnalazioni mie
   const mine = interventions.filter((i) => i.status === 'requested' || i.status === 'scheduled')
   const recentDone = interventions.filter((i) => i.status === 'done').sort((a, b) => String(b.completed_at).localeCompare(String(a.completed_at)))
@@ -214,34 +205,7 @@ export default function ResidentCondoOverview({ building }) {
           )}
         </section>
         {/* conversazioni */}
-        <section className="aco-card" style={{ gridArea: 'conv' }}>
-          <div className="aco-card-head">
-            <MessagesSquare size={24} aria-hidden="true" /><h2>Le tue conversazioni</h2>
-            {unreadTotal > 0 && <span className="rco-new">{unreadTotal} {unreadTotal === 1 ? 'nuovo messaggio' : 'nuovi messaggi'}</span>}
-            <Link href={`${base}/chat`} className="aco-link aco-push rco-hide-xs">Apri tutte le chat<ArrowRight size={16} aria-hidden="true" /></Link>
-          </div>
-          <div className="rco-convs">
-            {convs.map((t) => (
-              <Link key={t.thread_id || t.kind} href={threadHref(t)} className={`rco-conv${t.kind === 'group' ? ' is-group' : ''}`}>
-                <ThreadAvatar t={t} />
-                <span className="rco-conv-main">
-                  <span className="rco-conv-top"><strong>{t.kind === 'group' ? 'Chat del condominio' : t.title}</strong><small>{when(t.last_message_at)}</small></span>
-                  <span className="rco-conv-msg">
-                    <span>{t.last_message_preview
-                      ? <>{t.kind !== 'direct' && t.last_message_author ? <b>{t.last_message_author}: </b> : null}{t.last_message_preview}</>
-                      : t.virtual ? 'Scrivi all\'amministratore' : 'Nessun messaggio'}</span>
-                    {t.unread > 0 && <em>{t.unread}</em>}
-                    <ChevronRight size={18} aria-hidden="true" />
-                  </span>
-                  <span className="rco-conv-foot">
-                    {t.kind === 'group' ? `Gruppo · ${addr}` : t.kind === 'intervention' ? <span className="rco-tag">{t.subtitle || 'Intervento'}</span> : 'Conversazione privata'}
-                  </span>
-                </span>
-              </Link>
-            ))}
-          </div>
-          <Link href={`${base}/chat`} className="aco-link rco-show-xs" style={{ marginTop: 8 }}>Apri tutte le chat<ArrowRight size={16} aria-hidden="true" /></Link>
-        </section>
+        <ConversationsCard threads={threads} base={base} addr={addr} style={{ gridArea: 'conv' }} />
       </div>
 
       <div className="rco-row rco-row-b">
@@ -323,14 +287,6 @@ export default function ResidentCondoOverview({ building }) {
       )}
     </div>
   )
-}
-
-function ThreadAvatar({ t }) {
-  if (t.kind === 'group') return <span className="rco-av is-sq"><Users size={26} strokeWidth={1.7} aria-hidden="true" /></span>
-  if (t.kind === 'admin') return <span className="rco-av"><Building2 size={24} strokeWidth={1.8} aria-hidden="true" /></span>
-  if (t.kind === 'intervention') return <span className="rco-av is-sq is-violet"><Wrench size={24} strokeWidth={1.8} aria-hidden="true" /></span>
-  const ini = (t.title || '?').split(/\s+/).map((x) => x[0]).slice(0, 2).join('').toUpperCase()
-  return <span className="rco-av">{ini}</span>
 }
 
 function ReportRow({ i, maintainer, href }) {

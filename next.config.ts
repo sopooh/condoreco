@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  // I font dei template Instagram vengono letti da disco nelle route API:
+  // vanno inclusi esplicitamente nel bundle serverless.
+  outputFileTracingIncludes: {
+    "/api/instagram/**": ["./lib/instagram/fonts/**", "./lib/instagram/*.png", "./lib/instagram/characters/**"],
+  },
 };
 
 export default nextConfig;

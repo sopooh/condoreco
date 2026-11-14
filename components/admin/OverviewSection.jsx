@@ -108,6 +108,7 @@ export default function OverviewSection({ onNavigate }) {
               { id: 'foto', icon: 'camera', label: 'Foto' },
               { id: 'export', icon: 'download', label: 'Export' },
               { id: 'log', icon: 'list', label: 'Log' },
+              { id: 'instagram', icon: 'camera', label: 'Instagram' },
             ].map(t => (
               <button key={t.id} type="button" className="adm-tool" onClick={() => onNavigate?.(t.id)}>
                 <AdminIcon name={t.icon} size={18} />{t.label}

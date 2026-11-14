@@ -3,6 +3,7 @@
 import { Lock } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -31,6 +32,7 @@ const SECTIONS = [
   { id: 'richieste', label: 'Richieste di accesso', icon: 'key' },
   { id: 'privacy', label: 'Richieste privacy', icon: 'shield' },
   { id: 'export', label: 'Export', icon: 'download' },
+  { id: 'instagram', label: 'Instagram', icon: 'camera' },
   { id: 'log', label: 'Log', icon: 'list' },
 ]
 // barra in basso su mobile: le 5 sezioni principali; le altre si aprono
@@ -70,6 +72,7 @@ export default function AdminDashboard() {
   const [role, setRole] = useState(undefined)
   const [section, setSection] = useState('overview')
   const isMobile = useIsMobile()
+  const router = useRouter()
 
   useEffect(() => {
     if (!session) return
@@ -93,7 +96,11 @@ export default function AdminDashboard() {
   if (role !== 'admin') return <Unauthorized />
 
   const adminId = session.user.id
-  const go = (id) => { setSection(id); window.scrollTo(0, 0) }
+  const go = (id) => {
+    // lo studio Instagram è una pagina a sé (/admin/instagram), pensata per il telefono
+    if (id === 'instagram') { router.push('/admin/instagram'); return }
+    setSection(id); window.scrollTo(0, 0)
+  }
 
   const content = (
     <>
@@ -142,7 +149,7 @@ export default function AdminDashboard() {
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 58px)', overflow: 'hidden' }}>
-      <AdminSidebar sections={SECTIONS} active={section} onSelect={setSection} adminEmail={session.user.email} />
+      <AdminSidebar sections={SECTIONS} active={section} onSelect={go} adminEmail={session.user.email} />
       <main style={{ flex: 1, overflowY: 'auto', background: 'var(--bg)' }}>{content}</main>
     </div>
   )

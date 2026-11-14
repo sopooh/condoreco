@@ -4,18 +4,17 @@ import { ArrowLeft, ArrowRight, Check, ChevronRight, CircleAlert, CircleCheck, F
 import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/components/providers/SessionProvider'
-import { setVerification } from '@/lib/residenceVerification'
-import { createClient } from '@/lib/supabase/client'
-import { invalidateRoleCache } from '@/hooks/useCondoRole'
+import { submitJoinRequest, validateDocument } from '@/lib/residenceVerification'
 import UnitForm from '@/components/condo/UnitForm'
 import { normalizeFloor } from '@/hooks/useNeighbourNotices'
+import Link from 'next/link'
 
 const STEPS = ['unita', 'documento', 'carica', 'verifica']
 const STEP_LABELS = {
   unita: 'La tua casa',
   documento: 'Scegli il documento',
   carica: 'Carica il documento',
-  verifica: 'Verifica in corso',
+  verifica: 'Invio',
 }
 
 const DOCUMENT_TYPES = [
@@ -25,15 +24,10 @@ const DOCUMENT_TYPES = [
   { id: 'bolletta', label: 'Bolletta', sub: '(luce, gas, internet)', Icon: BoltIcon },
 ]
 
-// Prima implementazione: nessun upload reale (nessun bucket di storage, nessuna
-// coda di revisione admin). Il documento non viene inviato da nessuna parte,
-// il file scelto serve solo a mostrare il nome nella UI. La "verifica" allo
-// step 3 è simulata con un timeout — da collegare in futuro a un vero
-// processo di revisione.
-// Al termine del timeout la pagina scrive comunque una riga vera in
-// condo_members (ruolo 'resident', vedi migration condo_members_self_enroll):
-// è quello — non lo stato mock in localStorage — a decidere l'accesso reale
-// (vedi middleware.ts / useCondoRole).
+// Il documento viene caricato nel bucket privato residence-docs e la
+// richiesta va in condo_join_requests (vedi lib/residenceVerification.js).
+// Decide l'amministratore del condominio, o lo staff Condoreco se il
+// condominio non ha amministratore; l'accesso arriva solo con l'approvazione.
 export default function VerificaResidenzaPage({ params }) {
   // In Next 16 params è una Promise anche nei client component: va scartata
   // con use(), l'accesso sincrono è stato rimosso (vedi upgrade guide v16).
@@ -45,7 +39,9 @@ export default function VerificaResidenzaPage({ params }) {
   const [step, setStep] = useState(0)
   const [unit, setUnit] = useState(null) // { tenure, millesimi, floor }
   const [documentType, setDocumentType] = useState(null)
-  const [fileName, setFileName] = useState(null)
+  const [file, setFile] = useState(null)
+  const fileName = file?.name ?? null
+  const [fileError, setFileError] = useState(null)
   const [dragOver, setDragOver] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState(null)
@@ -54,39 +50,19 @@ export default function VerificaResidenzaPage({ params }) {
   const current = STEPS[step]
 
   useEffect(() => {
-    if (current !== 'verifica' || !userId) return
+    if (current !== 'verifica' || !userId || !file) return
     let cancelled = false
-    setVerification(userId, condominiumId, { status: 'pending', documentType, fileName })
-    const t = setTimeout(async () => {
-      const supabase = createClient()
-      // ignoreDuplicates: se esiste già una riga (es. admin assegnato a mano)
-      // non la tocca — questo flusso concede solo 'resident', mai un upgrade.
-      const { error: upsertError } = await supabase
-        .from('condo_members')
-        .upsert(
-          { building_id: condominiumId, user_id: userId, role: 'resident' },
-          { onConflict: 'building_id,user_id', ignoreDuplicates: true }
-        )
+    ;(async () => {
+      const res = await submitJoinRequest({
+        buildingId: condominiumId, userId, file, documentType,
+        unit: unit ? { ...unit, floor: normalizeFloor(unit.floor) } : null,
+      })
       if (cancelled) return
-      if (!upsertError && unit) {
-        const { error: unitError } = await supabase.rpc('set_my_unit', {
-          p_building: condominiumId, p_floor: normalizeFloor(unit.floor), p_millesimi: unit.millesimi, p_tenure: unit.tenure,
-        })
-        if (unitError) console.error('[verifica] set_my_unit failed', unitError.message)
-      }
-      if (cancelled) return
-      if (upsertError) {
-        console.error('[verifica] condo_members upsert failed', upsertError.message)
-        setVerification(userId, condominiumId, { status: 'rejected', documentType, fileName })
-        setError('Non siamo riusciti a completare la verifica. Riprova tra qualche minuto.')
-        return
-      }
-      invalidateRoleCache(condominiumId, userId)
-      setVerification(userId, condominiumId, { status: 'approved', documentType, fileName })
+      if (res.error) { setError(res.error); return }
       setDone(true)
-    }, 2500)
-    return () => { cancelled = true; clearTimeout(t) }
-  }, [current, userId, condominiumId, documentType, fileName, retryToken, unit])
+    })()
+    return () => { cancelled = true }
+  }, [current, userId, condominiumId, documentType, file, retryToken, unit])
 
   function prev() {
     if (step === 0) { router.push(`/edificio/${condominiumId}/condominio`); return }
@@ -98,7 +74,11 @@ export default function VerificaResidenzaPage({ params }) {
   }
 
   function handleFile(files) {
-    if (files?.[0]) setFileName(files[0].name)
+    const f = files?.[0]
+    if (!f) return
+    const invalid = validateDocument(f)
+    setFileError(invalid)
+    setFile(invalid ? null : f)
   }
 
   if (done) {
@@ -108,13 +88,11 @@ export default function VerificaResidenzaPage({ params }) {
           <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--teal-lt)', color: 'var(--teal)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
             <CheckIcon size={36} />
           </div>
-          <h1 style={titleStyle}>Residenza verificata</h1>
-          <p style={{ ...subStyle, marginBottom: 18 }}>Ora puoi accedere alla bacheca, alle decisioni e alla chat del tuo condominio.</p>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-            <span className="profile-pill profile-pill-teal">Residente verificato</span>
-          </div>
-          <button onClick={() => router.push(`/edificio/${condominiumId}/condominio`)} style={primaryBtn(true)}>
-            Entra nel condominio <ArrowRightIcon />
+          <h1 style={titleStyle}>Richiesta inviata</h1>
+          <p style={{ ...subStyle, marginBottom: 18 }}>In attesa di approvazione. L&apos;amministratore del condominio (o lo staff Condoreco, se il condominio non ha un amministratore) controllerà il documento. Ti avviseremo con una notifica appena la richiesta sarà decisa.</p>
+          <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.5, margin: '0 0 24px' }}>Il documento viene cancellato appena la richiesta è approvata o respinta.</p>
+          <button onClick={() => router.push(`/edificio/${condominiumId}`)} style={primaryBtn(true)}>
+            Torna alla scheda del condominio <ArrowRightIcon />
           </button>
         </div>
       </div>
@@ -226,16 +204,19 @@ export default function VerificaResidenzaPage({ params }) {
             </label>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 16, padding: '12px 14px', borderRadius: 12, background: '#F5F7F7', fontSize: 13, color: 'var(--text-3)', lineHeight: 1.45 }}>
               <span style={{ color: 'var(--teal)', display: 'inline-flex', flexShrink: 0, marginTop: 1 }}><ShieldIcon /></span>
-              Il documento serve solo alla verifica e non viene mostrato agli altri residenti.
+              <span>
+                Il documento lo vede solo chi approva la richiesta: l&apos;amministratore del condominio o, se non c&apos;è, lo staff Condoreco. Non viene mostrato agli altri residenti e viene cancellato appena la richiesta è decisa. Max 10 MB. <Link href="/privacy-policy#verifica-residenza" style={{ color: 'var(--teal)' }}>Informativa</Link>
+              </span>
             </div>
+            {fileError && <p role="alert" style={{ color: '#B42318', fontSize: 14, marginTop: 12 }}>{fileError}</p>}
           </>
         )}
 
         {current === 'verifica' && !error && (
           <div style={{ textAlign: 'center', padding: '24px 0 8px' }}>
             <div className="condo-spinner" style={{ margin: '0 auto 22px' }} />
-            <h2 style={{ ...titleStyle, fontSize: 22 }}>Stiamo verificando il documento</h2>
-            <p style={{ ...subStyle, marginBottom: 0 }}>Ci vuole solo qualche secondo.</p>
+            <h2 style={{ ...titleStyle, fontSize: 22 }}>Invio della richiesta</h2>
+            <p style={{ ...subStyle, marginBottom: 0 }}>Stiamo caricando il documento in modo sicuro.</p>
           </div>
         )}
 
@@ -244,7 +225,7 @@ export default function VerificaResidenzaPage({ params }) {
             <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#FDECEC', color: '#B42318', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
               <AlertIcon />
             </div>
-            <h2 style={{ ...titleStyle, fontSize: 21 }}>Verifica non completata</h2>
+            <h2 style={{ ...titleStyle, fontSize: 21 }}>Richiesta non inviata</h2>
             <p style={subStyle}>{error}</p>
             <button onClick={() => { setError(null); setRetryToken(t => t + 1) }} style={primaryBtn(true)}>Riprova</button>
           </div>

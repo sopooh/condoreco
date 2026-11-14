@@ -16,6 +16,8 @@ import FundingAnalytics from '@/components/admin/FundingAnalytics.jsx'
 import ExportData from '@/components/admin/ExportData.jsx'
 import AdminLogs from '@/components/admin/AdminLogs.jsx'
 import PhotoModeration from '@/components/admin/PhotoModeration.jsx'
+import PrivacyRequestsAdmin from '@/components/admin/PrivacyRequestsAdmin.jsx'
+import JoinRequestsList from '@/components/condo/JoinRequestsList'
 import { AdminIcon } from '@/components/admin/AdminIcons'
 
 const SECTIONS = [
@@ -26,6 +28,8 @@ const SECTIONS = [
   { id: 'analytics', label: 'Statistiche', icon: 'chart' },
   { id: 'recensioni', label: 'Recensioni', icon: 'star' },
   { id: 'foto', label: 'Foto', icon: 'camera' },
+  { id: 'richieste', label: 'Richieste di accesso', icon: 'key' },
+  { id: 'privacy', label: 'Richieste privacy', icon: 'shield' },
   { id: 'export', label: 'Export', icon: 'download' },
   { id: 'log', label: 'Log', icon: 'list' },
 ]
@@ -71,7 +75,12 @@ export default function AdminDashboard() {
     if (!session) return
     const supabase = createClient()
     supabase.from('profiles').select('role').eq('id', session.user.id).single()
-      .then(({ data }) => setRole(data?.role ?? null))
+      .then(({ data }) => {
+        // apertura diretta di una sezione dalle notifiche (/admin?sezione=privacy)
+        const wanted = new URLSearchParams(window.location.search).get('sezione')
+        if (wanted && SECTIONS.some(x => x.id === wanted)) setSection(wanted)
+        setRole(data?.role ?? null)
+      })
       .catch(() => setRole(null))
   }, [session])
 
@@ -97,6 +106,13 @@ export default function AdminDashboard() {
       {section === 'analytics' && <FundingAnalytics />}
       {section === 'export' && <ExportData />}
       {section === 'log' && <AdminLogs />}
+      {section === 'richieste' && (
+        <div style={{ padding: 24, maxWidth: 900 }}>
+          <p style={{ fontSize: 14, color: 'var(--text-3)', marginTop: 0 }}>Qui arrivano solo le richieste dei condomini senza amministratore.</p>
+          <JoinRequestsList showBuilding />
+        </div>
+      )}
+      {section === 'privacy' && <PrivacyRequestsAdmin />}
     </>
   )
 

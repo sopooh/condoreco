@@ -37,13 +37,13 @@ export default function TermsConditions() {
             <h2 className="legal-section-title">1. Definizioni</h2>
             <p className="legal-paragraph">Ai fini dei presenti Termini e Condizioni:</p>
             <ul className="legal-list legal-list-def">
-              <li><span className="legal-label">CondoReco</span> indica la piattaforma online accessibile tramite il sito www.condoreco.com, gestita da CondoReco SRL.</li>
+              <li><span className="legal-label">CondoReco</span> indica la piattaforma online accessibile tramite il sito www.condoreco.com, gestita da Sophie Perazzolo.</li>
               <li><span className="legal-label">Piattaforma</span> indica il sito web, le pagine, le funzionalità, i servizi, i form, le aree community, le recensioni, i profili edificio, le pagine quartiere, i sistemi di segnalazione e ogni altra funzione collegata a CondoReco.</li>
               <li><span className="legal-label">Utente</span> indica qualsiasi persona che accede, consulta, si registra o utilizza la piattaforma.</li>
               <li><span className="legal-label">Utente registrato</span> indica l'utente che crea un account su CondoReco.</li>
               <li><span className="legal-label">Contenuti dell'utente</span> indica recensioni, commenti, valutazioni, segnalazioni, immagini, testi, documenti, messaggi, risposte, opinioni o qualsiasi altro contenuto pubblicato, inviato o caricato dall'utente.</li>
               <li><span className="legal-label">Community</span> indica l'insieme degli utenti e delle interazioni che avvengono sulla piattaforma.</li>
-              <li><span className="legal-label">Titolare</span> indica il soggetto che gestisce CondoReco: CondoReco SRL — <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a></li>
+              <li><span className="legal-label">Titolare</span> indica il soggetto che gestisce CondoReco: Sophie Perazzolo — <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a></li>
             </ul>
           </section>
 
@@ -478,7 +478,7 @@ export default function TermsConditions() {
               Per richieste relative ai presenti Termini e Condizioni, l'utente può contattare CondoReco ai seguenti recapiti:
             </p>
             <p className="legal-paragraph">
-              <strong>CondoReco SRL</strong><br />
+              <strong>Sophie Perazzolo</strong> (CondoReco)<br />
               Email: <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a><br />
               Email privacy: <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a><br />
               Sede: Viale del Lavoro 54/56

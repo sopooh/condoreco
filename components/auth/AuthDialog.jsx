@@ -76,6 +76,8 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
   const [err, setErr] = useState('')
   const [needsConfirm, setNeedsConfirm] = useState(false)
   const [cooldown, setCooldown] = useState(0)
+  // art. 2-quinquies Codice privacy: almeno 14 anni per iscriversi da soli
+  const [ageOk, setAgeOk] = useState(false)
 
   useEffect(() => {
     if (cooldown <= 0) return
@@ -87,6 +89,7 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
   const go = (m) => { setMode(m); setErr(''); setNeedsConfirm(false); setSent(null) }
 
   async function google() {
+    if (mode === 'signup' && !ageOk) { setErr('Per registrarti conferma di avere almeno 14 anni e di aver letto l’informativa.'); return }
     setErr(''); setBusyGoogle(true)
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -99,7 +102,8 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
 
   async function sendReset() {
     // dopo il link si va a /reimposta-password (letto dal callback)
-    document.cookie = 'condoreco_after_auth=/reimposta-password; Max-Age=3600; Path=/; SameSite=Lax'
+    const secure = window.location.protocol === 'https:' ? '; Secure' : ''
+    document.cookie = `condoreco_after_auth=/reimposta-password; Max-Age=3600; Path=/; SameSite=Lax${secure}`
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${origin}/auth/callback`,
     })
@@ -134,6 +138,7 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
         }
         onClose()
       } else if (mode === 'signup') {
+        if (!ageOk) { setErr('Per registrarti conferma di avere almeno 14 anni e di aver letto l’informativa.'); return }
         if (password.length < MIN_PASSWORD) { setErr(`La password deve avere almeno ${MIN_PASSWORD} caratteri.`); return }
         const { data, error } = await supabase.auth.signUp({ email: addr, password, options: { emailRedirectTo: `${origin}/auth/callback` } })
         if (error) {
@@ -234,6 +239,13 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
           </label>
         )}
 
+        {mode === 'signup' && (
+          <label className="auth-age" style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 13.5, color: 'var(--text-2)', margin: '4px 0 12px', lineHeight: 1.4 }}>
+            <input type="checkbox" checked={ageOk} onChange={(e) => setAgeOk(e.target.checked)} style={{ marginTop: 2, width: 18, height: 18, flexShrink: 0 }} />
+            <span>Dichiaro di avere almeno 14 anni e di aver letto l&apos;<a href="/privacy-policy" target="_blank" rel="noopener" style={{ color: 'var(--teal)', fontWeight: 600 }}>informativa privacy</a>.</span>
+          </label>
+        )}
+
         {err && <p className="auth-err" role="alert">{err}</p>}
         {needsConfirm && (
           <button type="button" className="auth-link" disabled={cooldown > 0} onClick={resendConfirm} style={{ marginBottom: 12 }}>
@@ -252,7 +264,10 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
         </button>
       )}
       {mode === 'signup' && (
-        <p className="auth-fine">Registrandoti accetti i <a href="/termini-e-condizioni">Termini</a> e la <a href="/privacy-policy">Privacy policy</a>.</p>
+        <p className="auth-fine">Creando l&apos;account accetti i <a href="/termini-e-condizioni">Termini e condizioni</a>. Come trattiamo i tuoi dati è spiegato nella <a href="/privacy-policy">Privacy policy</a>.</p>
+      )}
+      {(mode === 'login' || mode === 'magic') && (
+        <p className="auth-fine">Se entri per la prima volta (anche con Google o con il link via email) dichiari di avere almeno 14 anni e di aver letto la <a href="/privacy-policy">Privacy policy</a>.</p>
       )}
     </Modal>
   )

@@ -2,22 +2,40 @@
 
 import { Lock, Hourglass, ShieldCheck } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { withdrawJoinRequest } from '@/lib/residenceVerification'
 
 // Sostituisce il vecchio blocco statico "Area riservata": guida il residente
 // non ancora verificato a completare la verifica, invece di limitarsi a
 // bloccarlo. Mai un redirect al profilo — la verifica resta contestuale al
 // condominio che si sta cercando di aprire.
-export default function ResidenceVerificationPrompt({ condominiumId, status }) {
+export default function ResidenceVerificationPrompt({ condominiumId, status, request, onChange }) {
   const router = useRouter()
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState(null)
+
+  async function withdraw() {
+    if (!request?.id) return
+    setBusy(true); setErr(null)
+    const res = await withdrawJoinRequest(request.id)
+    setBusy(false)
+    if (res.error) { setErr(res.error); return }
+    onChange?.()
+  }
 
   if (status === 'pending') {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
         <div style={{ marginBottom: 20, color: '#D97706', display: 'flex', justifyContent: 'center' }}><Hourglass size={44} strokeWidth={1.6} aria-hidden="true" /></div>
-        <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>Verifica in corso</h1>
-        <p style={{ fontSize: 14, color: 'var(--text-3)', textAlign: 'center', maxWidth: 360 }}>
-          Stiamo controllando il documento che hai caricato. Ti avviseremo appena la verifica sarà completata.
+        <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>Richiesta in attesa di approvazione</h1>
+        <p style={{ fontSize: 14, color: 'var(--text-3)', textAlign: 'center', maxWidth: 380 }}>
+          L&apos;amministratore del condominio (o lo staff Condoreco, se il condominio non ha un amministratore) sta controllando il documento. Ti avviseremo con una notifica. Il documento viene cancellato appena la richiesta è decisa.
         </p>
+        <button onClick={withdraw} disabled={busy}
+          style={{ marginTop: 18, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--text-2)', fontWeight: 600, fontSize: 14, cursor: busy ? 'wait' : 'pointer' }}>
+          {busy ? 'Ritiro in corso...' : 'Ritira la richiesta e cancella il documento'}
+        </button>
+        {err && <p role="alert" style={{ color: '#DC2626', fontSize: 13, marginTop: 10 }}>{err}</p>}
       </div>
     )
   }
@@ -31,7 +49,7 @@ export default function ResidenceVerificationPrompt({ condominiumId, status }) {
       </p>
       {status === 'rejected' && (
         <p style={{ fontSize: 13, color: '#DC2626', marginBottom: 16, textAlign: 'center', maxWidth: 380 }}>
-          La verifica precedente non è andata a buon fine. Puoi riprovare con un altro documento.
+          La richiesta precedente non è stata approvata{request?.reason ? `: ${request.reason}` : '.'} Puoi riprovare con un altro documento.
         </p>
       )}
       <button
@@ -45,7 +63,7 @@ export default function ResidenceVerificationPrompt({ condominiumId, status }) {
         <ShieldCheck size={18} strokeWidth={2} aria-hidden="true" style={{ verticalAlign: '-3px', marginRight: 6 }} />Verifica che abiti qui
       </button>
       <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 10 }}>
-        La verifica richiede circa 2 minuti.
+        Caricare il documento richiede circa 2 minuti. Poi la richiesta viene approvata a mano.
       </p>
     </div>
   )

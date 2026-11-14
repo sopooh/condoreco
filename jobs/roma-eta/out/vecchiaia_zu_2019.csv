@@ -1,0 +1,154 @@
+municipio,zu,nome,indice_vecchiaia
+1,1A,"Centro Storico",255.2
+1,1B,"Trastevere",228.2
+1,1C,"Aventino",240.6
+1,1D,"Testaccio",245.8
+1,1E,"Esquilino",219.0
+1,1F,"XX Settembre",273.9
+1,1G,"Celio",234.3
+1,1X,"Zona Archeologica",442.5
+1,17A,"Prati",280.7
+1,17B,"Della Vittoria",241.0
+1,17C,"Eroi",256.7
+2,2A,"Villaggio Olimpico",185.5
+2,2B,"Parioli",196.9
+2,2C,"Flaminio",213.4
+2,2D,"Salario",201.9
+2,2E,"Trieste",194.1
+2,2X,"Villa Borghese",207.2
+2,2Y,"Villa Ada",172.3
+2,3A,"Nomentano",217.2
+2,3B,"S. Lorenzo",241.4
+2,3X,"Università",248.1
+2,3Y,"Verano",770.0
+3,4A,"Monte Sacro",205.7
+3,4B,"Val Melaina",215.4
+3,4C,"Monte Sacro Alto",199.7
+3,4D,"Fidene",149.8
+3,4E,"Serpentara",168.3
+3,4F,"Casal Boccone",129.2
+3,4G,"Conca d'Oro",228.7
+3,4H,"Sacco Pastore",189.1
+3,4I,"Tufello",224.8
+3,4L,"Aeroporto dell' Urbe",174.4
+3,4M,"Settebagni",131.7
+3,4N,"Bufalotta",98.6
+3,4O,"Tor S. Giovanni",147.0
+4,5A,"Casal Bertone",230.2
+4,5B,"Casal Bruciato",251.9
+4,5C,"Tiburtino Nord",216.1
+4,5D,"Tiburtino Sud",241.2
+4,5E,"S. Basilio",154.1
+4,5F,"Tor Cervara",132.4
+4,5G,"Pietralata",267.2
+4,5H,"Casal de' Pazzi",221.2
+4,5I,"S. Alessandro",65.7
+4,5L,"Settecamini",113.3
+5,6A,"Torpignattara",189.4
+5,6B,"Casilino",275.6
+5,6C,"Quadraro",147.1
+5,6D,"Gordiani",227.2
+5,7A,"Centocelle",174.5
+5,7B,"Alessandrina",152.1
+5,7C,"Tor Sapienza",168.9
+5,7D,"La Rustica",142.9
+5,7E,"Tor Tre Teste",208.1
+5,7F,"Casetta Mistica",124.3
+5,7G,"Cen. Dir. Centocelle",90.5
+5,7H,"Omo",45.2
+6,8A,"Torrespaccata",229.4
+6,8B,"Torre Maura",171.9
+6,8C,"Giard.tti-Tor Vergata",129.1
+6,8D,"Acqua Vergine",54.6
+6,8E,"Lunghezza",68.2
+6,8F,"Torre Angela",116.0
+6,8G,"Borghesiana",92.8
+6,8H,"S. Vittorino",68.2
+7,9A,"Tuscolano Nord",233.7
+7,9B,"Tuscolano Sud",223.3
+7,9C,"Tor Fiscale",105.5
+7,9D,"Appio",239.4
+7,9E,"Latino",214.1
+7,10A,"Don Bosco",254.0
+7,10B,"Appio-Claudio",225.5
+7,10C,"Quarto Miglio",164.6
+7,10D,"Pignatelli",200.5
+7,10E,"Lucrezia Romana",79.4
+7,10F,"Osteria del Curato",248.8
+7,10G,"Romanina",106.5
+7,10H,"Gregna",119.1
+7,10I,"Barcaccia",65.7
+7,10L,"Morena",129.9
+7,10X,"Ciampino",11.5
+8,11A,"Ostiense",216.3
+8,11B,"Valco S. Paolo",256.9
+8,11C,"Garbatella",235.8
+8,11D,"Navigatori",215.6
+8,11E,"Tormarancia",195.4
+8,11F,"Tre Fontane",199.7
+8,11G,"Grottaperfetta",237.3
+8,11X,"Appia Antica Nord",187.0
+8,11Y,"Appia Antica Sud",72.7
+9,12A,"Eur",200.7
+9,12B,"Villaggio Giuliano",191.5
+9,12C,"Torrino",158.1
+9,12D,"Laurentino",240.6
+9,12E,"Cecchignola",184.3
+9,12F,"Mezzocammino",75.8
+9,12G,"Spinaceto",215.9
+9,12H,"Vallerano C. di Leva",96.0
+9,12I,"Decima",89.2
+9,12L,"Porta Medaglia",110.2
+9,12M,"Castel Romano",193.3
+9,12N,"Santa Palomba",97.2
+10,13A,"Malafede",85.0
+10,13B,"Acilia Nord",124.1
+10,13C,"Acilia Sud",128.4
+10,13D,"Palocco",188.7
+10,13E,"Ostia Antica",102.2
+10,13F,"Ostia Nord",201.1
+10,13G,"Ostia Sud",209.7
+10,13H,"Castel Fusano",189.7
+10,13I,"Infernetto",98.6
+10,13X,"Castel Porziano",15.4
+11,15A,"Marconi",199.3
+11,15B,"Portuense",221.7
+11,15C,"Pian Due Torri",212.0
+11,15D,"Trullo",172.9
+11,15E,"Magliana",42.0
+11,15F,"Corviale",193.8
+11,15G,"Ponte Galeria",70.0
+12,16A,"Colli Portuensi",226.7
+12,16B,"Buon Pastore",206.8
+12,16C,"Pisana",128.5
+12,16D,"Gianicolense",236.7
+12,16E,"Massimina",112.7
+12,16F,"Pantano di Grano",98.3
+13,18A,"Aurelio Sud",256.1
+13,18B,"Val Cannuta",185.5
+13,18C,"Fogaccia",142.7
+13,18D,"Aurelio Nord",276.4
+13,18E,"Casalotti di Boccea",136.8
+13,18F,"Boccea",100.3
+14,19A,"Medaglie d' Oro",222.9
+14,19B,"Primavalle",209.5
+14,19C,"Ottavia",165.1
+14,19D,"S. Maria della Pietà",90.7
+14,19E,"Trionfale",200.4
+14,19F,"Pineto",270.0
+14,19G,"Castelluccia",82.1
+14,19H,"S. Maria di Galeria",166.5
+15,20A,"Tor di Quinto",210.1
+15,20B,"Acquatraversa",152.7
+15,20C,"Tomba di Nerone",178.3
+15,20D,"Farnesina",199.2
+15,20E,"Grottarossa Ovest",146.4
+15,20F,"Grottarossa Est",100.6
+15,20G,"Giustiniana",133.7
+15,20H,"La Storta",150.7
+15,20I,"S. Cornelia",102.5
+15,20L,"Prima Porta",116.9
+15,20M,"Labaro",157.7
+15,20N,"Cesano",125.1
+15,20O,"Martignano",44.4
+15,20X,"Foro Italico",431.8

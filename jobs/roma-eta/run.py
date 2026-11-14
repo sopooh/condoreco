@@ -9,7 +9,7 @@ def get(url, data=None):
     req = urllib.request.Request(url, data=data, headers=UA)
     with urllib.request.urlopen(req, timeout=180) as r: return r.read()
 # A. Istat approfondimento Roma (censimento permanente) e allegati
-for url in ['https://www.istat.it/wp-content/uploads/2024/06/Approfondimento_Roma.pdf']:
+for url in []:
     try:
         b = get(url); log('## ISTAT', url, len(b))
         with pdfplumber.open(io.BytesIO(b)) as pdf:
@@ -20,7 +20,7 @@ for url in ['https://www.istat.it/wp-content/uploads/2024/06/Approfondimento_Rom
     except Exception as e: log('ERR', url, repr(e))
 # B. schede municipio 2019: indice di vecchiaia per z.u.
 rows = []
-for m in range(1, 16):
+for m in []:
     url = f'https://www.comune.roma.it/web-resources/cms/documents/{m:02d}_Municipio_pop_2019.pdf'
     try: b = get(url)
     except Exception as e: log('ERR', url, repr(e)[:100]); continue
@@ -32,12 +32,13 @@ for m in range(1, 16):
                     mm = re.match(r'^\s*([\d.]+,\d)\s+(\d{1,2}[a-zA-Z])\s+(.+)$', line)
                     if mm: rows.append((m, mm.group(2).upper(), mm.group(3).strip(), float(mm.group(1).replace('.', '').replace(',', '.'))))
 log('righe vecchiaia', len(rows))
-with open(os.path.join(OUT, 'vecchiaia_zu_2019.csv'), 'w') as f:
+if rows:
+  with open(os.path.join(OUT, 'vecchiaia_zu_2019.csv'), 'w') as f:
     f.write('municipio,zu,nome,indice_vecchiaia\n')
     for r in rows: f.write(f'{r[0]},{r[1]},"{r[2]}",{r[3]}\n')
 # C. confini zone urbanistiche da OSM
-q = '[out:json][timeout:170];area["name"="Roma"]["admin_level"="8"]->.r;rel(area.r)["boundary"="administrative"]["admin_level"="11"];out tags geom;'
-for ep in ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter']:
+q = '[out:json][timeout:170];rel["boundary"="administrative"]["admin_level"="11"](41.65,12.20,42.10,12.86);out tags geom;'
+for ep in ['https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']:
     try:
         d = json.loads(get(ep + '?' + urllib.parse.urlencode({'data': q})))
         els = d.get('elements', []); log('OSM', ep, len(els))

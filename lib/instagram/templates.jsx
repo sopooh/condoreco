@@ -33,6 +33,7 @@ const THEMES = {
   teal: { bg: C.teal, fg: C.white, sub: '#CFE3E5', accent: C.orange, chipBg: C.orange, chipFg: C.white },
   light: { bg: C.paper, fg: C.ink, sub: C.ink3, accent: C.teal, chipBg: C.tealLt, chipFg: C.tealDk },
   orange: { bg: C.orange, fg: C.white, sub: '#FFE4D3', accent: C.white, chipBg: C.white, chipFg: C.orange },
+  white: { bg: C.white, fg: C.ink, sub: C.ink3, accent: C.teal, chipBg: C.tealLt, chipFg: C.tealDk },
   dark: { bg: '#0B2E31', fg: C.white, sub: C.tealMid, accent: C.orange, chipBg: C.orange, chipFg: C.white },
 }
 
@@ -67,7 +68,7 @@ let MASCOTS = {}
 let COVERS = {}
 export function setCovers(c) { COVERS = c }
 // Illustrazioni a tutta pagina disponibili per la copertina
-export const COVER_IMAGES = { 'condor-flight': 'Condor in volo (arancio)' }
+export const COVER_IMAGES = { 'condor-flight': 'Condor in volo (arancio)', 'condor-desk': 'Condor al computer (teal)', 'condor-wings': 'Condor ali aperte (turchese)', 'condor-canyon': 'Condor nel canyon' }
 export function setAvatars(a) { AVATARS = a }
 export function setMascots(m) { MASCOTS = m }
 
@@ -189,9 +190,11 @@ function Tip({ p }) {
   return (
     <Frame t={t}>
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center', gap: 36 }}>
-        <div style={{ fontSize: 180, fontWeight: 800, color: t.accent, lineHeight: 1 }}>
-          {String(p.number ?? 1).padStart(2, '0')}
-        </div>
+        {p.kicker ? <Chip t={t}>{p.kicker}</Chip> : (
+          <div style={{ fontSize: 180, fontWeight: 800, color: t.accent, lineHeight: 1 }}>
+            {String(p.number ?? 1).padStart(2, '0')}
+          </div>
+        )}
         <div style={{ fontSize: 72, fontWeight: 800, lineHeight: 1.1, letterSpacing: -1 }}>{p.title || 'Consiglio'}</div>
         {p.body ? (
           <div style={{ fontSize: 40, lineHeight: 1.4, color: t.sub }}>{p.body}</div>
@@ -385,11 +388,11 @@ function Speak({ p }) {
 // Mascotte Condor: apertura (pose "happy", guarda a destra) e risposta
 // finale (pose "determined"). Condor a sinistra in basso, nuvoletta sopra
 // con la punta verso di lui, link o firma a destra.
-const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413] }
+const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433], wave: [326, 421], cool: [326, 421], shy: [385, 385], sigh: [374, 385] }
 
 function Mascot({ p }) {
   const t = theme(p.theme || 'light')
-  const pose = p.pose === 'determined' ? 'determined' : 'happy'
+  const pose = MASCOT_SIZE[p.pose] ? p.pose : 'happy'
   const [mw, mh] = MASCOT_SIZE[pose]
   const len = (p.text || '').length
   const linkColor = p.theme === 'orange' ? C.orange : C.teal
@@ -400,10 +403,13 @@ function Mascot({ p }) {
         <div style={{
           display: 'flex', background: C.white, color: C.ink, borderRadius: 48,
           padding: '48px 52px', fontSize: len > 150 ? 46 : len > 90 ? 56 : 68, fontWeight: 800,
-          lineHeight: 1.15, letterSpacing: -1, border: t.bg === C.paper ? `3px solid ${C.line}` : 'none',
+          lineHeight: 1.15, letterSpacing: -1, border: t.bg === C.paper || t.bg === C.white ? `3px solid ${C.line}` : 'none',
         }}>{p.text || 'Ciao, sono il Condor di Condoreco!'}</div>
-        <div style={{ display: 'flex', paddingLeft: 200, marginTop: t.bg === C.paper ? -3 : 0 }}>
-          <svg width="70" height="56" viewBox="0 0 70 56"><path d="M0 0 L70 0 L8 56 Z" fill={C.white} /></svg>
+        <div style={{ display: 'flex', paddingLeft: 200, marginTop: t.bg === C.paper || t.bg === C.white ? -3 : 0 }}>
+          <svg width="70" height="56" viewBox="0 0 70 56">
+            <path d="M0 0 L70 0 L8 56 Z" fill={C.white} />
+            {t.bg === C.paper || t.bg === C.white ? <path d="M1.5 0 L8 54 L68 0" fill="none" stroke={C.line} strokeWidth="3" strokeLinejoin="round" /> : null}
+          </svg>
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
           {MASCOTS[pose] ? <img src={MASCOTS[pose]} width={mw} height={mh} alt="" /> : <div style={{ width: mw, height: mh }} />}
@@ -432,6 +438,8 @@ function Mascot({ p }) {
 // Copertina illustrata: immagine a tutta pagina, logo bianco, nuvoletta in
 // alto che "esce" dal personaggio. Testo sempre dentro la safe area.
 function ImageCover({ p }) {
+  if (p.layout === 'top') return <ImageCoverTop p={p} />
+  if (p.layout === 'bottomLeft') return <ImageCoverBottomLeft p={p} />
   // Il personaggio è al centro: il testo sta in una nuvoletta in basso con la
   // punta verso il becco, così il volto resta libero.
   const src = COVERS[p.image] || COVERS['condor-flight']
@@ -469,11 +477,189 @@ function ImageCover({ p }) {
   )
 }
 
+// Variante con la nuvoletta in alto a sinistra (personaggio a destra/in basso)
+function ImageCoverTop({ p }) {
+  const src = COVERS[p.image] || COVERS['condor-desk']
+  const len = (p.text || '').length
+  return (
+    <div style={{ width: SLIDE_W, height: SLIDE_H, display: 'flex', position: 'relative', fontFamily: 'Inter', background: C.teal }}>
+      {src ? <img src={src} width={SLIDE_W} height={SLIDE_H} style={{ position: 'absolute', top: 0, left: 0 }} alt="" /> : null}
+      <div style={{ display: 'flex', flexDirection: 'column', width: SLIDE_W, height: SLIDE_H, padding: `${SAFE_Y}px ${SAFE_X}px` }}>
+        <Wordmark color={C.white} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: 40, width: p.width || 510 }}>
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: 16, background: C.white, borderRadius: 40,
+            padding: '32px 38px', boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
+          }}>
+            {p.kicker ? (
+              <div style={{ display: 'flex' }}>
+                <div style={{ display: 'flex', background: C.orange, color: C.white, fontSize: 22, fontWeight: 800, padding: '9px 20px', borderRadius: 999, letterSpacing: 2, textTransform: 'uppercase' }}>{p.kicker}</div>
+              </div>
+            ) : null}
+            <div style={{ display: 'flex', color: C.ink, fontSize: len > 70 ? 44 : 52, fontWeight: 800, lineHeight: 1.12, letterSpacing: -1 }}>
+              {p.text || 'Titolo della copertina'}
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignSelf: 'flex-end', paddingRight: 70 }}>
+            <svg width="70" height="60" viewBox="0 0 70 60"><path d="M0 0 L60 0 L70 60 Z" fill={C.white} /></svg>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flex: 1 }} />
+        <div style={{ display: 'flex', alignSelf: 'flex-start', alignItems: 'center', gap: 12, background: C.white, padding: '14px 24px', borderRadius: 999 }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: C.teal }}>Scorri</div>
+          <Arrow color={C.orange} size={34} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Variante con la nuvoletta in basso a sinistra (personaggio a destra):
+// il volto resta libero, la punta della nuvoletta sale verso il personaggio.
+function ImageCoverBottomLeft({ p }) {
+  const src = COVERS[p.image] || COVERS['condor-desk']
+  const len = (p.text || '').length
+  return (
+    <div style={{ width: SLIDE_W, height: SLIDE_H, display: 'flex', position: 'relative', fontFamily: 'Inter', background: C.teal }}>
+      {src ? <img src={src} width={SLIDE_W} height={SLIDE_H} style={{ position: 'absolute', top: 0, left: 0 }} alt="" /> : null}
+      <div style={{ display: 'flex', flexDirection: 'column', width: SLIDE_W, height: SLIDE_H, padding: `${SAFE_Y}px ${SAFE_X}px` }}>
+        <Wordmark color={C.white} />
+        <div style={{ display: 'flex', flex: 1 }} />
+        <div style={{ display: 'flex', flexDirection: 'column', width: p.width || 560 }}>
+          <div style={{ display: 'flex', alignSelf: 'flex-end', paddingRight: 60 }}>
+            <svg width="70" height="58" viewBox="0 0 70 58"><path d="M70 0 L60 58 L0 58 Z" fill={C.white} /></svg>
+          </div>
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: 16, background: C.white, borderRadius: 40,
+            padding: '32px 38px', boxShadow: '0 12px 40px rgba(0,0,0,0.22)',
+          }}>
+            {p.kicker ? (
+              <div style={{ display: 'flex' }}>
+                <div style={{ display: 'flex', background: C.orange, color: C.white, fontSize: 22, fontWeight: 800, padding: '9px 20px', borderRadius: 999, letterSpacing: 2, textTransform: 'uppercase' }}>{p.kicker}</div>
+              </div>
+            ) : null}
+            <div style={{ display: 'flex', color: C.ink, fontSize: len > 70 ? 44 : 50, fontWeight: 800, lineHeight: 1.12, letterSpacing: -1 }}>
+              {p.text || 'Titolo della copertina'}
+            </div>
+            <div style={{ display: 'flex', alignSelf: 'flex-end', alignItems: 'center', gap: 10 }}>
+              <div style={{ fontSize: 26, fontWeight: 800, color: C.teal }}>Scorri</div>
+              <Arrow color={C.orange} size={32} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Condor su sfondo bianco (pose illustrate: salta con le stelline, dorme).
+// Nuvoletta in alto con la punta verso il Condor, Condor sotto, link o Scorri.
+const WHITE_POSES = { jump: [470, 600], sleep: [500, 582] }
+
+function WhiteMascot({ p }) {
+  const pose = WHITE_POSES[p.pose] ? p.pose : 'jump'
+  const [w, h] = WHITE_POSES[pose]
+  const len = (p.text || '').length
+  return (
+    <div style={{ width: SLIDE_W, height: SLIDE_H, display: 'flex', flexDirection: 'column', background: C.white, padding: `${SAFE_Y}px ${SAFE_X}px`, fontFamily: 'Inter' }}>
+      <Wordmark color={C.teal} />
+      <div style={{ display: 'flex', flexDirection: 'column', marginTop: 34 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, background: C.tealLt, borderRadius: 40, padding: '34px 40px' }}>
+          {p.kicker ? (
+            <div style={{ display: 'flex' }}>
+              <div style={{ display: 'flex', background: C.orange, color: C.white, fontSize: 22, fontWeight: 800, padding: '9px 20px', borderRadius: 999, letterSpacing: 2, textTransform: 'uppercase' }}>{p.kicker}</div>
+            </div>
+          ) : null}
+          <div style={{ display: 'flex', color: C.ink, fontSize: len > 90 ? 46 : 54, fontWeight: 800, lineHeight: 1.12, letterSpacing: -1 }}>{p.text || ''}</div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: p.showLink ? 'flex-start' : 'center', paddingLeft: p.showLink ? 260 : 60 }}>
+          <svg width="70" height="50" viewBox="0 0 70 50"><path d="M0 0 L70 0 L20 50 Z" fill={C.tealLt} /></svg>
+        </div>
+      </div>
+      {p.showLink ? (
+        // Chiusura: Condor a sinistra, link nell'angolo in basso a destra della safe area
+        <div style={{ display: 'flex', flex: 1, alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          {MASCOTS[pose] ? <img src={MASCOTS[pose]} width={w} height={h} alt="" /> : <div style={{ width: w, height: h }} />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: C.teal, color: C.white, fontSize: 32, fontWeight: 800, padding: '18px 28px', borderRadius: 20 }}>
+            <div>{p.url || 'condoreco.com'}</div>
+            <Arrow color={C.white} size={32} />
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flex: 1, alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', width: 180 }} />
+          {MASCOTS[pose] ? <img src={MASCOTS[pose]} width={w} height={h} alt="" /> : <div style={{ width: w, height: h }} />}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', width: 180, gap: 10 }}>
+            <div style={{ fontSize: 26, fontWeight: 800, color: C.teal }}>Scorri</div>
+            <Arrow color={C.orange} size={32} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Mappa a tutta larghezza con legenda e fonte (sfondo bianco del brand)
+const LEGEND_COLORS = { teal: C.teal, yellow: '#F4B400', red: C.red }
+
+function MapSlide({ p }) {
+  const t = theme('light')
+  const src = COVERS[p.image]
+  const mw = 760, mh = Math.round(760 * (p.ratio || 0.902))
+  return (
+    <Frame t={t} footer="none">
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+        {p.kicker ? <Chip t={t}>{p.kicker}</Chip> : null}
+        <div style={{ display: 'flex', fontSize: 58, fontWeight: 800, color: C.ink, letterSpacing: -1, marginTop: 14, lineHeight: 1.05 }}>{p.title || ''}</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 22 }}>
+          {src ? <img src={src} width={mw} height={mh} style={{ borderRadius: 24 }} alt="" /> : null}
+        </div>
+        <div style={{ display: 'flex', gap: 22, marginTop: 20, flexWrap: 'wrap' }}>
+          {(p.legend || []).map(([color, label]) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 26, height: 26, borderRadius: 8, background: LEGEND_COLORS[color] || color }} />
+              <div style={{ fontSize: 26, fontWeight: 700, color: C.ink2 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', flex: 1 }} />
+        <div style={{ display: 'flex', fontSize: 19, color: C.ink3, lineHeight: 1.35 }}>{p.source || ''}</div>
+      </div>
+    </Frame>
+  )
+}
+
+// Elenco quartieri con pallino colorato e valore
+function NilList({ p }) {
+  const t = theme(p.theme || 'light')
+  const rows = p.rows || []
+  return (
+    <Frame t={t}>
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+        {p.kicker ? <Chip t={t}>{p.kicker}</Chip> : null}
+        <div style={{ display: 'flex', fontSize: 62, fontWeight: 800, color: t.fg, letterSpacing: -1, marginTop: 16, lineHeight: 1.05 }}>{p.title || ''}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 34 }}>
+          {rows.map((r, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 22, background: C.white, border: `2px solid ${C.line}`, borderRadius: 24, padding: '20px 26px' }}>
+              <div style={{ display: 'flex', width: 46, height: 46, borderRadius: 23, background: LEGEND_COLORS[r.color] || C.teal, color: C.white, fontSize: 24, fontWeight: 800, alignItems: 'center', justifyContent: 'center' }}>{String(i + 1)}</div>
+              <div style={{ display: 'flex', flex: 1, fontSize: 32, fontWeight: 700, color: C.ink }}>{r.name}</div>
+              <div style={{ display: 'flex', fontSize: 30, fontWeight: 800, color: LEGEND_COLORS[r.color] || C.teal }}>{r.value}</div>
+            </div>
+          ))}
+        </div>
+        {p.note ? <div style={{ display: 'flex', fontSize: 28, color: t.sub, lineHeight: 1.4, marginTop: 26 }}>{p.note}</div> : null}
+      </div>
+    </Frame>
+  )
+}
+
 // Dialogo tra personaggi, stile chat: il primo parla a sinistra, gli altri a destra.
 function Chat({ p }) {
-  const t = theme(p.theme || 'light')
+  // Le chat hanno sempre lo sfondo bianco del brand (bianco sporco, C.paper).
+  // L'esperto (default il Gufo) parla a destra, gli altri residenti a sinistra.
+  const t = theme('light')
   const lines = parseDialogue(p.lines)
-  const first = lines.find((l) => l.character)?.character?.id
+  const expert = findCharacter(p.expert || 'gufo')?.id
   // il testo deve stare tutto nella safe area: più testo, font più piccolo
   const total = lines.reduce((n, l) => n + l.text.length, 0) + lines.length * 40
   const size = total > 330 ? 36 : total > 260 ? 40 : 46
@@ -484,7 +670,7 @@ function Chat({ p }) {
       ) : null}
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center', gap: 24, paddingBottom: 24 }}>
         {lines.map((l, i) => {
-          const left = !l.character || l.character.id === first
+          const left = !l.character || l.character.id !== expert
           const accent = l.character?.color || C.teal
           return (
             <div key={i} style={{ display: 'flex', width: '100%', flexDirection: left ? 'row' : 'row-reverse', alignItems: 'flex-end', gap: 20 }}>
@@ -495,7 +681,7 @@ function Chat({ p }) {
                 </div>
                 <div style={{
                   display: 'flex', background: left ? C.white : accent, color: left ? C.ink : C.white,
-                  border: left && t.bg === C.paper ? `3px solid ${C.line}` : 'none',
+                  border: left ? `3px solid ${C.line}` : 'none',
                   borderRadius: 40, borderBottomLeftRadius: left ? 8 : 40, borderBottomRightRadius: left ? 40 : 8,
                   padding: '26px 34px', fontSize: size, fontWeight: 600, lineHeight: 1.25,
                 }}>{l.text}</div>
@@ -514,6 +700,9 @@ export const TEMPLATES = {
   cover: { label: 'Copertina', render: Cover },
   mascot: { label: 'Condor (messaggio istituzionale)', render: Mascot },
   imageCover: { label: 'Copertina illustrata', render: ImageCover },
+  map: { label: 'Mappa con legenda', render: MapSlide },
+  nilList: { label: 'Elenco quartieri', render: NilList },
+  whiteMascot: { label: 'Condor su bianco (salta / dorme)', render: ({ p }) => Mascot({ p: { ...p, theme: 'white' } }) },
   speak: { label: 'Personaggio che parla', render: Speak },
   chat: { label: 'Dialogo tra personaggi', render: Chat },
   tip: { label: 'Consiglio numerato', render: Tip },

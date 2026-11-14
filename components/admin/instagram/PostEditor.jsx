@@ -8,6 +8,18 @@ import SlideComposer from './SlideComposer.jsx'
 import BoostPanel from './BoostPanel.jsx'
 import { ui, StatusPill, thumbUrl } from './ui.jsx'
 
+function fileName(post, i) {
+  const slug = (post?.title || 'carosello').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40) || 'carosello'
+  return `${slug}-${String(i + 1).padStart(2, '0')}.jpg`
+}
+
+// Il parametro ?download= fa rispondere a Supabase con Content-Disposition:
+// attachment, così il browser scarica invece di aprire l'immagine.
+function downloadUrl(storagePath, name) {
+  return `${thumbUrl(storagePath)}?download=${encodeURIComponent(name)}`
+}
+
 export default function PostEditor({ postId, account, onClose }) {
   const [post, setPost] = useState(null)
   const [slides, setSlides] = useState([])
@@ -136,6 +148,37 @@ export default function PostEditor({ postId, account, onClose }) {
     onClose()
   }
 
+  async function downloadAll() {
+    setError(null)
+    setBusy('Preparo le immagini...')
+    try {
+      const files = await Promise.all(slides.map(async (sl, i) => {
+        const res = await fetch(thumbUrl(sl.storage_path), { cache: 'no-store' })
+        if (!res.ok) throw new Error(`Slide ${i + 1}: download non riuscito`)
+        return new File([await res.blob()], fileName(post, i), { type: 'image/jpeg' })
+      }))
+      // Su telefono: foglio di condivisione con "Salva immagini" (vanno nel Rullino)
+      if (navigator.canShare?.({ files })) {
+        setBusy(null)
+        await navigator.share({ files }).catch((e) => { if (e.name !== 'AbortError') throw e })
+        return
+      }
+      // Su computer: un download per slide
+      for (const f of files) {
+        const url = URL.createObjectURL(f)
+        const a = document.createElement('a')
+        a.href = url; a.download = f.name
+        document.body.appendChild(a); a.click(); a.remove()
+        setTimeout(() => URL.revokeObjectURL(url), 2000)
+        await new Promise((r) => setTimeout(r, 300))
+      }
+    } catch (e) {
+      console.error('[instagram] download', e)
+      setError(e.message)
+    }
+    setBusy(null)
+  }
+
   if (!post) return <div style={ui.page}><div style={ui.muted}>{error || 'Caricamento...'}</div></div>
 
   const tags = (caption.match(/#\w+/g) || []).length
@@ -156,12 +199,23 @@ export default function PostEditor({ postId, account, onClose }) {
 
       {/* Slide */}
       <div style={ui.card}>
-        <h2 style={ui.h2}>Slide ({slides.length}/10)</h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
+          <h2 style={{ ...ui.h2, margin: 0 }}>Slide ({slides.length}/10)</h2>
+          {slides.length > 0 && (
+            <button type="button" style={ui.ghostBtn} disabled={!!busy} onClick={downloadAll}>Scarica tutte</button>
+          )}
+        </div>
         {slides.length === 0 && <p style={ui.muted}>Ancora vuoto. Parti da una ricetta o carica le tue foto.</p>}
         <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 6 }}>
           {slides.map((s, i) => (
             <div key={s.id} style={{ flexShrink: 0, width: 132 }}>
-              <img src={thumbUrl(s.storage_path)} alt={`Slide ${i + 1}`} style={{ width: 132, height: 165, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border)', display: 'block' }} />
+              <div style={{ position: 'relative' }}>
+                <img src={thumbUrl(s.storage_path)} alt={`Slide ${i + 1}`} style={{ width: 132, height: 165, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border)', display: 'block' }} />
+                <a href={downloadUrl(s.storage_path, fileName(post, i))} download={fileName(post, i)} aria-label={`Scarica slide ${i + 1}`} title="Scarica"
+                  style={{ position: 'absolute', top: 6, right: 6, width: 30, height: 30, borderRadius: 999, background: 'rgba(255,255,255,0.92)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg>
+                </a>
+              </div>
               {!locked && (
                 <div style={{ display: 'flex', gap: 4, marginTop: 6, justifyContent: 'space-between' }}>
                   <button type="button" aria-label="Sposta a sinistra" style={ui.smallBtn} onClick={() => move(i, -1)} disabled={i === 0}>‹</button>

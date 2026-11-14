@@ -38,10 +38,27 @@ if rows:
     for r in rows: f.write(f'{r[0]},{r[1]},"{r[2]}",{r[3]}\n')
 # C. confini zone urbanistiche da OSM
 q = '[out:json][timeout:170];rel["boundary"="administrative"]["admin_level"="11"](41.65,12.20,42.10,12.86);out tags geom;'
-for ep in ['https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']:
+for ep in ['https://overpass.private.coffee/api/interpreter', 'https://overpass-api.de/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter']:
     try:
         d = json.loads(get(ep + '?' + urllib.parse.urlencode({'data': q})))
         els = d.get('elements', []); log('OSM', ep, len(els))
         for e in els: log('  ', e['tags'].get('ref'), '|', e['tags'].get('name'))
         json.dump(els, open(os.path.join(OUT, 'osm_zu.json'), 'w')); break
     except Exception as e: log('ERR osm', ep, repr(e))
+
+# D. fallback Istat basi territoriali 2021 Lazio: sezioni con codice ASC (zone urbanistiche)
+if not os.path.exists(os.path.join(OUT, 'osm_zu.json')) or len(json.load(open(os.path.join(OUT, 'osm_zu.json')))) < 100:
+    import zipfile, shapefile
+    for url in ['https://www.istat.it/storage/cartografia/basi_territoriali/2021/R12_21.zip', 'https://www.istat.it/storage/cartografia/basi_territoriali/WGS_84_UTM/2011/R12_11_WGS84.zip']:
+        try:
+            b = get(url); log('ISTAT BT', url, len(b))
+            z = zipfile.ZipFile(io.BytesIO(b)); log(z.namelist()[:40])
+            shp = [n for n in z.namelist() if n.lower().endswith('.shp')]
+            for n in shp:
+                base = n[:-4]
+                r = shapefile.Reader(shp=io.BytesIO(z.read(base + '.shp')), dbf=io.BytesIO(z.read(base + '.dbf')))
+                log('layer', n, len(r), [f[0] for f in r.fields[1:]])
+                log('  es', r.record(0))
+            z.extractall(os.path.join(HERE, 'tmp_bt'))
+            break
+        except Exception as e: log('ERR bt', url, repr(e))

@@ -9,6 +9,7 @@ const THEMES = [['teal', 'Teal'], ['light', 'Chiaro'], ['orange', 'Arancio'], ['
 
 export const TEMPLATE_FIELDS = {
   cover: { label: 'Copertina', fields: [['theme', 'Tema', 'theme'], ['kicker', 'Etichetta'], ['title', 'Titolo', 'area'], ['subtitle', 'Sottotitolo', 'area']] },
+  imageCover: { label: 'Copertina illustrata', fields: [['image', 'Illustrazione', 'cover'], ['kicker', 'Etichetta'], ['text', 'Testo nella nuvoletta', 'area']] },
   mascot: { label: 'Condor (messaggio istituzionale)', fields: [['theme', 'Tema', 'theme'], ['pose', 'Condor', 'pose'], ['kicker', 'Etichetta (opzionale)'], ['text', 'Cosa dice il Condor', 'area'], ['showLink', 'Mostra link condoreco.com (per la chiusura)', 'checkbox']] },
   speak: { label: 'Personaggio che parla', fields: [['theme', 'Tema', 'theme'], ['character', 'Personaggio', 'character'], ['text', 'Cosa dice', 'area'], ['kicker', 'Etichetta (opzionale)'], ['role', 'Sotto il nome (es. esperto di condomini)']] },
   chat: { label: 'Dialogo tra personaggi', fields: [['theme', 'Tema', 'theme'], ['title', 'Titolo (opzionale)'], ['lines', 'Battute, una per riga: "gufo: testo" (max 5)', 'dialogue']] },
@@ -22,6 +23,7 @@ export const TEMPLATE_FIELDS = {
 }
 
 const DEFAULTS = {
+  imageCover: { image: 'condor-flight' },
   mascot: { theme: 'light', pose: 'happy' },
   speak: { theme: 'light', character: 'gufo' },
   chat: { theme: 'light', lines: 'volpe: Ho trovato casa, firmo domani!\ngufo: Aspetta. Hai chiesto quanto sono le spese condominiali?' },
@@ -110,6 +112,10 @@ export default function SlideComposer({ postId, onAdded, disabled }) {
                   style={{ ...ui.smallBtn, ...(params.theme === v ? { background: 'var(--teal-lt)', borderColor: 'var(--teal)', color: 'var(--teal-dk)' } : {}) }}>{l}</button>
               ))}
             </div>
+          ) : type === 'cover' ? (
+            <select id={`f-${key}`} style={ui.input} value={params[key] ?? 'condor-flight'} onChange={(e) => set(key, e.target.value)}>
+              <option value="condor-flight">Condor in volo (arancio)</option>
+            </select>
           ) : type === 'pose' ? (
             <div style={{ display: 'flex', gap: 6 }}>
               {[['happy', 'Apertura (sorride)'], ['determined', 'Chiusura (risponde)']].map(([v, l]) => (

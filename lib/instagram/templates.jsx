@@ -388,7 +388,7 @@ function Speak({ p }) {
 // Mascotte Condor: apertura (pose "happy", guarda a destra) e risposta
 // finale (pose "determined"). Condor a sinistra in basso, nuvoletta sopra
 // con la punta verso di lui, link o firma a destra.
-const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433], wave: [326, 421], cool: [326, 421] }
+const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433], wave: [326, 421], cool: [326, 421], shy: [385, 385], sigh: [374, 385] }
 
 function Mascot({ p }) {
   const t = theme(p.theme || 'light')

@@ -1,3 +1,9 @@
 righe vecchiaia 0
-ERR osm https://maps.mail.ru/osm/tools/overpass/api/interpreter <HTTPError 504: 'Gateway Time-out'>
-ERR osm https://overpass.kumi.systems/api/interpreter TimeoutError('The read operation timed out')
+ERR osm https://overpass.private.coffee/api/interpreter TimeoutError('The read operation timed out')
+ERR osm https://overpass-api.de/api/interpreter <HTTPError 406: 'Not Acceptable'>
+OSM https://maps.mail.ru/osm/tools/overpass/api/interpreter 1
+   20G | Giustiniana
+ISTAT BT https://www.istat.it/storage/cartografia/basi_territoriali/2021/R12_21.zip 50215299
+['SHP/', 'SHP/R12_21_WGS84.dbf', 'SHP/R12_21_WGS84.prj', 'SHP/R12_21_WGS84.shp', 'SHP/R12_21_WGS84.shx', 'TAB/', 'TAB/ASC1_R12_21.csv', 'TAB/ASC2_R12_21.csv', 'TAB/ASC3_R12_21.csv', 'TAB/ISAM_R12_21.csv', 'TAB/LOC_R12_21.csv', 'TAB/R12_21.ods', 'TAB/R12_21.xlsx', 'TAB/SEZ_R12_21.csv', 'TAB/ZIC_R12_21.csv']
+layer SHP/R12_21_WGS84.shp 59154 ['COD_REG', 'COD_UTS', 'PRO_COM', 'SEZ21', 'SEZ21_ID', 'COD_TIPO_S', 'TIPO_LOC', 'LOC21_ID', 'COD_ZIC', 'COD_ISAM', 'COD_ACQUE', 'COD_ISOLE', 'COD_MONT_D', 'COD_AREA_S', 'COM_ASC1', 'COM_ASC2', 'COM_ASC3', 'POP21', 'FAM21', 'ABI21', 'EDI21', 'SHAPE_Leng', 'SHAPE_Area']
+  es Record #0: [12, 56, 56001, 1, 560010000001, 1, 1, 5600110001, 0, 0, 0, 0, 0, 0, 0, 0, 0, 812, 354, 375, 103, 3056.76090611, 192886.576751]

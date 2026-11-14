@@ -440,10 +440,7 @@ function ImageCover({ p }) {
     <div style={{ width: SLIDE_W, height: SLIDE_H, display: 'flex', position: 'relative', fontFamily: 'Inter', background: C.orange }}>
       {src ? <img src={src} width={SLIDE_W} height={SLIDE_H} style={{ position: 'absolute', top: 0, left: 0 }} alt="" /> : null}
       <div style={{ display: 'flex', flexDirection: 'column', width: SLIDE_W, height: SLIDE_H, padding: `${SAFE_Y}px ${SAFE_X}px` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, alignSelf: 'flex-end', background: 'rgba(17,24,39,0.35)', padding: '10px 20px 10px 12px', borderRadius: 999 }}>
-          {LOGOS.white ? <img src={LOGOS.white} width={44} height={44} alt="" /> : null}
-          <div style={{ fontSize: 30, fontWeight: 800, color: C.white }}>condoreco</div>
-        </div>
+        <Wordmark color={C.white} />
         <div style={{ display: 'flex', flex: 1 }} />
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', paddingLeft: 400 }}>

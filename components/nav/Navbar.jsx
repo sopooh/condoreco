@@ -25,7 +25,8 @@ export default function Navbar() {
   const [isAdminUser, setIsAdminUser] = useState(false)
   const [isSupplierReal, setIsSupplier] = useState(false)
   const { viewAs } = useViewAs()
-  const isSupplier = isSupplierReal || viewAs === 'recofixer'
+  // con "Vedi il sito come" attivo conta la vista scelta: il link compare solo nella vista Recofixer
+  const isSupplier = viewAs ? viewAs === 'recofixer' : isSupplierReal
 
   // Il ruolo va letto dal profilo (protetto da RLS + trigger anti-escalation),
   // non da un'email hardcoded: is_admin() è la stessa fonte di verità usata

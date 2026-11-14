@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { EmailOtpType } from '@supabase/supabase-js'
+import { posthogLogger, posthogLoggerProvider, SeverityNumber } from '@/instrumentation'
 
 // Destinazione dei link di accesso: Google (OAuth), link via email, conferma
 // registrazione e reimpostazione password. Due formati:
@@ -67,6 +68,17 @@ export async function GET(request: Request) {
   }
   if (!failed && isRecoverySession(accessToken)) next = RESET_PATH
   cookieStore.delete(AFTER_COOKIE)
+
+  posthogLogger?.emit({
+    body: 'Authentication callback completed',
+    severityNumber: failed ? SeverityNumber.WARN : SeverityNumber.INFO,
+    attributes: {
+      outcome: failed ? 'failed' : 'succeeded',
+      callback_type: tokenHash && type ? 'otp' : code ? 'pkce' : 'provider_error',
+      password_recovery: next === RESET_PATH,
+    },
+  })
+  await posthogLoggerProvider?.forceFlush().catch(() => {})
 
   // Link scaduto o già usato: per la password mostriamo la pagina che
   // permette di chiederne uno nuovo, altrimenti si torna alla home.

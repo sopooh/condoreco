@@ -8,6 +8,7 @@ import { submitJoinRequest, validateDocument } from '@/lib/residenceVerification
 import UnitForm from '@/components/condo/UnitForm'
 import { normalizeFloor } from '@/hooks/useNeighbourNotices'
 import Link from 'next/link'
+import posthog from 'posthog-js'
 
 const STEPS = ['unita', 'documento', 'carica', 'verifica']
 const STEP_LABELS = {
@@ -59,6 +60,7 @@ export default function VerificaResidenzaPage({ params }) {
       })
       if (cancelled) return
       if (res.error) { setError(res.error); return }
+      posthog.capture('condo_join_request_submitted')
       setDone(true)
     })()
     return () => { cancelled = true }

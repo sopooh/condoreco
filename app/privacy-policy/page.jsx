@@ -1,7 +1,11 @@
 export const metadata = {
   title: 'Privacy Policy',
-  description: 'Informativa sulla privacy di CondoReco: come trattiamo i dati personali degli utenti nel rispetto del GDPR.',
+  description: 'Come Condoreco tratta i dati personali di utenti, residenti, amministratori di condominio e fornitori, nel rispetto del GDPR.',
 }
+
+// Indirizzo completo del titolare: da completare con CAP e città.
+const TITOLARE_INDIRIZZO = 'Viale del Lavoro 54/56'
+const EMAIL = 'hello@condoreco.com'
 
 function BulletList({ items }) {
   return (
@@ -11,18 +15,49 @@ function BulletList({ items }) {
   )
 }
 
-function Base({ text }) {
-  return <p className="legal-base"><span className="legal-base-label">Base giuridica:</span> {text}</p>
-}
-
-function SubSection({ title, children }) {
+function SubSection({ title, children, id }) {
   return (
-    <div className="legal-subsection">
+    <div className="legal-subsection" id={id}>
       <h3 className="legal-subsection-title">{title}</h3>
       {children}
     </div>
   )
 }
+
+function Table({ head, rows }) {
+  return (
+    <div className="legal-table-wrap">
+      <table className="legal-table legal-table-stack">
+        <thead><tr>{head.map(h => <th key={h} scope="col">{h}</th>)}</tr></thead>
+        <tbody>{rows.map((r) => <tr key={r[0]}>{r.map((c, i) => <td key={i} data-label={head[i]}>{c}</td>)}</tr>)}</tbody>
+      </table>
+    </div>
+  )
+}
+
+const Mail = () => <a href={`mailto:${EMAIL}`} className="legal-link">{EMAIL}</a>
+
+const PURPOSES = [
+  ['Account e profilo', 'email, password (cifrata), nome utente, avatar o foto, zona, ruolo, data di iscrizione', 'contratto (art. 6.1.b)', 'fino alla cancellazione dell\'account'],
+  ['Accesso con Google', 'email, nome e identificativo Google', 'contratto (art. 6.1.b)', 'come l\'account'],
+  ['Recensioni di edifici e amministratori', 'testo, punteggi, edificio o amministratore recensito, data, nome utente pubblico', 'contratto (art. 6.1.b)', 'finché non le cancelli; se cancelli l\'account restano in forma anonima, senza collegamento a te'],
+  ['Foto degli edifici', 'immagini caricate (i metadati, compresa la posizione GPS, vengono eliminati prima del caricamento)', 'contratto (art. 6.1.b)', 'finché non le cancelli o non vengono rimosse in moderazione'],
+  ['Moderazione, segnalazioni, sicurezza', 'contenuti segnalati, autore della segnalazione, storico delle modifiche alle recensioni, log tecnici', 'legittimo interesse (art. 6.1.f) a una piattaforma affidabile e sicura', 'log di accesso e navigazione: 12 mesi; storico moderazione: per il tempo necessario a gestire il caso'],
+  ['Area condominio', 'vedi la sezione 3', 'vedi la sezione 3', 'vedi la sezione 3'],
+  ['Verifica di residenza', 'documento scelto da te (certificato di residenza, contratto, rogito o bolletta), tipo di documento, piano, millesimi, proprietario o inquilino', 'contratto (art. 6.1.b): serve a darti accesso all\'area privata del tuo condominio', 'il documento viene cancellato appena la richiesta è approvata, respinta o ritirata; l\'esito della richiesta resta 12 mesi'],
+  ['Richieste privacy e assistenza', 'contenuto della richiesta, email, esito', 'obbligo legale (art. 6.1.c, artt. 12-22 GDPR)', '24 mesi dalla chiusura'],
+  ['Notifiche nel sito ed email di servizio', 'contenuto della notifica, stato di lettura', 'contratto (art. 6.1.b)', 'le notifiche lette vengono cancellate dopo 12 mesi'],
+  ['Difesa di diritti e obblighi di legge', 'i dati necessari al caso', 'obbligo legale (art. 6.1.c) e legittimo interesse (art. 6.1.f)', 'per il tempo previsto dalla legge o necessario alla difesa'],
+]
+
+const PROCESSORS = [
+  ['Supabase Inc.', 'database, autenticazione, archiviazione file', 'server in Irlanda (UE); società statunitense, con clausole contrattuali standard'],
+  ['Vercel Inc.', 'hosting del sito', 'USA, aderente al Data Privacy Framework UE-USA'],
+  ['Google LLC', 'accesso con Google (solo se lo scegli)', 'USA, aderente al Data Privacy Framework UE-USA'],
+  ['MapTiler AG', 'mappe interattive (riceve il tuo IP)', 'Svizzera, Paese con decisione di adeguatezza'],
+  ['OpenStreetMap Foundation', 'anteprime delle mappe (riceve il tuo IP)', 'Regno Unito, Paese con decisione di adeguatezza'],
+  ['komoot GmbH (Photon)', 'suggerimenti di indirizzo nella ricerca (riceve il tuo IP e il testo digitato)', 'Germania (UE)'],
+]
 
 export default function PrivacyPolicy() {
   return (
@@ -31,350 +66,154 @@ export default function PrivacyPolicy() {
         <div className="legal-hero">
           <div className="legal-eyebrow">Documento legale</div>
           <h1 className="legal-title">Privacy Policy</h1>
+          <p className="legal-intro">Ultimo aggiornamento: 14 novembre 2026</p>
           <p className="legal-intro">
-            Ultimo aggiornamento: 3 Luglio 2026
-          </p>
-          <p className="legal-intro">
-            La presente Privacy Policy descrive le modalità con cui CondoReco raccoglie, utilizza, conserva e protegge i dati personali degli utenti che visitano o utilizzano il sito, la community, i form, le funzionalità di recensione, segnalazione e interazione presenti sulla piattaforma.
-          </p>
-          <p className="legal-intro">
-            CondoReco tratta i dati personali nel rispetto del Regolamento UE 2016/679, noto come GDPR, e della normativa italiana applicabile in materia di protezione dei dati personali.
+            Questa informativa spiega quali dati personali tratta Condoreco (www.condoreco.com), perché, per quanto tempo e quali diritti hai. Vale per chi visita il sito, per chi si iscrive, per i residenti che usano l&apos;area condominio e per gli amministratori di condominio e i fornitori presenti nel sito (artt. 13 e 14 del Regolamento UE 2016/679, &quot;GDPR&quot;).
           </p>
         </div>
 
         <div className="legal-card">
 
-          {/* 1 */}
-          <section className="legal-section">
+          <section className="legal-section" id="titolare">
             <h2 className="legal-section-title">1. Titolare del trattamento</h2>
-            <p className="legal-paragraph">Il Titolare del trattamento dei dati personali è:</p>
             <p className="legal-paragraph">
-              <strong>Sophie Perazzolo</strong><br />
-              Sede: Viale del Lavoro 54/56<br />
-              Email privacy: <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a>
+              <strong>Sophie Perazzolo</strong>, che gestisce Condoreco<br />
+              Indirizzo: {TITOLARE_INDIRIZZO}<br />
+              Email per privacy e diritti: <Mail />
             </p>
             <p className="legal-paragraph">
-              Per qualsiasi richiesta relativa al trattamento dei dati personali, l'utente può contattare il Titolare all'indirizzo email indicato sopra.
-            </p>
-            <p className="legal-paragraph">
-              Se verrà nominato un Responsabile della protezione dei dati (DPO), i relativi contatti saranno indicati in questa sezione.
+              Non è stato nominato un Responsabile della protezione dei dati (DPO), perché per le dimensioni e il tipo di trattamento non è obbligatorio.
             </p>
           </section>
 
-          {/* 2 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">2. Tipologie di dati personali trattati</h2>
-            <p className="legal-paragraph">CondoReco può trattare le seguenti categorie di dati personali.</p>
+          <section className="legal-section" id="finalita">
+            <h2 className="legal-section-title">2. Quali dati trattiamo, perché e per quanto tempo</h2>
+            <Table head={['Finalità', 'Dati', 'Base giuridica', 'Conservazione']} rows={PURPOSES} />
+            <p className="legal-paragraph">
+              Non usiamo i tuoi dati per pubblicità, profilazione o decisioni automatizzate e non li vendiamo. Non usiamo strumenti di analisi del traffico. Non ti chiediamo dati particolari (salute, opinioni politiche, religione e simili): non inserirli nelle recensioni, nelle chat o nei documenti.
+            </p>
+            <p className="legal-paragraph">
+              Nelle recensioni non inserire dati di altre persone (nomi di vicini, recapiti, targhe, foto di persone riconoscibili). Possiamo oscurare o rimuovere i contenuti che li contengono.
+            </p>
+          </section>
 
-            <SubSection title="2.1 Dati forniti direttamente dall'utente">
-              <p className="legal-paragraph">Rientrano in questa categoria:</p>
+          <section className="legal-section" id="area-condominio">
+            <h2 className="legal-section-title">3. Area condominio</h2>
+            <p className="legal-paragraph">
+              L&apos;area condominio è privata: entra solo chi ha una richiesta di accesso approvata. Contiene bacheca, chat, sondaggi, eventi, interventi, pratiche e preventivi, documenti e, se l&apos;amministratore la usa, la contabilità.
+            </p>
+
+            <SubSection title="3.1 Dati trattati" id="verifica-residenza">
               <BulletList items={[
-                'nome utente;',
-                'nome e cognome, se forniti;',
-                'indirizzo email;',
-                'password in forma protetta;',
-                'contenuti pubblicati dall\'utente, come recensioni, commenti, valutazioni, segnalazioni, messaggi, risposte e descrizioni;',
-                'informazioni inserite nei form di contatto o di segnalazione;',
-                'eventuali immagini, documenti o allegati caricati dall\'utente;',
-                'dati forniti in caso di richiesta di assistenza, moderazione o esercizio dei diritti privacy.',
+                'appartenenza al condominio e ruolo (residente o amministratore), piano, millesimi, proprietario o inquilino;',
+                'documento caricato per la verifica di residenza: lo vede solo chi decide la richiesta (l\'amministratore del condominio o, se il condominio non ha amministratore, lo staff Condoreco) e viene cancellato appena la richiesta è decisa o ritirata;',
+                'messaggi e allegati della chat, avvisi, eventi, ticket e interventi;',
+                'sondaggi e voti: nei sondaggi non anonimi gli altri membri del condominio vedono come hai votato;',
+                'rate, pagamenti, contabili caricate, estratti conto con i nomi dei paganti, IBAN del condominio, bilanci e preventivi.',
               ]} />
             </SubSection>
 
-            <SubSection title="2.2 Dati relativi all'uso della piattaforma">
-              <p className="legal-paragraph">CondoReco può raccogliere dati tecnici e di utilizzo, tra cui:</p>
+            <SubSection title="3.2 Chi vede cosa">
               <BulletList items={[
-                'indirizzo IP;',
-                'data e ora di accesso;',
-                'tipo di dispositivo;',
-                'browser utilizzato;',
-                'sistema operativo;',
-                'pagine visitate;',
-                'azioni effettuate sulla piattaforma;',
-                'log tecnici necessari alla sicurezza e al corretto funzionamento del sito.',
+                'gli altri residenti vedono di te solo nome utente, avatar, piano e ruolo, oltre ai contenuti che pubblichi nelle sezioni comuni;',
+                'millesimi, proprietario o inquilino e situazione dei pagamenti li vedete solo tu e l\'amministratore;',
+                'la tua situazione di eventuale morosità non viene mostrata agli altri condomini: la vedono solo tu e l\'amministratore, che può comunicarla in assemblea come previsto dalla legge;',
+                'i file privati (chat, contabili, documenti, interventi, immagini dei sondaggi, documenti di residenza) sono in archivi non pubblici e si aprono solo con link temporanei.',
               ]} />
             </SubSection>
 
-            <SubSection title="2.3 Dati relativi alle recensioni e alla community">
-              <p className="legal-paragraph">Quando l'utente pubblica una recensione o partecipa alla community, CondoReco può trattare:</p>
-              <BulletList items={[
-                'contenuto della recensione;',
-                'punteggi e valutazioni;',
-                'edificio, condominio, quartiere o area oggetto della recensione;',
-                'data di pubblicazione;',
-                'eventuale nome utente pubblico;',
-                'eventuali interazioni con altri contenuti;',
-                'segnalazioni ricevute o inviate.',
-              ]} />
+            <SubSection title="3.3 Ruoli privacy">
               <p className="legal-paragraph">
-                L'utente non deve inserire nelle recensioni dati personali di terzi, informazioni riservate, dati sensibili, nomi di vicini privati, recapiti, documenti, codici fiscali, targhe, immagini di persone riconoscibili o dettagli che permettano di identificare soggetti terzi senza consenso.
+                Per i dati della gestione condominiale (rate, pagamenti, documenti, contabilità, comunicazioni dell&apos;amministratore) il titolare è il condominio e l&apos;amministratore agisce come suo responsabile del trattamento, come indicato dal Garante privacy. Quando l&apos;amministratore usa Condoreco per questa gestione, Condoreco tratta questi dati per conto del condominio, secondo le istruzioni dell&apos;amministratore e sulla base di un accordo ai sensi dell&apos;art. 28 GDPR contenuto nei termini per gli amministratori. I dati contabili del condominio vanno conservati 10 anni per obbligo civilistico: la conservazione è decisa dal condominio.
+              </p>
+              <p className="legal-paragraph">
+                Per gli strumenti della piattaforma (account, accesso all&apos;area, chat, bacheca e sondaggi nei condomini che non hanno un amministratore su Condoreco) il titolare è Condoreco.
+              </p>
+              <p className="legal-paragraph">
+                I sondaggi di Condoreco servono a raccogliere pareri prima dell&apos;assemblea e non sostituiscono le delibere dell&apos;assemblea condominiale.
               </p>
             </SubSection>
           </section>
 
-          {/* 3 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">3. Finalità del trattamento</h2>
-            <p className="legal-paragraph">I dati personali sono trattati per le seguenti finalità.</p>
-
-            <SubSection title="3.1 Registrazione e gestione dell'account">
-              <p className="legal-paragraph">
-                I dati sono trattati per consentire all'utente di creare un account, accedere alla piattaforma, gestire il profilo, pubblicare contenuti, salvare preferenze e utilizzare le funzionalità disponibili.
-              </p>
-              <Base text="esecuzione di un contratto o di misure precontrattuali richieste dall'utente." />
-            </SubSection>
-
-            <SubSection title="3.2 Pubblicazione e gestione delle recensioni">
-              <p className="legal-paragraph">
-                I dati sono trattati per consentire la pubblicazione, visualizzazione, gestione, modifica, moderazione e rimozione di recensioni, valutazioni e contenuti generati dagli utenti.
-              </p>
-              <Base text="esecuzione del servizio richiesto dall'utente e legittimo interesse del Titolare al funzionamento della community." />
-            </SubSection>
-
-            <SubSection title="3.3 Moderazione, sicurezza e prevenzione di abusi">
-              <p className="legal-paragraph">I dati possono essere trattati per:</p>
-              <BulletList items={[
-                'prevenire spam, recensioni false, contenuti offensivi o illeciti;',
-                'verificare segnalazioni;',
-                'applicare le regole della community;',
-                'proteggere utenti, terzi e piattaforma;',
-                'prevenire frodi, accessi non autorizzati o usi impropri del servizio;',
-                'documentare eventuali violazioni delle regole.',
-              ]} />
-              <Base text="legittimo interesse del Titolare alla sicurezza della piattaforma, alla tutela della community e alla prevenzione di abusi." />
-            </SubSection>
-
-            <SubSection title="3.4 Gestione delle segnalazioni">
-              <p className="legal-paragraph">
-                I dati inseriti nella pagina "Segnala un contenuto" sono trattati per ricevere, analizzare e gestire segnalazioni relative a recensioni, commenti, profili, immagini, documenti o altri contenuti ritenuti falsi, offensivi, diffamatori, lesivi della privacy o contrari alle regole della community.
-              </p>
-              <Base text="legittimo interesse del Titolare alla gestione responsabile della piattaforma e, ove applicabile, adempimento di obblighi previsti dalla normativa applicabile ai servizi digitali." />
-            </SubSection>
-
-            <SubSection title="3.5 Risposta a richieste di contatto o assistenza">
-              <p className="legal-paragraph">
-                I dati forniti tramite email, form o altri canali di contatto sono trattati per rispondere alle richieste dell'utente, fornire supporto e gestire comunicazioni relative al servizio.
-              </p>
-              <Base text="esecuzione di misure precontrattuali o contrattuali richieste dall'utente." />
-            </SubSection>
-
-            <SubSection title="3.6 Adempimento di obblighi di legge">
-              <p className="legal-paragraph">
-                I dati possono essere trattati per adempiere a obblighi previsti da leggi, regolamenti, ordini dell'autorità o richieste legittime provenienti da autorità competenti.
-              </p>
-              <Base text="obbligo legale." />
-            </SubSection>
-
-            <SubSection title="3.7 Accertamento, esercizio o difesa di diritti">
-              <p className="legal-paragraph">
-                I dati possono essere conservati e utilizzati per accertare, esercitare o difendere un diritto del Titolare, degli utenti o di terzi in sede giudiziale o stragiudiziale.
-              </p>
-              <Base text="legittimo interesse e, ove applicabile, esercizio o difesa di un diritto." />
-            </SubSection>
-
-            <SubSection title="3.8 Comunicazioni di servizio">
-              <p className="legal-paragraph">
-                CondoReco può usare l'email dell'utente per inviare comunicazioni strettamente relative al servizio, come conferme di registrazione, notifiche di sicurezza, aggiornamenti importanti, gestione dell'account, modifiche ai termini o risposte a segnalazioni.
-              </p>
-              <Base text="esecuzione del servizio e legittimo interesse del Titolare." />
-            </SubSection>
-
-            <SubSection title="3.9 Marketing e newsletter">
-              <p className="legal-paragraph">
-                Se previsto, CondoReco può trattare l'indirizzo email dell'utente per inviare newsletter, aggiornamenti, comunicazioni promozionali o contenuti informativi.
-              </p>
-              <Base text="consenso dell'utente." />
-              <p className="legal-paragraph">
-                L'utente può revocare il consenso in qualsiasi momento, seguendo le istruzioni presenti nelle comunicazioni ricevute o scrivendo al Titolare.
-              </p>
-            </SubSection>
-          </section>
-
-          {/* 4 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">4. Dati particolari e dati di terzi</h2>
+          <section className="legal-section" id="amministratori-fornitori">
+            <h2 className="legal-section-title">4. Informativa per amministratori di condominio e fornitori presenti nel sito</h2>
             <p className="legal-paragraph">
-              CondoReco non richiede agli utenti di fornire dati particolari ai sensi dell'art. 9 GDPR, come dati relativi a salute, opinioni politiche, religione, orientamento sessuale, origine etnica o altre categorie sensibili.
+              Condoreco pubblica schede di amministratori di condominio e di fornitori (manutenzione, imprese, professionisti) con nome, studio o ragione sociale, zona, recapiti professionali (telefono, email, sito) e recensioni degli utenti. Questa sezione vale anche se non ti sei iscritto (art. 14 GDPR).
             </p>
-            <p className="legal-paragraph">
-              Gli utenti non devono pubblicare dati particolari propri o di terzi all'interno di recensioni, commenti, chat, segnalazioni, immagini o allegati.
-            </p>
-            <p className="legal-paragraph">
-              Se CondoReco rileva la presenza di dati particolari, dati personali di terzi o informazioni non necessarie, potrà rimuovere, oscurare o limitare il contenuto.
-            </p>
-          </section>
-
-          {/* 5 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">5. Visibilità dei contenuti pubblicati</h2>
-            <p className="legal-paragraph">
-              Le recensioni, i punteggi, i commenti e gli altri contenuti pubblicati dall'utente possono essere visibili agli altri utenti della piattaforma e ai visitatori del sito, secondo le impostazioni e le funzionalità disponibili.
-            </p>
-            <p className="legal-paragraph">
-              L'utente è invitato a non pubblicare informazioni che non desidera rendere pubbliche.
-            </p>
-            <p className="legal-paragraph">
-              CondoReco può mostrare accanto ai contenuti pubblicati un nome utente, una data di pubblicazione, un punteggio o altre informazioni necessarie al funzionamento della community.
-            </p>
-          </section>
-
-          {/* 6 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">6. Modalità del trattamento</h2>
-            <p className="legal-paragraph">
-              Il trattamento dei dati personali avviene con strumenti informatici, telematici e, se necessario, manuali, secondo principi di liceità, correttezza, trasparenza, minimizzazione, esattezza, integrità e riservatezza.
-            </p>
-            <p className="legal-paragraph">
-              CondoReco adotta misure tecniche e organizzative ragionevoli per proteggere i dati personali da accessi non autorizzati, perdita, alterazione, diffusione o uso improprio.
-            </p>
-            <p className="legal-paragraph">
-              Tuttavia, nessun sistema informatico può garantire sicurezza assoluta. L'utente è responsabile della custodia delle proprie credenziali di accesso e deve comunicare tempestivamente eventuali usi non autorizzati del proprio account.
-            </p>
-          </section>
-
-          {/* 7 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">7. Conservazione dei dati</h2>
-            <p className="legal-paragraph">I dati personali sono conservati per il tempo necessario a perseguire le finalità per cui sono stati raccolti.</p>
-            <p className="legal-paragraph">In particolare:</p>
             <BulletList items={[
-              'i dati dell\'account sono conservati finché l\'account resta attivo;',
-              'le recensioni e i contenuti pubblici possono restare visibili finché l\'utente non li cancella, finché l\'account resta attivo o finché la loro conservazione è necessaria per il funzionamento della piattaforma, la moderazione o la tutela di diritti;',
-              'i dati relativi a segnalazioni, moderazione e sicurezza possono essere conservati per il tempo necessario alla gestione del caso e alla tutela della piattaforma, degli utenti o di terzi;',
-              'i dati di contatto sono conservati per il tempo necessario a rispondere alla richiesta;',
-              'i dati trattati per obblighi di legge sono conservati per il periodo previsto dalla normativa applicabile;',
-              'i log tecnici e di sicurezza sono conservati per un periodo proporzionato alle esigenze di sicurezza, prevenzione abusi e tutela del servizio;',
-              'i dati trattati per marketing sono conservati fino alla revoca del consenso o per il diverso periodo indicato al momento della raccolta.',
+              'Fonte dei dati: informazioni pubblicate da te o dalla tua attività, registri ed elenchi pubblici, segnalazioni e recensioni degli utenti, dati inseriti da un amministratore che ti ha aggiunto ai fornitori del suo condominio.',
+              'Finalità: aiutare chi cerca casa o vive in un condominio a scegliere e valutare amministratori e fornitori.',
+              'Base giuridica: legittimo interesse di Condoreco e degli utenti a un\'informazione trasparente sui servizi condominiali (art. 6.1.f); trattiamo solo dati professionali, non dati privati.',
+              'Conservazione: finché l\'attività è svolta o finché non ti opponi e la tua opposizione è accolta.',
+              'Diritti: puoi chiedere di rettificare i dati, opporti alla pubblicazione o chiedere la cancellazione della scheda scrivendo a ' + EMAIL + '. Valutiamo ogni richiesta e rispondiamo entro 30 giorni. Le recensioni che contengono informazioni false o offensive possono essere segnalate dalla pagina "Segnala un contenuto".',
+            ]} />
+          </section>
+
+          <section className="legal-section" id="fornitori">
+            <h2 className="legal-section-title">5. A chi comunichiamo i dati</h2>
+            <p className="legal-paragraph">
+              Usiamo fornitori tecnici che trattano i dati per nostro conto come responsabili del trattamento (art. 28 GDPR):
+            </p>
+            <Table head={['Fornitore', 'Servizio', 'Dove e con quali garanzie']} rows={PROCESSORS} />
+            <p className="legal-paragraph">
+              Se in futuro attiveremo pagamenti online (Stripe) o un servizio di invio email (Resend), aggiorneremo questa tabella prima dell&apos;attivazione. I trasferimenti fuori dallo Spazio economico europeo avvengono solo verso Paesi con decisione di adeguatezza o con le garanzie del Capo V del GDPR (Data Privacy Framework, clausole contrattuali standard).
+            </p>
+            <p className="legal-paragraph">
+              I dati possono essere comunicati anche a consulenti del titolare vincolati alla riservatezza e alle autorità, quando lo impone la legge.
+            </p>
+          </section>
+
+          <section className="legal-section" id="sicurezza">
+            <h2 className="legal-section-title">6. Sicurezza</h2>
+            <p className="legal-paragraph">
+              Usiamo connessioni cifrate, password cifrate, controlli di accesso a livello di database per ogni tabella, archivi privati con link temporanei per i file, eliminazione dei metadati dalle foto e cancellazione automatica dei log dopo 12 mesi. Nessun sistema è sicuro al 100%: custodisci le tue credenziali e scrivici se noti accessi sospetti.
+            </p>
+          </section>
+
+          <section className="legal-section" id="diritti">
+            <h2 className="legal-section-title">7. I tuoi diritti</h2>
+            <p className="legal-paragraph">Hai diritto di:</p>
+            <BulletList items={[
+              'accedere ai tuoi dati e riceverne una copia (art. 15);',
+              'ricevere i dati in un formato leggibile da una macchina e trasferirli (art. 20);',
+              'far correggere i dati inesatti (art. 16);',
+              'chiedere la cancellazione (art. 17);',
+              'chiedere la limitazione del trattamento (art. 18);',
+              'opporti ai trattamenti basati sul legittimo interesse (art. 21).',
             ]} />
             <p className="legal-paragraph">
-              I dati potranno essere conservati più a lungo quando necessario per adempiere a obblighi di legge, rispondere a richieste dell'autorità o accertare, esercitare o difendere un diritto.
+              Dal tuo profilo, nella sezione <a href="/profilo?sezione=privacy" className="legal-link">Privacy e dati</a>, puoi scaricare subito tutti i tuoi dati e inviare le altre richieste, compresa la cancellazione dell&apos;account. Puoi anche scrivere a <Mail />. Rispondiamo entro 30 giorni (prorogabili di altri 60 nei casi complessi, avvisandoti). Nome utente, zona e foto puoi modificarli da solo da Modifica profilo, e puoi cancellare in ogni momento le tue recensioni.
+            </p>
+            <p className="legal-paragraph">
+              Per i dati della gestione condominiale (sezione 3.3) rivolgiti prima all&apos;amministratore del condominio: se ci scrivi, inoltriamo la richiesta a lui.
             </p>
           </section>
 
-          {/* 8 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">8. Destinatari dei dati personali</h2>
-            <p className="legal-paragraph">I dati personali possono essere comunicati, nei limiti necessari, alle seguenti categorie di soggetti:</p>
-            <BulletList items={[
-              'fornitori di servizi hosting, cloud, database e infrastruttura tecnica;',
-              'fornitori di servizi email, autenticazione, sicurezza, backup e manutenzione;',
-              'consulenti legali, fiscali, tecnici o amministrativi;',
-              'soggetti incaricati della moderazione o assistenza utenti;',
-              'autorità pubbliche, giudiziarie o amministrative, quando previsto dalla legge;',
-              'soggetti terzi coinvolti nella gestione di segnalazioni, controversie o richieste legittime.',
-            ]} />
+          <section className="legal-section" id="minori">
+            <h2 className="legal-section-title">8. Minori</h2>
             <p className="legal-paragraph">
-              I fornitori che trattano dati personali per conto di CondoReco saranno nominati responsabili del trattamento ove richiesto dalla normativa applicabile.
-            </p>
-            <p className="legal-paragraph">
-              L'elenco aggiornato dei responsabili del trattamento può essere richiesto al Titolare.
+              Per iscriversi bisogna avere almeno 14 anni (art. 2-quinquies del Codice privacy): lo dichiari al momento della registrazione. Se scopriamo un account di una persona più giovane, lo cancelliamo.
             </p>
           </section>
 
-          {/* 9 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">9. Trasferimento dei dati fuori dallo Spazio Economico Europeo</h2>
+          <section className="legal-section" id="reclamo">
+            <h2 className="legal-section-title">9. Reclamo al Garante</h2>
             <p className="legal-paragraph">
-              I dati personali sono trattati preferibilmente all'interno dello Spazio Economico Europeo.
-            </p>
-            <p className="legal-paragraph">
-              Qualora fosse necessario trasferire dati personali verso Paesi situati fuori dallo Spazio Economico Europeo, il trasferimento avverrà solo in presenza di una base giuridica adeguata, come decisioni di adeguatezza della Commissione Europea, clausole contrattuali standard o altre garanzie previste dal GDPR.
+              Se ritieni che il trattamento violi il GDPR puoi presentare reclamo al Garante per la protezione dei dati personali (<a href="https://www.garanteprivacy.it" className="legal-link" target="_blank" rel="noopener noreferrer">www.garanteprivacy.it</a>) o all&apos;autorità del Paese UE in cui vivi o lavori.
             </p>
           </section>
 
-          {/* 10 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">10. Cookie e strumenti di tracciamento</h2>
+          <section className="legal-section" id="cookie">
+            <h2 className="legal-section-title">10. Cookie</h2>
             <p className="legal-paragraph">
-              CondoReco può utilizzare cookie e strumenti simili per garantire il funzionamento del sito, migliorare l'esperienza utente, analizzare il traffico e, se previsto, svolgere attività di marketing o personalizzazione.
-            </p>
-            <p className="legal-paragraph">
-              I cookie tecnici sono necessari al funzionamento del sito e non richiedono il consenso dell'utente.
-            </p>
-            <p className="legal-paragraph">
-              I cookie analitici non tecnici, di profilazione, marketing o tracciamento sono utilizzati solo nei casi e con le modalità previste dalla normativa applicabile, anche tramite banner cookie e consenso dell'utente, ove necessario.
-            </p>
-            <p className="legal-paragraph">
-              Per maggiori informazioni, l'utente può consultare la Cookie Policy di CondoReco.
+              Usiamo solo cookie e local storage tecnici. L&apos;elenco completo è nella <a href="/cookie-policy" className="legal-link">Cookie Policy</a>.
             </p>
           </section>
 
-          {/* 11 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">11. Recensioni, contenuti pubblici e responsabilità dell'utente</h2>
+          <section className="legal-section" id="modifiche">
+            <h2 className="legal-section-title">11. Modifiche</h2>
             <p className="legal-paragraph">
-              L'utente è responsabile dei dati personali e dei contenuti che decide di pubblicare su CondoReco.
-            </p>
-            <p className="legal-paragraph">Prima di pubblicare recensioni, commenti, immagini o allegati, l'utente deve verificare di non inserire:</p>
-            <BulletList items={[
-              'dati personali di terzi;',
-              'informazioni riservate;',
-              'documenti privati;',
-              'immagini di persone riconoscibili senza consenso;',
-              'dati sensibili;',
-              'informazioni non necessarie;',
-              'accuse o contenuti lesivi della reputazione altrui.',
-            ]} />
-            <p className="legal-paragraph">
-              CondoReco può rimuovere, oscurare o limitare contenuti che violano questa Privacy Policy, le regole della community, i termini di servizio o la normativa applicabile.
-            </p>
-          </section>
-
-          {/* 12 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">12. Minori</h2>
-            <p className="legal-paragraph">
-              CondoReco non è destinato a minori di 14 anni.
-            </p>
-            <p className="legal-paragraph">
-              Gli utenti minori di 14 anni non devono registrarsi né fornire dati personali attraverso la piattaforma.
-            </p>
-            <p className="legal-paragraph">
-              Se il Titolare viene a conoscenza della raccolta di dati personali relativi a minori in assenza dei presupposti richiesti dalla legge, adotterà misure ragionevoli per cancellare tali dati.
-            </p>
-          </section>
-
-          {/* 13 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">13. Diritti dell'interessato</h2>
-            <p className="legal-paragraph">L'utente, in qualità di interessato, può esercitare i diritti previsti dal GDPR, tra cui:</p>
-            <BulletList items={[
-              'diritto di accesso ai dati personali;',
-              'diritto di rettifica dei dati inesatti;',
-              'diritto di cancellazione, nei casi previsti;',
-              'diritto di limitazione del trattamento;',
-              'diritto di opposizione al trattamento;',
-              'diritto alla portabilità dei dati, ove applicabile;',
-              'diritto di revocare il consenso, quando il trattamento si basa sul consenso;',
-              'diritto di proporre reclamo al Garante per la protezione dei dati personali.',
-            ]} />
-            <p className="legal-paragraph">Le richieste possono essere inviate al Titolare all'indirizzo:</p>
-            <p className="legal-paragraph">
-              <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a>
-            </p>
-            <p className="legal-paragraph">
-              Il Titolare risponderà nei termini previsti dalla normativa applicabile.
-            </p>
-          </section>
-
-          {/* 14 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">14. Reclamo al Garante Privacy</h2>
-            <p className="legal-paragraph">
-              L'utente che ritenga che il trattamento dei propri dati personali avvenga in violazione della normativa applicabile può proporre reclamo al Garante per la protezione dei dati personali o rivolgersi all'autorità giudiziaria competente.
-            </p>
-          </section>
-
-          {/* 15 */}
-          <section className="legal-section">
-            <h2 className="legal-section-title">15. Modifiche alla Privacy Policy</h2>
-            <p className="legal-paragraph">
-              CondoReco può modificare o aggiornare questa Privacy Policy in qualsiasi momento, anche a seguito di modifiche normative, evoluzioni tecniche della piattaforma o introduzione di nuove funzionalità.
-            </p>
-            <p className="legal-paragraph">
-              La versione aggiornata sarà pubblicata su questa pagina con indicazione della data di ultimo aggiornamento.
-            </p>
-            <p className="legal-paragraph">
-              L'uso continuato della piattaforma dopo la pubblicazione delle modifiche comporta la presa visione della Privacy Policy aggiornata.
+              Se cambiamo questa informativa aggiorniamo la data in alto. Se il cambiamento riguarda nuove finalità o nuovi destinatari, te lo comunichiamo nel sito prima che si applichi.
             </p>
           </section>
 

@@ -6,6 +6,7 @@ import { CheckCircle2, Search, Share2, UserRound, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useCondoRole } from '@/hooks/useCondoRole'
 import { euro } from '@/lib/accounting'
+import JoinRequestsList from '@/components/condo/JoinRequestsList'
 
 // Persone e unità: l'amministratore vede anagrafica, piano, millesimi,
 // proprietario/inquilino e situazione pagamenti; i condomini vedono solo
@@ -54,6 +55,8 @@ export default function PeoplePage({ building }) {
         </div>
         <button type="button" className="acc-btn is-primary" onClick={invite}><Share2 size={16} aria-hidden="true" />{copied ? 'Link copiato' : 'Invita condomini'}</button>
       </header>
+
+      {isCondoAdmin && <JoinRequestsList buildingId={building.id} hideWhenEmpty />}
 
       <div className="acc-card" style={{ padding: 0 }}>
         <div className="bil-filters">

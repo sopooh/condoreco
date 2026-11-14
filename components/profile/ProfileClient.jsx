@@ -18,6 +18,7 @@ import { useAdminOverview } from '@/hooks/useAdminArea'
 import { AdminBuildingRow, AdminInbox, AdminKpis } from '@/components/profile/AdminProfile'
 import { ViewAsPicker } from '@/components/nav/ViewAsSwitcher'
 import { useViewAs } from '@/hooks/useViewAs'
+import PrivacySection from '@/components/profile/PrivacySection'
 
 export default function ProfileClient() {
   const session = useSession()
@@ -356,6 +357,8 @@ export default function ProfileClient() {
                 <InfoRow label="Membro da" value={memberSince} last />
               </div>
             </section>
+
+            <PrivacySection />
           </aside>
         </div>
       </div>

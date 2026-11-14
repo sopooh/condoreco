@@ -77,6 +77,7 @@ export const config = {
     '/edificio/:id/condominio/rendicontazione',
     '/edificio/:id/condominio/pratiche',
     '/edificio/:id/condominio/persone',
+    '/edificio/:id/condominio/richieste',
     '/edificio/:id/condominio/bilancio/:path*',
     '/edificio/:id/condominio/chat',
   ],

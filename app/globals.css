@@ -259,6 +259,20 @@ input, select, textarea { font-family: inherit; }
   border-bottom: none;
 }
 
+.legal-table-wrap { overflow-x: auto; margin: 12px 0 16px; }
+.legal-table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.45; }
+.legal-table th, .legal-table td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--border); }
+.legal-table th { font-weight: 700; color: var(--text); background: #F5F7F7; }
+.legal-table td { color: var(--text-2); }
+.legal-table code { font-size: 12.5px; word-break: break-all; }
+
+@media (max-width: 640px) {
+  .legal-table-stack thead { display: none; }
+  .legal-table-stack tr { display: block; border: 1px solid var(--border); border-radius: 12px; padding: 4px 12px; margin-bottom: 10px; }
+  .legal-table-stack td { display: block; border: none; padding: 6px 0; }
+  .legal-table-stack td::before { content: attr(data-label); display: block; font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .03em; }
+}
+
 .legal-subsection {
   margin-top: 20px;
 }

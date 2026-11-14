@@ -15,15 +15,10 @@ const communityLinks = [
   { label: 'FAQ', to: '/faq' },
 ]
 
-function openCookieModal() {
-  window.dispatchEvent(new CustomEvent('condoreco:open-cookie-modal'))
-}
-
 const infoLinks = [
   { label: 'Privacy Policy', to: '/privacy-policy' },
   { label: 'Termini e Condizioni', to: '/termini-e-condizioni' },
   { label: 'Cookie Policy', to: '/cookie-policy' },
-  { label: 'Preferenze cookie', onClick: openCookieModal },
   { label: 'Contatti', to: '/contatti' },
 ]
 

@@ -18,7 +18,7 @@ function loadLogos() {
         setAvatars(Object.fromEntries(entries))
         const jpg = async (f) => `data:image/jpeg;base64,${(await readFile(path.join(dir, f))).toString('base64')}`
         setCovers({ 'condor-flight': await jpg('covers/condor-flight.jpg'), 'condor-desk': await jpg('covers/condor-desk.jpg') })
-        setMascots({ happy: await uri('characters/condor.png'), determined: await uri('characters/condor-determined.png'), jump: await jpg('characters/condor-jump.jpg'), sleep: await jpg('characters/condor-sleep.jpg') })
+        setMascots({ happy: await uri('characters/condor.png'), determined: await uri('characters/condor-determined.png'), jump: await uri('characters/condor-jump.png'), sleep: await uri('characters/condor-sleep.png') })
       })
   }
   return logosPromise

@@ -386,7 +386,7 @@ function Speak({ p }) {
 // Mascotte Condor: apertura (pose "happy", guarda a destra) e risposta
 // finale (pose "determined"). Condor a sinistra in basso, nuvoletta sopra
 // con la punta verso di lui, link o firma a destra.
-const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [330, 421], sleep: [372, 433] }
+const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433] }
 
 function Mascot({ p }) {
   const t = theme(p.theme || 'light')
@@ -599,9 +599,9 @@ function WhiteMascot({ p }) {
 
 // Dialogo tra personaggi, stile chat: il primo parla a sinistra, gli altri a destra.
 function Chat({ p }) {
-  // Le chat hanno sempre lo sfondo bianco. L'esperto (default il Gufo) parla
-  // a destra, tutti gli altri residenti a sinistra.
-  const t = { ...theme('light'), bg: C.white }
+  // Le chat hanno sempre lo sfondo bianco del brand (bianco sporco, C.paper).
+  // L'esperto (default il Gufo) parla a destra, gli altri residenti a sinistra.
+  const t = theme('light')
   const lines = parseDialogue(p.lines)
   const expert = findCharacter(p.expert || 'gufo')?.id
   // il testo deve stare tutto nella safe area: più testo, font più piccolo

@@ -386,11 +386,11 @@ function Speak({ p }) {
 // Mascotte Condor: apertura (pose "happy", guarda a destra) e risposta
 // finale (pose "determined"). Condor a sinistra in basso, nuvoletta sopra
 // con la punta verso di lui, link o firma a destra.
-const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413] }
+const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [330, 421], sleep: [372, 433] }
 
 function Mascot({ p }) {
   const t = theme(p.theme || 'light')
-  const pose = p.pose === 'determined' ? 'determined' : 'happy'
+  const pose = MASCOT_SIZE[p.pose] ? p.pose : 'happy'
   const [mw, mh] = MASCOT_SIZE[pose]
   const len = (p.text || '').length
   const linkColor = p.theme === 'orange' ? C.orange : C.teal
@@ -401,10 +401,13 @@ function Mascot({ p }) {
         <div style={{
           display: 'flex', background: C.white, color: C.ink, borderRadius: 48,
           padding: '48px 52px', fontSize: len > 150 ? 46 : len > 90 ? 56 : 68, fontWeight: 800,
-          lineHeight: 1.15, letterSpacing: -1, border: t.bg === C.paper ? `3px solid ${C.line}` : 'none',
+          lineHeight: 1.15, letterSpacing: -1, border: t.bg === C.paper || t.bg === C.white ? `3px solid ${C.line}` : 'none',
         }}>{p.text || 'Ciao, sono il Condor di Condoreco!'}</div>
-        <div style={{ display: 'flex', paddingLeft: 200, marginTop: t.bg === C.paper ? -3 : 0 }}>
-          <svg width="70" height="56" viewBox="0 0 70 56"><path d="M0 0 L70 0 L8 56 Z" fill={C.white} /></svg>
+        <div style={{ display: 'flex', paddingLeft: 200, marginTop: t.bg === C.paper || t.bg === C.white ? -3 : 0 }}>
+          <svg width="70" height="56" viewBox="0 0 70 56">
+            <path d="M0 0 L70 0 L8 56 Z" fill={C.white} />
+            {t.bg === C.paper || t.bg === C.white ? <path d="M1.5 0 L8 54 L68 0" fill="none" stroke={C.line} strokeWidth="3" strokeLinejoin="round" /> : null}
+          </svg>
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
           {MASCOTS[pose] ? <img src={MASCOTS[pose]} width={mw} height={mh} alt="" /> : <div style={{ width: mw, height: mh }} />}
@@ -641,7 +644,7 @@ export const TEMPLATES = {
   cover: { label: 'Copertina', render: Cover },
   mascot: { label: 'Condor (messaggio istituzionale)', render: Mascot },
   imageCover: { label: 'Copertina illustrata', render: ImageCover },
-  whiteMascot: { label: 'Condor su bianco (salta / dorme)', render: WhiteMascot },
+  whiteMascot: { label: 'Condor su bianco (salta / dorme)', render: ({ p }) => Mascot({ p: { ...p, theme: 'white' } }) },
   speak: { label: 'Personaggio che parla', render: Speak },
   chat: { label: 'Dialogo tra personaggi', render: Chat },
   tip: { label: 'Consiglio numerato', render: Tip },

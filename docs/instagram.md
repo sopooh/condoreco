@@ -79,3 +79,11 @@ Log: `~/Library/Logs/condoreco-instagram-sync.log`. Disinstallare: `bash scripts
 - Il token Instagram sta in `ig_credentials` (RLS senza policy) e si legge solo via RPC `ig_get_credentials()` che controlla `is_admin()`.
 - Il bucket `instagram` è pubblico perché Instagram scarica le immagini dal loro URL; accetta solo JPEG fino a 8 MB.
 - Slide generate con `next/og` (font Inter in `lib/instagram/fonts`, inclusi nel bundle via `outputFileTracingIncludes`) e convertite in JPEG con `sharp`.
+
+## Format "Chiacchiere di condominio"
+
+Prima e ultima slide usano sempre il template `mascot` con gli stessi posizionamenti:
+logo in alto a sinistra, etichetta "Chiacchiere di condominio" (solo in apertura), nuvoletta grande,
+Condor in basso a sinistra, a destra "Il Condor di Condoreco" + "Scorri" in apertura, oppure
+pulsante condoreco.com + "Link in bio" in chiusura. Cambiano solo sfondo (bianco, chiaro, arancio, teal)
+e posa del Condor (`happy`, `determined`, `jump`, `sleep`). Le chat in mezzo sono sempre su bianco.

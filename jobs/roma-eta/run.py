@@ -15,39 +15,33 @@ def get(url):
 def norm(s): return re.sub(r'[^a-z0-9]', '', unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode().lower())
 z = zipfile.ZipFile(io.BytesIO(get('https://www.istat.it/storage/cartografia/basi_territoriali/2021/R12_21.zip')))
 prj = z.read('SHP/R12_21_WGS84.prj').decode(); log('prj', prj[:120])
-for n in ['TAB/ASC1_R12_21.csv', 'TAB/ASC2_R12_21.csv', 'TAB/ASC3_R12_21.csv']:
-    txt = z.read(n).decode('latin-1'); lines = txt.splitlines(); log(n, len(lines)); log('  ', lines[:4])
-# zone urbanistiche Comune (2019)
+def table(lvl):
+    txt = z.read(f'TAB/ASC{lvl}_R12_21.csv').decode('utf-16')
+    return list(csv.DictReader(io.StringIO(txt), delimiter='\t'))
 zu = {}
 for r in csv.DictReader(open(os.path.join(OUT, 'vecchiaia_zu_2019.csv'))):
     zu[r['zu']] = {'nome': r['nome'], 'v': float(r['indice_vecchiaia']), 'mun': int(r['municipio'])}
 log('zu comune', len(zu))
-# scegli il livello ASC che corrisponde alle zone urbanistiche
+names = {norm(v['nome']): k for k, v in zu.items()}
 best = None
 for lvl in (1, 2, 3):
-    rows = list(csv.reader(io.StringIO(z.read(f'TAB/ASC{lvl}_R12_21.csv').decode('latin-1')), delimiter=';'))
-    hdr = rows[0]; data = [r for r in rows[1:] if r and '58091' in ''.join(r[:3])]
-    log('lvl', lvl, hdr, len(data), data[:3])
-    if 140 <= len(data) <= 170: best = (lvl, hdr, data)
-lvl, hdr, data = best
+    rows = [r for r in table(lvl) if str(r.get('PRO_COM', '')).strip() in ('58091', '058091')]
+    log('lvl', lvl, len(rows), rows[:2])
+    if 140 <= len(rows) <= 170: best = (lvl, rows)
+lvl, data = best
 log('livello ZU =', lvl)
-# mappa codice ASC -> codice ZU comune via nome
-names = {norm(v['nome']): k for k, v in zu.items()}
-asc2zu = {}
+code2zu = {}
 for r in data:
-    code = next((c for c in r if re.fullmatch(r'\d{1,3}', c.strip() or 'x')), None)
-    txt = ' '.join(r)
-    mm = re.search(r'\b(\d{1,2}[A-Za-z])\b', txt)
-    key = mm.group(1).upper() if mm else None
-    if key not in zu:
-        for c in r:
-            if norm(c) in names: key = names[norm(c)]; break
-            nc = norm(re.sub(r'^\s*\d{1,2}[A-Za-z]\s*', '', c))
-            if nc in names: key = names[nc]; break
-    asc2zu[r] = key if False else None
-    asc2zu[tuple(r)] = key
-log('match', sum(1 for v in asc2zu.values() if v), 'su', len(data))
-log('non trovati', [list(k) for k, v in asc2zu.items() if not v][:20])
+    code = int(r[f'COM_ASC{lvl}'])
+    den = next((v for k, v in r.items() if k.startswith('DEN')), '') or ''
+    mm = re.match(r'\s*(\d{1,2}[A-Za-z])\b', den)
+    key = mm.group(1).upper() if mm and mm.group(1).upper() in zu else None
+    if not key:
+        nd = norm(re.sub(r'^\s*\d{1,2}[A-Za-z]\s*', '', den))
+        key = names.get(nd)
+    code2zu[code] = key
+    if not key: log('non trovato', code, den)
+log('match', sum(1 for v in code2zu.values() if v), 'su', len(data))
 # sezioni Roma -> unione per ZU
 r = shapefile.Reader(shp=io.BytesIO(z.read('SHP/R12_21_WGS84.shp')), dbf=io.BytesIO(z.read('SHP/R12_21_WGS84.dbf')))
 f_idx = {f[0]: i for i, f in enumerate(r.fields[1:])}
@@ -60,13 +54,6 @@ for sr in r.iterShapeRecords():
     a = rec[f_idx[ascf]]
     groups.setdefault(a, []).append(shape(sr.shape.__geo_interface__)); pop[a] = pop.get(a, 0) + rec[f_idx['POP21']]
 log('gruppi ASC', len(groups), list(groups)[:10])
-# collega i codici ASC numerici alle righe della tabella
-code2zu = {}
-for row, key in asc2zu.items():
-    for c in row:
-        c = c.strip()
-        if c.isdigit() and int(c) in groups: code2zu[int(c)] = key
-log('codici collegati', len(code2zu))
 tr = Transformer.from_crs('EPSG:32632', 'EPSG:4326', always_xy=True)
 feats = []
 for a, geoms in groups.items():

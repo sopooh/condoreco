@@ -68,7 +68,7 @@ let MASCOTS = {}
 let COVERS = {}
 export function setCovers(c) { COVERS = c }
 // Illustrazioni a tutta pagina disponibili per la copertina
-export const COVER_IMAGES = { 'condor-flight': 'Condor in volo (arancio)', 'condor-desk': 'Condor al computer (teal)' }
+export const COVER_IMAGES = { 'condor-flight': 'Condor in volo (arancio)', 'condor-desk': 'Condor al computer (teal)', 'condor-wings': 'Condor ali aperte (turchese)' }
 export function setAvatars(a) { AVATARS = a }
 export function setMascots(m) { MASCOTS = m }
 
@@ -190,9 +190,11 @@ function Tip({ p }) {
   return (
     <Frame t={t}>
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center', gap: 36 }}>
-        <div style={{ fontSize: 180, fontWeight: 800, color: t.accent, lineHeight: 1 }}>
-          {String(p.number ?? 1).padStart(2, '0')}
-        </div>
+        {p.kicker ? <Chip t={t}>{p.kicker}</Chip> : (
+          <div style={{ fontSize: 180, fontWeight: 800, color: t.accent, lineHeight: 1 }}>
+            {String(p.number ?? 1).padStart(2, '0')}
+          </div>
+        )}
         <div style={{ fontSize: 72, fontWeight: 800, lineHeight: 1.1, letterSpacing: -1 }}>{p.title || 'Consiglio'}</div>
         {p.body ? (
           <div style={{ fontSize: 40, lineHeight: 1.4, color: t.sub }}>{p.body}</div>
@@ -386,7 +388,7 @@ function Speak({ p }) {
 // Mascotte Condor: apertura (pose "happy", guarda a destra) e risposta
 // finale (pose "determined"). Condor a sinistra in basso, nuvoletta sopra
 // con la punta verso di lui, link o firma a destra.
-const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433] }
+const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433], wave: [326, 421] }
 
 function Mascot({ p }) {
   const t = theme(p.theme || 'light')
@@ -597,6 +599,60 @@ function WhiteMascot({ p }) {
   )
 }
 
+// Mappa a tutta larghezza con legenda e fonte (sfondo bianco del brand)
+const LEGEND_COLORS = { teal: C.teal, yellow: '#F4B400', red: C.red }
+
+function MapSlide({ p }) {
+  const t = theme('light')
+  const src = COVERS[p.image]
+  const mw = 760, mh = Math.round(760 * (p.ratio || 0.902))
+  return (
+    <Frame t={t} footer="none">
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+        {p.kicker ? <Chip t={t}>{p.kicker}</Chip> : null}
+        <div style={{ display: 'flex', fontSize: 58, fontWeight: 800, color: C.ink, letterSpacing: -1, marginTop: 14, lineHeight: 1.05 }}>{p.title || ''}</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 22 }}>
+          {src ? <img src={src} width={mw} height={mh} style={{ borderRadius: 24 }} alt="" /> : null}
+        </div>
+        <div style={{ display: 'flex', gap: 22, marginTop: 20, flexWrap: 'wrap' }}>
+          {(p.legend || []).map(([color, label]) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 26, height: 26, borderRadius: 8, background: LEGEND_COLORS[color] || color }} />
+              <div style={{ fontSize: 26, fontWeight: 700, color: C.ink2 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', flex: 1 }} />
+        <div style={{ display: 'flex', fontSize: 19, color: C.ink3, lineHeight: 1.35 }}>{p.source || ''}</div>
+      </div>
+    </Frame>
+  )
+}
+
+// Elenco quartieri con pallino colorato e valore
+function NilList({ p }) {
+  const t = theme(p.theme || 'light')
+  const rows = p.rows || []
+  return (
+    <Frame t={t}>
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+        {p.kicker ? <Chip t={t}>{p.kicker}</Chip> : null}
+        <div style={{ display: 'flex', fontSize: 62, fontWeight: 800, color: t.fg, letterSpacing: -1, marginTop: 16, lineHeight: 1.05 }}>{p.title || ''}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 34 }}>
+          {rows.map((r, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 22, background: C.white, border: `2px solid ${C.line}`, borderRadius: 24, padding: '20px 26px' }}>
+              <div style={{ display: 'flex', width: 46, height: 46, borderRadius: 23, background: LEGEND_COLORS[r.color] || C.teal, color: C.white, fontSize: 24, fontWeight: 800, alignItems: 'center', justifyContent: 'center' }}>{String(i + 1)}</div>
+              <div style={{ display: 'flex', flex: 1, fontSize: 32, fontWeight: 700, color: C.ink }}>{r.name}</div>
+              <div style={{ display: 'flex', fontSize: 30, fontWeight: 800, color: LEGEND_COLORS[r.color] || C.teal }}>{r.value}</div>
+            </div>
+          ))}
+        </div>
+        {p.note ? <div style={{ display: 'flex', fontSize: 28, color: t.sub, lineHeight: 1.4, marginTop: 26 }}>{p.note}</div> : null}
+      </div>
+    </Frame>
+  )
+}
+
 // Dialogo tra personaggi, stile chat: il primo parla a sinistra, gli altri a destra.
 function Chat({ p }) {
   // Le chat hanno sempre lo sfondo bianco del brand (bianco sporco, C.paper).
@@ -644,6 +700,8 @@ export const TEMPLATES = {
   cover: { label: 'Copertina', render: Cover },
   mascot: { label: 'Condor (messaggio istituzionale)', render: Mascot },
   imageCover: { label: 'Copertina illustrata', render: ImageCover },
+  map: { label: 'Mappa con legenda', render: MapSlide },
+  nilList: { label: 'Elenco quartieri', render: NilList },
   whiteMascot: { label: 'Condor su bianco (salta / dorme)', render: ({ p }) => Mascot({ p: { ...p, theme: 'white' } }) },
   speak: { label: 'Personaggio che parla', render: Speak },
   chat: { label: 'Dialogo tra personaggi', render: Chat },

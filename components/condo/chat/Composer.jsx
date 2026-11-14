@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BarChart3, Camera, CalendarDays, FileText, Headphones, Images, Mic, Plus, Send, Trash2, UserRound, X } from 'lucide-react'
 import { extOf, formatSize, kindFromMime, labelFor, MAX_CHAT_FILE, uploadChatFile } from '@/lib/chatFiles'
+import posthog from 'posthog-js'
 
 const nowMs = () => Date.now()
 
@@ -54,7 +55,11 @@ export default function Composer({ onSend, onAction, buildingId, threadId, isGro
     setBusy(true); setErr(null)
     const { error } = await onSend(text)
     setBusy(false)
-    if (error) setErr(error); else setDraft('')
+    if (error) setErr(error)
+    else {
+      posthog.capture('chat_message_sent')
+      setDraft('')
+    }
   }
 
   function pick(item) {
@@ -82,6 +87,7 @@ export default function Composer({ onSend, onAction, buildingId, threadId, isGro
       const text = (i === files.length - 1 && caption.trim()) || labelFor(up.kind, up.attachment.name)
       const { error } = await onSend(text, { kind: up.kind, attachment: up.attachment })
       if (error) { setErr(error); setBusy(false); return }
+      posthog.capture('chat_attachment_sent', { attachment_type: up.kind })
     }
     setBusy(false)
     setPending(null)
@@ -243,6 +249,7 @@ function Recorder({ children, disabled, buildingId, threadId, onSend, onError })
     const { error } = await onSend('Messaggio vocale', { kind: 'audio', attachment: { ...up.attachment, duration: Math.round(duration) } })
     setSending(false)
     if (error) onError(error)
+    else posthog.capture('voice_message_sent')
   }
 
   const stop = (cancel) => { cancelled.current = cancel; mr.current?.state === 'recording' && mr.current.stop() }

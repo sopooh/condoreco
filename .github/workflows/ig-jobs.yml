@@ -1,0 +1,22 @@
+name: ig-jobs
+on:
+  push:
+    branches: [ig-assets]
+    paths: ['jobs/**/*.py', 'jobs/**/*.csv']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install pillow
+      - run: python jobs/milano-verde/build_map.py
+      - run: |
+          git config user.name "ig-jobs"
+          git config user.email "ig-jobs@users.noreply.github.com"
+          git add jobs/*/out
+          git commit -m "ig-jobs: output mappa" || echo "niente da committare"
+          git push

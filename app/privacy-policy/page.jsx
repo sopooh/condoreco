@@ -45,6 +45,7 @@ const PURPOSES = [
   ['Moderazione, segnalazioni, sicurezza', 'contenuti segnalati, autore della segnalazione, storico delle modifiche alle recensioni, log tecnici', 'legittimo interesse (art. 6.1.f) a una piattaforma affidabile e sicura', 'log di accesso e navigazione: 12 mesi; storico moderazione: per il tempo necessario a gestire il caso'],
   ['Area condominio', 'vedi la sezione 3', 'vedi la sezione 3', 'vedi la sezione 3'],
   ['Verifica di residenza', 'documento scelto da te (certificato di residenza, contratto, rogito o bolletta), tipo di documento, piano, millesimi, proprietario o inquilino', 'contratto (art. 6.1.b): serve a darti accesso all\'area privata del tuo condominio', 'il documento viene cancellato appena la richiesta è approvata, respinta o ritirata; l\'esito della richiesta resta 12 mesi'],
+  ['Statistiche di utilizzo (solo con consenso)', 'pagine visitate, clic, tipo di dispositivo e browser, città o Paese approssimativi, registrazioni anonimizzate della navigazione nelle pagine pubbliche, identificativo interno dell\'account se hai effettuato l\'accesso', 'consenso (art. 6.1.a), revocabile in ogni momento da "Preferenze cookie"', 'massimo 12 mesi'],
   ['Richieste privacy e assistenza', 'contenuto della richiesta, email, esito', 'obbligo legale (art. 6.1.c, artt. 12-22 GDPR)', '24 mesi dalla chiusura'],
   ['Notifiche nel sito ed email di servizio', 'contenuto della notifica, stato di lettura', 'contratto (art. 6.1.b)', 'le notifiche lette vengono cancellate dopo 12 mesi'],
   ['Difesa di diritti e obblighi di legge', 'i dati necessari al caso', 'obbligo legale (art. 6.1.c) e legittimo interesse (art. 6.1.f)', 'per il tempo previsto dalla legge o necessario alla difesa'],
@@ -56,6 +57,7 @@ const PROCESSORS = [
   ['Google LLC', 'accesso con Google (solo se lo scegli)', 'USA, aderente al Data Privacy Framework UE-USA'],
   ['MapTiler AG', 'mappe interattive (riceve il tuo IP)', 'Svizzera, Paese con decisione di adeguatezza'],
   ['OpenStreetMap Foundation', 'anteprime delle mappe (riceve il tuo IP)', 'Regno Unito, Paese con decisione di adeguatezza'],
+  ['PostHog Inc.', 'statistiche di utilizzo e mappe dei clic (solo con il tuo consenso)', 'dati conservati nel cloud UE (Francoforte, Germania); società statunitense, con clausole contrattuali standard'],
   ['komoot GmbH (Photon)', 'suggerimenti di indirizzo nella ricerca (riceve il tuo IP e il testo digitato)', 'Germania (UE)'],
 ]
 
@@ -206,7 +208,7 @@ export default function PrivacyPolicy() {
           <section className="legal-section" id="cookie">
             <h2 className="legal-section-title">10. Cookie</h2>
             <p className="legal-paragraph">
-              Usiamo solo cookie e local storage tecnici. L&apos;elenco completo è nella <a href="/cookie-policy" className="legal-link">Cookie Policy</a>.
+              Usiamo cookie e local storage tecnici e, solo con il tuo consenso, gli strumenti di statistica di PostHog. L&apos;elenco completo è nella <a href="/cookie-policy" className="legal-link">Cookie Policy</a>.
             </p>
           </section>
 

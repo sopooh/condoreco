@@ -2924,3 +2924,13 @@ input, select, textarea { font-family: inherit; }
 .acc-tabs { gap: 4px; padding: 0 0 10px; border: none; border-bottom: 1px solid var(--border); border-radius: 0; background: none; }
 .acc-tabs button { font-size: 15px; white-space: nowrap; }
 .acc-tabs button.is-on { background: var(--teal); color: #fff; }
+
+/* Banner consenso cookie */
+.cookie-banner { position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 9200; width: min(440px, calc(100vw - 32px)); background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px rgba(15,23,42,.18); padding: 18px 18px 16px; }
+.cookie-banner-close { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--text-3); cursor: pointer; padding: 4px; border-radius: 6px; }
+.cookie-banner-close:hover { color: var(--text); background: var(--border-2); }
+.cookie-banner-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px; padding-right: 28px; }
+.cookie-banner-text { font-size: 13px; line-height: 1.5; color: var(--text-2); }
+.cookie-banner-link { color: var(--teal); font-weight: 600; text-decoration: underline; }
+.cookie-banner-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.cookie-banner-btn { cursor: pointer; }

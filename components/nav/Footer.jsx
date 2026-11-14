@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { analyticsEnabled, openConsentPreferences } from '@/lib/consent'
 
 const platformLinks = [
   { label: 'Cerca condominio', to: '/cerca' },
@@ -20,6 +21,7 @@ const infoLinks = [
   { label: 'Termini e Condizioni', to: '/termini-e-condizioni' },
   { label: 'Cookie Policy', to: '/cookie-policy' },
   { label: 'Contatti', to: '/contatti' },
+  ...(analyticsEnabled() ? [{ label: 'Preferenze cookie', onClick: openConsentPreferences }] : []),
 ]
 
 function FooterLinks({ title, links }) {

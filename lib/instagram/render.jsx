@@ -17,8 +17,8 @@ function loadLogos() {
         const entries = await Promise.all(ids.map(async (id) => [id, await uri(`characters/${id}.png`)]))
         setAvatars(Object.fromEntries(entries))
         const jpg = async (f) => `data:image/jpeg;base64,${(await readFile(path.join(dir, f))).toString('base64')}`
-        setCovers({ 'condor-flight': await jpg('covers/condor-flight.jpg'), 'condor-desk': await jpg('covers/condor-desk.jpg'), 'condor-wings': await jpg('covers/condor-wings.jpg'), 'map-milano-verde': await jpg('covers/map-milano-verde.jpg') })
-        setMascots({ happy: await uri('characters/condor.png'), determined: await uri('characters/condor-determined.png'), jump: await uri('characters/condor-jump.png'), sleep: await uri('characters/condor-sleep.png'), wave: await uri('characters/condor-wave.png') })
+        setCovers({ 'condor-flight': await jpg('covers/condor-flight.jpg'), 'condor-desk': await jpg('covers/condor-desk.jpg'), 'condor-wings': await jpg('covers/condor-wings.jpg'), 'map-milano-verde': await jpg('covers/map-milano-verde.jpg'), 'condor-canyon': await jpg('covers/condor-canyon.jpg') })
+        setMascots({ happy: await uri('characters/condor.png'), determined: await uri('characters/condor-determined.png'), jump: await uri('characters/condor-jump.png'), sleep: await uri('characters/condor-sleep.png'), wave: await uri('characters/condor-wave.png'), cool: await uri('characters/condor-cool.png') })
       })
   }
   return logosPromise

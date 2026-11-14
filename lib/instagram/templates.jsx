@@ -68,7 +68,7 @@ let MASCOTS = {}
 let COVERS = {}
 export function setCovers(c) { COVERS = c }
 // Illustrazioni a tutta pagina disponibili per la copertina
-export const COVER_IMAGES = { 'condor-flight': 'Condor in volo (arancio)', 'condor-desk': 'Condor al computer (teal)', 'condor-wings': 'Condor ali aperte (turchese)' }
+export const COVER_IMAGES = { 'condor-flight': 'Condor in volo (arancio)', 'condor-desk': 'Condor al computer (teal)', 'condor-wings': 'Condor ali aperte (turchese)', 'condor-canyon': 'Condor nel canyon' }
 export function setAvatars(a) { AVATARS = a }
 export function setMascots(m) { MASCOTS = m }
 
@@ -388,7 +388,7 @@ function Speak({ p }) {
 // Mascotte Condor: apertura (pose "happy", guarda a destra) e risposta
 // finale (pose "determined"). Condor a sinistra in basso, nuvoletta sopra
 // con la punta verso di lui, link o firma a destra.
-const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433], wave: [326, 421] }
+const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433], wave: [326, 421], cool: [326, 421] }
 
 function Mascot({ p }) {
   const t = theme(p.theme || 'light')

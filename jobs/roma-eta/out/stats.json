@@ -1,7 +1,7 @@
 {
  "soglie": [
-  149.8,
-  213.4
+  147.1,
+  212.0
  ],
  "zu": [
   {
@@ -122,6 +122,14 @@
    "mun": 6,
    "vecchiaia": 92.8,
    "pop21": 50425,
+   "classe": "giovani"
+  },
+  {
+   "zu": "12H",
+   "nome": "Vallerano C. di Leva",
+   "mun": 9,
+   "vecchiaia": 96.0,
+   "pop21": 30526,
    "classe": "giovani"
   },
   {
@@ -285,6 +293,14 @@
    "classe": "giovani"
   },
   {
+   "zu": "8C",
+   "nome": "Giard.tti-Tor Vergata",
+   "mun": 6,
+   "vecchiaia": 129.1,
+   "pop21": 19911,
+   "classe": "giovani"
+  },
+  {
    "zu": "4F",
    "nome": "Casal Boccone",
    "mun": 3,
@@ -362,7 +378,7 @@
    "mun": 5,
    "vecchiaia": 147.1,
    "pop21": 19968,
-   "classe": "giovani"
+   "classe": "medio"
   },
   {
    "zu": "4D",
@@ -474,6 +490,14 @@
    "mun": 11,
    "vecchiaia": 172.9,
    "pop21": 28820,
+   "classe": "medio"
+  },
+  {
+   "zu": "4L",
+   "nome": "Aeroporto dell' Urbe",
+   "mun": 3,
+   "vecchiaia": 174.4,
+   "pop21": 1725,
    "classe": "medio"
   },
   {
@@ -722,7 +746,7 @@
    "mun": 11,
    "vecchiaia": 212.0,
    "pop21": 23316,
-   "classe": "medio"
+   "classe": "anziani"
   },
   {
    "zu": "2C",

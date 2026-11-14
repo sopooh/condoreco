@@ -44,6 +44,7 @@ const PURPOSES = [
   ['Foto degli edifici', 'immagini caricate (i metadati, compresa la posizione GPS, vengono eliminati prima del caricamento)', 'contratto (art. 6.1.b)', 'finché non le cancelli o non vengono rimosse in moderazione'],
   ['Moderazione, segnalazioni, sicurezza', 'contenuti segnalati, autore della segnalazione, storico delle modifiche alle recensioni, log tecnici', 'legittimo interesse (art. 6.1.f) a una piattaforma affidabile e sicura', 'log di accesso e navigazione: 12 mesi; storico moderazione: per il tempo necessario a gestire il caso'],
   ['Area condominio', 'vedi la sezione 3', 'vedi la sezione 3', 'vedi la sezione 3'],
+  ['Chiedi ai residenti (Possibili nuovi vicini)', 'vedi la sezione 4', 'vedi la sezione 4', 'vedi la sezione 4'],
   ['Verifica di residenza', 'documento scelto da te (certificato di residenza, contratto, rogito o bolletta), tipo di documento, piano, millesimi, proprietario o inquilino', 'contratto (art. 6.1.b): serve a darti accesso all\'area privata del tuo condominio', 'il documento viene cancellato appena la richiesta è approvata, respinta o ritirata; l\'esito della richiesta resta 12 mesi'],
   ['Richieste privacy e assistenza', 'contenuto della richiesta, email, esito', 'obbligo legale (art. 6.1.c, artt. 12-22 GDPR)', '24 mesi dalla chiusura'],
   ['Notifiche nel sito ed email di servizio', 'contenuto della notifica, stato di lettura', 'contratto (art. 6.1.b)', 'le notifiche lette vengono cancellate dopo 12 mesi'],
@@ -108,6 +109,7 @@ export default function PrivacyPolicy() {
                 'appartenenza al condominio e ruolo (residente o amministratore), piano, millesimi, proprietario o inquilino;',
                 'documento caricato per la verifica di residenza: lo vede solo chi decide la richiesta (l\'amministratore del condominio o, se il condominio non ha amministratore, lo staff Condoreco) e viene cancellato appena la richiesta è decisa o ritirata;',
                 'messaggi e allegati della chat, avvisi, eventi, ticket e interventi;',
+                'domande dei possibili nuovi vicini e risposte dei residenti (sezione 4);',
                 'sondaggi e voti: nei sondaggi non anonimi gli altri membri del condominio vedono come hai votato;',
                 'rate, pagamenti, contabili caricate, estratti conto con i nomi dei paganti, IBAN del condominio, bilanci e preventivi.',
               ]} />
@@ -135,8 +137,62 @@ export default function PrivacyPolicy() {
             </SubSection>
           </section>
 
+          <section className="legal-section" id="possibili-vicini">
+            <h2 className="legal-section-title">4. Chiedi ai residenti e Possibili nuovi vicini</h2>
+            <p className="legal-paragraph">
+              Nella pagina di un edificio chi cerca casa può fare una domanda a chi ci abita. I residenti la ricevono nella chat del condominio, alla voce &quot;Possibili nuovi vicini&quot;. Condor, l&apos;assistente di Condoreco, può rispondere in automatico con le esperienze che i residenti hanno già condiviso.
+            </p>
+
+            <SubSection title="4.1 Dati trattati">
+              <BulletList items={[
+                'di chi fa la domanda: account, testo delle domande e dei messaggi, edificio, data, argomento della domanda ricavato da parole chiave;',
+                'dei residenti che rispondono: testo delle risposte e delle conferme, collegato al loro account;',
+                'una rappresentazione numerica del testo della domanda (embedding), usata solo per trovare domande simili; viene calcolata sui server di Supabase in Irlanda, senza inviare il testo ad altri fornitori;',
+                'segnalazioni dei residenti ed eventuali blocchi di chi ha fatto domande inappropriate.',
+              ]} />
+            </SubSection>
+
+            <SubSection title="4.2 Chi vede cosa">
+              <BulletList items={[
+                'la domanda la vedono solo i residenti verificati dell\'edificio, non l\'amministratore del condominio;',
+                'i residenti non vedono chi ha fatto la domanda: compare come "Possibile nuovo vicino";',
+                'chi fa la domanda non vede chi gli risponde: compare come "Residente verificato";',
+                'le conversazioni non sono pubbliche e non compaiono nella pagina dell\'edificio.',
+              ]} />
+            </SubSection>
+
+            <SubSection title="4.3 Memoria del condominio e Condor">
+              <p className="legal-paragraph">
+                Quando risponde, il residente può scegliere se salvare la risposta nella memoria del condominio (l&apos;opzione è attiva di default e si può togliere). Prima del salvataggio togliamo in automatico email, numeri di telefono, link e numeri di interno. Le risposte salvate non mostrano chi le ha scritte e Condor le riporta come &quot;esperienze dei residenti&quot;, con il numero di conferme e la data dell&apos;ultimo aggiornamento.
+              </p>
+              <p className="legal-paragraph">
+                Condor non è un&apos;intelligenza artificiale generativa: confronta la nuova domanda con quelle già fatte e, se trova una risposta molto simile e recente, la ripropone. Non prende decisioni che abbiano effetti giuridici o simili su di te (art. 22 GDPR). Puoi sempre chiedere di passare la domanda ai residenti.
+              </p>
+              <p className="legal-paragraph">
+                Non scrivere nelle risposte informazioni su vicini identificabili (nomi, abitudini, salute, situazioni familiari): possiamo modificarle o rimuoverle dalla memoria.
+              </p>
+            </SubSection>
+
+            <SubSection title="4.4 Limiti e segnalazioni">
+              <p className="legal-paragraph">
+                Per fare domande serve un account con email confermata. Ci sono limiti al numero di domande al giorno e un filtro automatico che blocca link, indirizzi email e parole offensive. Se due residenti segnalano una domanda, la conversazione viene chiusa e chi l&apos;ha fatta non può più scrivere a quel condominio. Se succede in tre condomini, non può più fare domande su tutto il sito. Se pensi che il blocco sia un errore, scrivi a <Mail /> e lo verifichiamo a mano.
+              </p>
+            </SubSection>
+
+            <SubSection title="4.5 Basi giuridiche e conservazione">
+              <Table head={['Trattamento', 'Base giuridica', 'Conservazione']} rows={[
+                ['Domande, risposte e notifiche', 'contratto (art. 6.1.b): è un servizio che chiedi tu', 'le domande risolte vengono archiviate dopo 30 giorni e cancellate, con i messaggi, 12 mesi dopo l\'archiviazione; prima, se cancelli l\'account'],
+                ['Memoria del condominio', 'legittimo interesse (art. 6.1.f) di Condoreco e di chi cerca casa a ricevere informazioni utili sull\'edificio, con dati ridotti al minimo e senza nomi', 'finché l\'informazione è attuale: quando un residente segnala che la situazione è cambiata, la voce vecchia resta solo come storico; se cancelli l\'account, le risposte salvate restano senza collegamento a te'],
+                ['Segnalazioni e blocchi', 'legittimo interesse (art. 6.1.f) a proteggere i residenti da molestie e spam', 'le segnalazioni con la domanda; i blocchi finché esiste l\'account'],
+              ]} />
+              <p className="legal-paragraph">
+                Ti puoi opporre all&apos;uso delle tue risposte nella memoria del condominio, o chiedere di toglierne una, dalla sezione <a href="/profilo?sezione=privacy" className="legal-link">Privacy e dati</a> del profilo o scrivendo a <Mail />. I residenti possono disattivare le notifiche delle nuove domande dalla chat del condominio.
+              </p>
+            </SubSection>
+          </section>
+
           <section className="legal-section" id="amministratori-fornitori">
-            <h2 className="legal-section-title">4. Informativa per amministratori di condominio e fornitori presenti nel sito</h2>
+            <h2 className="legal-section-title">5. Informativa per amministratori di condominio e fornitori presenti nel sito</h2>
             <p className="legal-paragraph">
               Condoreco pubblica schede di amministratori di condominio e di fornitori (manutenzione, imprese, professionisti) con nome, studio o ragione sociale, zona, recapiti professionali (telefono, email, sito) e recensioni degli utenti. Questa sezione vale anche se non ti sei iscritto (art. 14 GDPR).
             </p>
@@ -150,7 +206,7 @@ export default function PrivacyPolicy() {
           </section>
 
           <section className="legal-section" id="fornitori">
-            <h2 className="legal-section-title">5. A chi comunichiamo i dati</h2>
+            <h2 className="legal-section-title">6. A chi comunichiamo i dati</h2>
             <p className="legal-paragraph">
               Usiamo fornitori tecnici che trattano i dati per nostro conto come responsabili del trattamento (art. 28 GDPR):
             </p>
@@ -164,14 +220,14 @@ export default function PrivacyPolicy() {
           </section>
 
           <section className="legal-section" id="sicurezza">
-            <h2 className="legal-section-title">6. Sicurezza</h2>
+            <h2 className="legal-section-title">7. Sicurezza</h2>
             <p className="legal-paragraph">
               Usiamo connessioni cifrate, password cifrate, controlli di accesso a livello di database per ogni tabella, archivi privati con link temporanei per i file, eliminazione dei metadati dalle foto e cancellazione automatica dei log dopo 12 mesi. Nessun sistema è sicuro al 100%: custodisci le tue credenziali e scrivici se noti accessi sospetti.
             </p>
           </section>
 
           <section className="legal-section" id="diritti">
-            <h2 className="legal-section-title">7. I tuoi diritti</h2>
+            <h2 className="legal-section-title">8. I tuoi diritti</h2>
             <p className="legal-paragraph">Hai diritto di:</p>
             <BulletList items={[
               'accedere ai tuoi dati e riceverne una copia (art. 15);',
@@ -190,28 +246,28 @@ export default function PrivacyPolicy() {
           </section>
 
           <section className="legal-section" id="minori">
-            <h2 className="legal-section-title">8. Minori</h2>
+            <h2 className="legal-section-title">9. Minori</h2>
             <p className="legal-paragraph">
               Per iscriversi bisogna avere almeno 14 anni (art. 2-quinquies del Codice privacy): lo dichiari al momento della registrazione. Se scopriamo un account di una persona più giovane, lo cancelliamo.
             </p>
           </section>
 
           <section className="legal-section" id="reclamo">
-            <h2 className="legal-section-title">9. Reclamo al Garante</h2>
+            <h2 className="legal-section-title">10. Reclamo al Garante</h2>
             <p className="legal-paragraph">
               Se ritieni che il trattamento violi il GDPR puoi presentare reclamo al Garante per la protezione dei dati personali (<a href="https://www.garanteprivacy.it" className="legal-link" target="_blank" rel="noopener noreferrer">www.garanteprivacy.it</a>) o all&apos;autorità del Paese UE in cui vivi o lavori.
             </p>
           </section>
 
           <section className="legal-section" id="cookie">
-            <h2 className="legal-section-title">10. Cookie</h2>
+            <h2 className="legal-section-title">11. Cookie</h2>
             <p className="legal-paragraph">
               Usiamo solo cookie e local storage tecnici. L&apos;elenco completo è nella <a href="/cookie-policy" className="legal-link">Cookie Policy</a>.
             </p>
           </section>
 
           <section className="legal-section" id="modifiche">
-            <h2 className="legal-section-title">11. Modifiche</h2>
+            <h2 className="legal-section-title">12. Modifiche</h2>
             <p className="legal-paragraph">
               Se cambiamo questa informativa aggiorniamo la data in alto. Se il cambiamento riguarda nuove finalità o nuovi destinatari, te lo comunichiamo nel sito prima che si applichi.
             </p>

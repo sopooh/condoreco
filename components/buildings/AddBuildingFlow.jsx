@@ -10,6 +10,10 @@ import { feeBand, costPerSqm } from '@/lib/score'
 import PinDropMap from '@/components/map/PinDropMap'
 import LocationAutocomplete from '@/components/search/LocationAutocomplete'
 import { AMENITY_GROUPS, ALL_AMENITIES, amenitiesToPayload } from '@/lib/amenities'
+import posthog from 'posthog-js'
+
+const posthogConfigured = Boolean(process.env.NEXT_PUBLIC_POSTHOG_KEY && process.env.NEXT_PUBLIC_POSTHOG_HOST)
+const capture = (event, properties) => { if (posthogConfigured) posthog.capture(event, properties) }
 
 // Flusso guidato a flashcard per registrare un condominio non ancora online.
 // Tutti gli step obbligatori. Il condominio creato resta status 'pending'
@@ -258,6 +262,12 @@ export default function AddBuildingFlow() {
 
     const { error } = await createPendingBuilding(newBuilding)
     if (!error) {
+      capture('building_submission_completed', {
+        administrator_selection: data.admin_mode || 'none',
+        amenity_count: data.amenities.length,
+        photo_count: data.photos.length,
+        is_supercondominium: data.is_supercondo,
+      })
       setIsSubmitting(false)
       router.push('/cerca')
       return

@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import { Building2, Check, Copy, CreditCard, Landmark, X } from 'lucide-react'
 import { causaleFor, euro, fmtDay, formatIban } from '@/lib/accounting'
+import posthog from 'posthog-js'
+
+const posthogConfigured = Boolean(process.env.NEXT_PUBLIC_POSTHOG_KEY && process.env.NEXT_PUBLIC_POSTHOG_HOST)
+const capture = (event, properties) => { if (posthogConfigured) posthog.capture(event, properties) }
 
 // "Paga ora": scelta delle rate e del metodo.
 // Online (carta, PayPal, Apple Pay, Google Pay) con Stripe se il condominio l'ha attivato;
@@ -25,6 +29,12 @@ export default function PayNowSheet({ charges, overdueIds, settings, onClose, on
     setBusy(true); setErr(null)
     const r = await onCheckout(chosen.map((c) => c.id))
     if (r?.error) { setErr(r.error); setBusy(false) }
+    else {
+      capture('online_payment_checkout_started', {
+        charge_count: chosen.length,
+        total_amount: total,
+      })
+    }
   }
   async function reported() {
     setBusy(true); setErr(null)

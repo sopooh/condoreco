@@ -11,6 +11,10 @@ import { uploadPhoto } from '@/lib/photos'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
 import { useMyReview } from '@/hooks/useMyReview'
+import posthog from 'posthog-js'
+
+const posthogConfigured = Boolean(process.env.NEXT_PUBLIC_POSTHOG_KEY && process.env.NEXT_PUBLIC_POSTHOG_HOST)
+const capture = (event, properties) => { if (posthogConfigured) posthog.capture(event, properties) }
 
 function DotRating({ value, onChange, size = 28 }) {
   return (
@@ -135,6 +139,12 @@ export default function ReviewForm({
       if (extras.photos && photos.length > 0) {
         await Promise.all(photos.map((f) => uploadPhoto(f.blob, entityId, reviewId))).catch(console.warn)
       }
+      capture('review_submitted', {
+        submission_type: existingReview ? 'update' : 'create',
+        subject_type: extras.issues ? 'building' : 'administrator',
+        score,
+        photo_count: photos.length,
+      })
       onClose()
       await fetchMyReview()
       router.refresh()

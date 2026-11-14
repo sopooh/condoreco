@@ -5,8 +5,11 @@ import { ArrowLeft, KeyRound, Mail, MailCheck } from 'lucide-react'
 import { PasswordInput } from '@/components/auth/PasswordInput'
 import Modal from '@/components/ui/Modal'
 import { createClient } from '@/lib/supabase/client'
+import posthog from 'posthog-js'
 
 export const MIN_PASSWORD = 8
+const posthogConfigured = Boolean(process.env.NEXT_PUBLIC_POSTHOG_KEY && process.env.NEXT_PUBLIC_POSTHOG_HOST)
+const capture = (event, properties) => { if (posthogConfigured) posthog.capture(event, properties) }
 
 // s*****@g*****.com: conferma l'indirizzo senza mostrarlo per intero
 export function maskEmail(email) {
@@ -136,6 +139,7 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
           else setErr(f)
           return
         }
+        capture('user_login_succeeded', { login_method: 'password' })
         onClose()
       } else if (mode === 'signup') {
         if (!ageOk) { setErr('Per registrarti conferma di avere almeno 14 anni e di aver letto l’informativa.'); return }
@@ -152,6 +156,10 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
           setErr('Esiste già un account con questa email. Accedi, oppure usa "Password dimenticata?" se non ne hai una.')
           return
         }
+        capture('account_signup_submitted', {
+          signup_method: 'password',
+          email_confirmation_required: !data.session,
+        })
         if (data.session) { onClose(); return }
         setCooldown(60); setSent('confirm')
       } else if (mode === 'forgot') {

@@ -1,0 +1,516 @@
+## https://dati.comune.roma.it/catalog/api/3/action/package_search zone urbanistiche 0
+## https://dati.comune.roma.it/catalog/api/3/action/package_search zona urbanistica popolazione 0
+## https://dati.comune.roma.it/catalog/api/3/action/package_search eta media 1
+- d854 | Gestione Azienda Partecipata ATAC S.p.A.
+     CSV Conto economico riclassificato ATAC https://dati.comune.roma.it/catalog/dataset/868a17c3-229e-4a87-8e83-825bf1011c08/resource/0d53c8c8-b150-4c4c-9b0e-9bbb5e45356f/download/conto-economico-riclassificato_atac.csv
+     CSV Dettaglio costi e ricavi ATAC https://dati.comune.roma.it/catalog/dataset/868a17c3-229e-4a87-8e83-825bf1011c08/resource/c2ea3385-8e80-4025-a4b2-5561f40b7ddf/download/dettaglio-costi-e-ricavi_atac.csv
+     CSV Parco mezzi eta' media mezzi ATAC https://dati.comune.roma.it/catalog/dataset/868a17c3-229e-4a87-8e83-825bf1011c08/resource/1586ff78-d353-48da-ad8d-11a8bbfa9915/download/parco-mezzi_eta-media-mezzi_atac.csv
+     CSV Parco mezzi numero  mezzi ATAC https://dati.comune.roma.it/catalog/dataset/868a17c3-229e-4a87-8e83-825bf1011c08/resource/878cb4dc-c306-41c8-beaa-3ad671888eec/download/parco-mezzi_n-mezzi_atac.csv
+     CSV Personale costo ATAC https://dati.comune.roma.it/catalog/dataset/868a17c3-229e-4a87-8e83-825bf1011c08/resource/23252625-10f8-4363-be34-0e6ee36aa345/download/personale_costo_atac.csv
+     CSV Personale n.  dipendenti ATAC https://dati.comune.roma.it/catalog/dataset/868a17c3-229e-4a87-8e83-825bf1011c08/resource/1f83e1a6-078d-4a15-ae2f-645863133e5f/download/personale_n-dipendenti_atac.csv
+     CSV Produzione Erogata ATAC https://dati.comune.roma.it/catalog/dataset/868a17c3-229e-4a87-8e83-825bf1011c08/resource/3882bb0a-be6e-40b8-b3f8-59c9f31f0328/download/produzione-erogata_atac.csv
+## https://dati.comune.roma.it/catalog/api/3/action/package_search popolazione eta zona 0
+ERR https://dati.comune.roma.it/api/3/action/package_search zone urbanistiche JSONDecodeError('Expecting value: line 1 column 1 (char 0)')
+ERR https://dati.comune.roma.it/api/3/action/package_search zona urbanistica popolazione JSONDecodeError('Expecting value: line 1 column 1 (char 0)')
+ERR https://dati.comune.roma.it/api/3/action/package_search eta media JSONDecodeError('Expecting value: line 1 column 1 (char 0)')
+ERR https://dati.comune.roma.it/api/3/action/package_search popolazione eta zona JSONDecodeError('Expecting value: line 1 column 1 (char 0)')
+## PDF https://www.comune.roma.it/web-resources/cms/documents/02_Popolazione_Annuario_2025.pdf 1652641
+--- pag 7
+Roma Capitale - Annuario statistico 2025 Cap.2 Popolazione
+Tab.2.1 - Indicatori strutturali degli iscritti in anagrafe per municipio di Roma al 31.12.2024
+Rapporto di Età media Indice di Indice di Anziani per Indice di
+Municipio
+mascolinità Maschi Femmine Totale vecchiaia dipendenza bambino ricambio
+I 92,9 47,9 51,3 49,6 304,8 56,8 9,9 199,9
+II 81,9 45,9 50,1 48,2 237,5 60,6 7,4 162,8
+III 87,1 45,5 49,3 47,5 212,0 58,9 6,3 161,0
+IV (***) 92,5 45,8 49,2 47,6 232,1 57,6 6,9 172,2
+V (***) 94,5 45,0 48,5 46,8 202,2 52,9 5,8 176,1
+VI (**) (***) 98,0 42,2 44,5 43,3 129,6 47,4 3,9 125,2
+VII (**) 88,8 45,8 49,5 47,7 228,1 56,8 6,8 168,6
+VIII 87,7 46,6 50,4 48,6 250,6 60,4 7,5 165,1
+IX 91,4 45,0 47,9 46,5 193,2 55,0 6,0 147,6
+X 91,4 44,9 47,8 46,5 190,0 53,1 6,4 143,1
+XI 90,8 45,1 48,9 47,1 203,4 54,8 6,2 153,2
+XII 86,2 46,0 50,5 48,4 240,4 58,9 7,5 171,2
+XIII 90,0 45,4 49,5 47,6 220,2 54,9 6,7 161,5
+XIV 88,5 44,7 48,4 46,6 193,7 54,6 5,8 161,5
+XV 88,9 44,8 48,2 46,6 196,4 52,1 6,1 152,2
+Roma (*) 90,3 45,2 48,8 47,1 208,5 55,2 6,4 159,3
+Elaborazioni dell'Ufficio di Statistica di Roma Capitale su dati di fonte Anagrafe
+(*) Comprende gli individui residenti per i quali non è stato possibile individuare il Municipio
+(**) Con Deliberazione n.2 dell'Assemblea Capitolina del 14/01/2021 sono stati modificati parzialmente i confini dei municipi VI e VII.
+Pertanto l'intera Zona Urbanistica 08A è passata dal municipio VI al Municipio VII
+(***) Con Deliberazione n.4 dell'Assemblea Capitolina del
+--- pag 11
+Roma Capitale - Annuario statistico 2025 Cap.2 Popolazione
+Tab.2.4 - Popolazione iscritta in anagrafe a Roma al 31.12.2024 per classi di età, genere e municipio
+Classi di età
+Municipio Totale
+meno di 1 1 - 4 5 - 9 10 - 14 15 - 29 30 - 49 50 - 64 65 e oltre
+Maschi e Femmine
+I 570 3.071 4.686 6.137 20.772 40.782 41.539 44.090 161.647
+II 750 3.981 6.009 7.502 23.658 37.712 40.165 43.320 163.097
+III 1.011 5.654 8.102 9.294 27.168 51.022 49.183 51.008 202.442
+IV (***) 795 4.256 6.286 7.164 24.134 42.465 39.999 42.940 168.039
+V (***) 1.227 6.556 9.475 10.193 32.826 67.102 57.030 55.516 239.925
+VI (**) (***) 1.435 7.657 11.585 13.219 38.905 69.070 56.278 43.920 242.069
+VII (**) 1.443 7.969 11.671 13.335 43.211 79.592 76.158 78.516 311.895
+VIII 602 3.141 4.477 5.423 17.390 30.643 31.217 34.193 127.086
+IX 916 4.875 7.518 8.833 27.787 44.482 45.857 42.775 183.043
+X 983 5.599 8.966 11.576 35.727 53.289 59.170 51.532 226.842
+XI 748 3.983 6.019 6.875 21.707 37.639 38.236 35.850 151.057
+XII 623 3.275 5.067 6.145 19.548 32.337 35.379 36.320 138.694
+XIII 568 3.258 4.826 5.784 18.772 31.899 33.444 31.782 130.333
+XIV 935 5.262 7.810 8.845 28.055 47.285 47.461 44.256 189.909
+XV 681 4.150 6.198 7.539 24.645 39.870 41.074 36.463 160.620
+Non localizzati 1 11 10 10 42 160 138 196 568
+Totale 13.288 72.698 108.705 127.874 404.347 705.349 692.328 672.677 2.797.266
+Femmine
+I 279 1.513 2.340 3.012 9.944 19.570 21.775 25.365 83.798
+II 366 1.886 3.036 3.640 11.615 20.495 22.515 26.087 89.640
+III 473 2.772
+--- pag 12
+Roma Capitale - Annuario statistico 2025 Cap.2 Popolazione
+Tab.2.5 - Popolazione iscritta in anagrafe a Roma al 31.12.2024 per grandi classi di età, genere e municipio
+(v.a. e % per classe d’età)
+Classi di età
+Municipio fino a 14 15 - 64 65 e oltre Totale
+v.a % v.a % v.a %
+Maschi e Femmine
+I 14.464 8,9 103.093 63,8 44.090 27,3 161.647
+II 18.242 11,2 101.535 62,3 43.320 26,6 163.097
+III 24.061 11,9 127.373 62,9 51.008 25,2 202.442
+IV (***) 18.501 11,0 106.598 63,4 42.940 25,6 168.039
+V (***) 27.451 11,4 156.958 65,4 55.516 23,1 239.925
+VI (**) (***) 33.896 14,0 164.253 67,9 43.920 18,1 242.069
+VII (**) 34.418 11,0 198.961 63,8 78.516 25,2 311.895
+VIII 13.643 10,7 79.250 62,4 34.193 26,9 127.086
+IX 22.142 12,1 118.126 64,5 42.775 23,4 183.043
+X 27.124 12,0 148.186 65,3 51.532 22,7 226.842
+XI 17.625 11,7 97.582 64,6 35.850 23,7 151.057
+XII 15.110 10,9 87.264 62,9 36.320 26,2 138.694
+XIII 14.436 11,1 84.115 64,5 31.782 24,4 130.333
+XIV 22.852 12,0 122.801 64,7 44.256 23,3 189.909
+XV 18.568 11,6 105.589 65,7 36.463 22,7 160.620
+Non localizzati 32 5,6 340 59,9 196 34,5 568
+Totale 322.565 11,5 1.802.024 64,4 672.677 24,0 2.797.266
+Femmine
+I 7.144 8,5 51.289 61,2 25.365 30,3 83.798
+II 8.928 10,0 54.625 60,9 26.087 29,1 89.640
+III 11.717 10,8 66.123 61,1 30.360 28,1 108.200
+IV (*) 8.929 10,2 53.691 61,5 24.654 28,2 87.274
+V (*) 13.324 10,8 77.478 62,8 32.529 26,4 123.331
+VI (*) 16.534 13,5 81.310 66,5 24.416 20,0 122.260
+VII (*) 16.810 10,2 102.257 61,9 46.118 27,9 165.185
+VIII 6.753 
+--- pag 13
+Roma Capitale - Annuario statistico 2025 Cap.2 Popolazione
+Tab.2.6 - Popolazione iscritta in anagrafe a Roma al 31.12.2024 per stato civile, genere e municipio
+Stato civile
+Vedovi/e
+Divorziati/e
+Municipio Celibi e Uniti/e da Totale
+Coniugati Vedovi Divorziati da Unione Sconosciuto
+nubili Civilmente Unione
+Civile
+Civile
+Maschi e Femmine
+I 74.250 55.530 9.624 7.927 553 11 14 13.738 161.647
+II 74.544 62.745 10.415 7.488 325 4 5 7.571 163.097
+III 92.310 79.460 14.474 9.111 289 7 6 6.785 202.442
+IV (***) 75.276 68.065 12.063 6.425 177 4 11 6.018 168.039
+V (***) 107.583 90.685 17.113 8.840 428 3 28 15.245 239.925
+VI (**) (***) 111.447 98.444 13.397 8.675 257 4 11 9.834 242.069
+VII (**) 140.805 124.490 21.991 12.951 515 8 23 11.112 311.895
+VIII 57.028 49.506 9.268 5.729 292 3 6 5.254 127.086
+IX 82.110 76.872 11.215 8.055 187 3 6 4.595 183.043
+X 101.256 93.887 14.756 11.604 299 5 23 5.012 226.842
+XI 68.689 59.427 10.891 6.559 288 2 12 5.189 151.057
+XII 62.401 53.661 9.975 6.532 292 5 9 5.819 138.694
+XIII 57.060 51.714 8.728 5.366 174 1 7 7.283 130.333
+XIV 85.590 76.311 12.398 8.024 251 3 12 7.320 189.909
+XV 70.346 62.616 9.606 7.449 171 3 8 10.421 160.620
+Non localizzati 285 128 23 46 1 - - 85 568
+Totale 1.260.980 1.103.541 185.937 120.781 4.499 66 181 121.281 2.797.266
+Femmine
+I 36.821 28.164 7.874 5.072 113 3 6 5.745 83.798
+II 38.481 32.677 8.633 5.064 109 - 3 4.673 89.640
+III 45.628 40.902 11.785 5.955 115 3 4 3.808 108.200
+IV (*) 36.001 34.717 9.756 4.086 62 2 6 2.644 87.274
+V (*
+--- pag 14
+Roma Capitale - Annuario statistico 2025 Cap.2 Popolazione
+Tab.2.7 - Popolazione iscritta in anagrafe a Roma al 31.12.2024 per cittadinanza e per municipio
+% di stranieri sulla
+Municipio Italiani Stranieri Totale
+popolazione
+I 126.563 35.084 161.647 21,7
+II 141.892 21.205 163.097 13,0
+III 183.051 19.391 202.442 9,6
+IV (*) 149.968 18.071 168.039 10,8
+V (*) 195.891 44.034 239.925 18,4
+VI (*) 195.928 46.141 242.069 19,1
+VII (*) 277.200 34.695 311.895 11,1
+VIII 112.280 14.806 127.086 11,7
+IX 167.092 15.951 183.043 8,7
+X 200.857 25.985 226.842 11,5
+XI 129.632 21.425 151.057 14,2
+XII 121.352 17.342 138.694 12,5
+XIII 109.873 20.460 130.333 15,7
+XIV 165.249 24.660 189.909 13,0
+XV 127.945 32.675 160.620 20,3
+Non localizzati 403 165 568 29,0
+Totale 2.405.176 392.090 2.797.266 14,0
+Fonte: Elaborazioni dell'Ufficio di Statistica di Roma Capitale su dati di fonte Anagrafe
+(*) Con Deliberazione n.2 dell'Assemblea Capitolina del 14/01/2021 sono stati modificati parzialmente i confini dei municipi VI e VII.
+Pertanto l'intera Zona Urbanistica 08A è passata dal municipio VI al Municipio VII. Con Deliberazione n.4 dell'Assemblea Capitolina del
+12/01/2024 sono stati modificati parzialmente i confini dei municipi IV, V e VI. Pertanto:
+- parte della Zona Urbanistica 5F del Municipio IV è confluita nel Municipio V
+- parte della Zona Urbanistica 5L del Municipio IV è confluita nel Municipio V
+- parte della Zona Urbanistica 8D del Municipio VI è confluita nel Municipio V
+Graf.2.4 - Popolazione iscrit
+--- pag 16
+Roma Capitale - Annuario statistico 2025 Cap.2 Popolazione
+Tab.2.8 - Popolazione straniera iscritta in anagrafe al 31.12 per municipio di Roma. Anni 2015-2024
+Anni
+Municipio
+2014 2015 2016 2017 2018 2019 2020 2021 2022 2024
+I 45.014 45.162 42.806 34.789 33.567 33.462 34.354 34.797 34.957 35.084
+II 20.451 21.056 21.340 21.774 21.523 21.168 21.172 21.391 21.371 21.205
+III 17.344 17.979 18.486 19.179 19.379 18.475 19.000 19.363 19.419 19.391
+IV (*) 15.114 15.809 16.512 16.979 16.973 17.073 17.065 17.761 17.682 18.071
+V (*) 38.984 40.680 42.696 42.555 42.861 42.120 42.184 42.926 44.233 44.034
+VI (*) 43.377 44.452 45.762 45.350 45.354 44.623 43.918 44.903 45.716 46.141
+VII (*) 28.378 29.826 31.246 32.184 32.147 31.343 32.526 33.007 34.337 34.695
+VIII 13.210 13.837 14.347 14.646 14.568 14.592 14.723 14.782 15.043 14.806
+IX 14.796 15.526 16.055 16.161 16.068 15.704 15.601 15.756 15.854 15.951
+X 23.989 24.873 25.224 25.746 26.157 25.833 25.627 25.374 25.687 25.985
+XI 19.573 20.304 21.166 21.463 21.365 21.120 21.188 21.603 21.368 21.425
+XII 14.740 15.265 15.740 16.240 16.414 16.058 16.580 17.265 17.296 17.342
+XIII 18.389 19.069 19.359 19.784 20.216 19.346 19.521 19.587 20.249 20.460
+XIV 22.288 23.190 23.730 24.054 24.081 23.501 23.538 24.046 24.793 24.660
+XV 28.897 30.085 31.055 31.638 31.512 31.209 31.350 32.022 32.259 32.675
+Non
+88 104 97 93 116 1.096 535 470 447 165
+localizzati
+Totale 364.632 377.217 385.621 382.635 382.301 376.723 378.882 385.053 390.711 392.090
+Fonte: Elaborazion
+--- pag 17
+Roma Capitale - Annuario statistico 2025 Cap.2 Popolazione
+Tab.2.9 - Popolazione straniera iscritta in anagrafe a Roma al 31.12.2024 per classe di età, genere e municipio
+Classi di età
+Municipio Totale
+meno di 1 1 - 4 5 - 9 10 - 14 15 - 29 30 - 49 50 - 64 65 e oltre
+Maschi e Femmine
+I 77 422 776 1.071 3.903 15.048 9.093 4.694 35.084
+II 51 303 555 674 2.374 7.411 6.586 3.251 21.205
+III 85 527 919 961 2.514 7.370 4.967 2.048 19.391
+IV (*) 97 543 861 910 2.799 7.739 3.764 1.358 18.071
+V (*) 290 1.609 2.492 2.324 6.444 18.884 9.099 2.892 44.034
+VI (*) 331 1.927 2.977 2.866 7.643 19.825 8.554 2.018 46.141
+VII (*) 173 975 1.520 1.502 5.075 14.765 7.792 2.893 34.695
+VIII 71 341 502 488 1.903 5.842 3.912 1.747 14.806
+IX 85 414 689 726 2.014 6.265 4.135 1.623 15.951
+X 117 749 1.296 1.376 3.523 10.588 6.233 2.103 25.985
+XI 140 736 1.176 1.146 3.256 8.524 4.881 1.566 21.425
+XII 65 357 636 640 2.345 6.872 4.456 1.971 17.342
+XIII 95 507 865 935 2.493 8.315 5.154 2.096 20.460
+XIV 123 682 1.221 1.260 3.459 9.360 6.213 2.342 24.660
+XV 139 873 1.395 1.592 4.533 12.379 8.528 3.236 32.675
+Non localizzati 1 4 2 7 20 83 28 20 165
+Totale 1.940 10.969 17.882 18.478 54.298 159.270 93.395 35.858 392.090
+Femmine
+I 30 205 389 522 1.547 6.222 5.047 2.831 16.793
+II 29 143 289 314 1.164 4.408 4.572 2.395 13.314
+III 40 272 418 474 1.168 4.040 3.235 1.517 11.164
+IV (*) 54 258 375 432 1.172 3.638 2.273 911 9.113
+V (*) 132 775 1.231 1.149 2.768 8.304 4.729 1.843 20.931
+VI (*) 167 983 1.484 1.373 3.221 9.461 4
+--- pag 18
+Roma Capitale - Annuario statistico 2025 Cap.2 Popolazione
+Tab.2.10 - Popolazione straniera iscritta in anagrafe a Roma al 31.12.2024 per stato civile, genere e municipio
+Stato civile
+Municipio Vedovi/e Totale
+Divorziati/e
+Celibi e Uniti/e da
+Coniugati Vedovi Divorziati da Unione Sconosciuto
+nubili Civilmente Unione
+Civile
+Civile
+Maschi e Femmine
+I 12.934 7.628 421 609 76 2 3 13.411 35.084
+II 6.435 6.520 386 562 32 0 0 7.270 21.205
+III 6.322 5.710 325 457 22 1 0 6.554 19.391
+IV (*) 6.306 5.173 285 390 20 1 1 5.895 18.071
+V (*) 14.797 12.958 477 830 48 2 7 14.915 44.034
+VI (*) 18.683 16.101 555 1.083 30 1 0 9.688 46.141
+VII (*) 12.020 10.314 515 946 39 1 5 10.855 34.695
+VIII 4.662 4.393 250 377 19 0 2 5.103 14.806
+IX 5.194 5.532 313 439 14 0 2 4.457 15.951
+X 9.798 10.015 440 811 24 1 2 4.894 25.985
+XI 8.120 7.426 311 480 20 0 1 5.067 21.425
+XII 5.715 5.171 295 452 28 1 2 5.678 17.342
+XIII 6.317 6.348 270 407 21 0 1 7.096 20.460
+XIV 8.209 8.375 403 570 25 0 3 7.075 24.660
+XV 10.667 10.659 422 691 24 0 2 10.210 32.675
+Non localizzati 49 20 0 11 0 0 0 85 165
+Totale 136.228 122.343 5.668 9.115 442 10 31 118.253 392.090
+Femmine
+I 5.904 4.450 372 474 18 1 1 5.573 16.793
+II 3.929 4.022 347 493 2 0 0 4.521 13.314
+III 3.344 3.449 293 384 3 0 0 3.691 11.164
+IV (*) 2.987 2.981 255 300 3 1 0 2.586 9.113
+V (*) 6.873 7.042 406 622 8 0 3 5.977 20.931
+VI (*) 8.865 8.614 478 827 4 0 0 3.564 22.352
+VII (*) 6.188 6.017 464 802 6 1 2 5.307 18.787
+VIII 2.452 2.592 226 291 2 0 0 2.606 8.169
+IX 2.65
+--- pag 23
+Roma Capitale - Annuario statistico 2025 Cap.2 Popolazione
+Natalità e mortalità
+Tab.2.12 - Iscritti in anagrafe per nascita per municipio e genere. Roma. Anno 2024 (*)
+Genere del nato
+Municipio Totale
+Maschi Femmine
+I 371 347 718
+II 498 475 973
+III 715 631 1.346
+IV (**) 526 528 1.054
+V (**) 814 762 1.576
+VI (**) 993 952 1.945
+VII (**) 938 898 1.836
+VIII 373 412 785
+IX 574 604 1.178
+X 620 595 1.215
+XI 510 448 958
+XII 428 390 818
+XIII 406 359 765
+XIV 639 626 1.265
+XV 487 450 937
+Non localizzati - - 0
+Totale 8.892 8.477 17.369
+Fonte: Elaborazioni dell'Ufficio di Statistica di Roma Capitale su dati di fonte Anagrafe
+(*) Numero di iscrizioni per nascita nell'anagrafe di Roma Capitale registrate nel corso dell’anno di riferimento, a prescindere dalla data dell’evento
+(i dati sono allineati alle eventuali modifiche effettuate su tali iscrizioni)
+(**) Con Deliberazione n.2 dell'Assemblea Capitolina del 14/01/2021 sono stati modificati parzialmente i confini dei municipi VI e VII. Pertanto,
+l'intera Zone Urbanistica 08A è passata dal municipio VI al Municipio VII. Con Deliberazione n.4 dell'Assemblea Capitolina del 12/01/2024 sono stati
+modificati parzialmente i confini dei municipi IV, V e VI. Pertanto:
+- parte della Zona Urbanistica 5F del Municipio IV è confluita nel Municipio V
+- parte della Zona Urbanistica 5L del Municipio IV è confluita nel Municipio V
+- parte della Zona Urbanistica 8D del Municipio VI è confluita nel Municipio V
+Tab.2.13 - Iscritti in anagrafe per nascita per 
+--- pag 24
+Roma Capitale - Annuario statistico 2025 Cap.2 Popolazione
+Tab.2.14 - Nati da madre straniera per municipio e classi di età della madre. Roma. Anno 2024 (*)
+Classi di età della madre
+Municipio Totale
+meno di 15 15-24 25-34 35-44 45 e oltre Non indicata
+I - 7 64 53 6 - 130
+II - 3 56 47 1 - 107
+III - 10 67 64 1 - 142
+IV (**) - 20 80 57 1 - 158
+V (**) - 37 244 128 3 - 412
+VI (**) - 57 262 163 5 - 487
+VII (**) - 18 163 98 2 1 282
+VIII - 15 67 42 2 - 126
+IX - 24 67 55 3 - 149
+X - 18 102 72 3 - 195
+XI - 19 135 51 2 - 207
+XII - 2 64 48 2 1 117
+XIII - 10 87 48 - - 145
+XIV - 21 112 71 2 - 206
+XV - 22 119 84 6 - 231
+Non localizzati - - - - - - 0
+Totale - 283 1.689 1.081 39 2 3.094
+Fonte: Elaborazioni dell'Ufficio di Statistica di Roma Capitale su dati di fonte Anagrafe
+(*) Numero di iscrizioni per nascita nell'anagrafe di Roma Capitale registrate nel corso dell’anno di riferimento, a prescindere dalla data dell’evento (i dati
+sono allineati alle eventuali modifiche effettuate su tali iscrizioni).
+(**) Con Deliberazione n.2 dell'Assemblea Capitolina del 14/01/2021 sono stati modificati parzialmente i confini dei municipi VI e VII. Pertanto,
+l'intera Zona Urbanistica 08A è passata dal municipio VI al Municipio VII. Con Deliberazione n.4 dell'Assemblea Capitolina del 12/01/2024 sono stati
+modificati parzialmente i confini dei municipi IV, V e VI. Pertanto:
+- parte della Zona Urbanistica 5F del Municipio IV è confluita nel Municipio V
+- parte della Zona Urbanistica 5L del Municipio IV è co
+--- pag 27
+Roma Capitale - Annuario statistico 2025 Cap.2 Popolazione
+Tab.2.17 - Iscritti in anagrafe per nascita per luogo dell’evento e municipio. Anno 2024 (*)
+Luogo dell'evento
+Municipio
+Comune Altri comuni della Altre province Altre Estero Totale
+di Roma Provincia di Roma del Lazio Regioni
+I 670 - 1 27 20 718
+II 918 3 4 35 13 973
+III 1.310 - 1 27 8 1.346
+IV (**) 1.012 2 3 33 4 1.054
+V (**) 1.528 4 4 27 13 1.576
+VI (**) 1.895 17 3 19 11 1.945
+VII (**) 1.784 1 2 39 10 1.836
+VIII 754 1 1 20 9 785
+IX 1.138 6 4 19 11 1.178
+X 1.195 1 1 9 9 1.215
+XI 940 1 1 12 4 958
+XII 802 - - 10 6 818
+XIII 743 1 - 12 9 765
+XIV 1.241 1 - 13 10 1.265
+XV 912 - 1 16 8 937
+Non localizzati - - - - - 0
+Totale 16.842 38 26 318 145 17.369
+Fonte: Elaborazioni dell'Ufficio di Statistica di Roma Capitale su dati di fonte Anagrafe
+(*) Numero di iscrizioni per nascita nell'anagrafe di Roma Capitale registrate nel corso dell’anno di riferimento, a prescindere dalla data
+dell’evento (i dati sono allineati alle eventuali modifiche effettuate su tali iscrizioni)
+(**) Con Deliberazione n.2 dell'Assemblea Capitolina del 14/01/2021 sono stati modificati parzialmente i confini dei municipi VI e VII. Pertanto,
+l'intera Zona Urbanistica 08A è passata dal municipio VI al Municipio VII. Con Deliberazione n.4 dell'Assemblea Capitolina del 12/01/2024 sono stati
+modificati parzialmente i confini dei municipi IV, V e VI. Pertanto:
+- parte della Zona Urbanistica 5F del Municipio IV è confluita nel Municipio V
+- parte della Zona Urban
+## PDF https://www.comune.roma.it/web-resources/cms/documents/03_Municipio_pop_2019.pdf 942514
+--- pag 1
+Popolazione
+Municipio III
+Popolazione iscritta in anagrafe
+Anno 2019
+205.759 Iscritti in anagrafe
+Popolazione iscritta in anagrafe per zona urbanistica
+-0,04% vs 2018 (Roma -0,4%)
+Popolazione per z.u.
+16.418 4a Monte Sacro
+36.560 4b Val Melaina
+33.675 4c Monte Sacro Alto
+11.799 4d Fidene
+31.867 4e Serpentara
+13.984 4f Casal Boccone
+18.932 4g Conca d'Oro
+10.178 4h Sacco Pastore
+14.181 4i Tufello
+1.937 4l Aeroporto dell' Urbe
+5.189 4m Settebagni
+7.531 4n Bufalotta
+823 4o Tor S. Giovanni
+2.685 non localizzati
+Fonte: Elaborazioni Ufficio di Statistica di Roma Capitale su dati Anagrafe
+Ufficio di Statistica di Roma Capitale 1
+--- pag 2
+Popolazione
+Municipio III
+Densità abitativa
+Anno 2019
+98,03 kmq Estensione
+Densità abitativa (ab./kmq) per zona urbanistica
+2.099,0 Densità abitativa
+(Roma: 2.213,3)
+Densità abitativa per z.u.
+(ab./kmq)
+9.922,9 4a Monte Sacro
+11.431,2 4b Val Melaina
+13.572,7 4c Monte Sacro Alto
+10.751,2 4d Fidene
+5.691,2 4e Serpentara
+2.313,8 4f Casal Boccone
+15.013,7 4g Conca d'Oro
+21.672,1 4h Sacco Pastore
+16.148,5 4i Tufello
+436,5 4l Aeroporto dell' Urbe
+1.066,8 4m Settebagni
+537,7 4n Bufalotta
+15,8 4o Tor S. Giovanni
+Fonte: Elaborazioni Ufficio di Statistica di Roma Capitale su dati Anagrafe
+Ufficio di Statistica di Roma Capitale 2
+--- pag 3
+Popolazione
+Municipio III
+Rapporto di mascolinità
+Rapporto di mascolinità Anno 2019
+86,7 Municipio III
+Rapporto di mascolinità (%) per zona urbanistica
+89,8 Roma
+Rapporto di mascolinità per z.u.
+82,3 4a Monte Sacro
+85,8 4b Val Melaina
+82,2 4c Monte Sacro Alto
+91,2 4d Fidene
+91,4 4e Serpentara
+89,4 4f Casal Boccone
+82,2 4g Conca d'Oro
+83,5 4h Sacco Pastore
+84,9 4i Tufello
+94,3 4l Aeroporto dell' Urbe
+93,1 4m Settebagni
+98,8 4n Bufalotta
+104,2 4o Tor S. Giovanni
+Fonte: Elaborazioni Ufficio di Statistica di Roma Capitale su dati Anagrafe
+Ufficio di Statistica di Roma Capitale 3
+--- pag 7
+Popolazione
+Municipio III
+Indice di vecchiaia
+Indice di vecchiaia
+Anno 2019
+186,2 Municipio III
+Indice di vecchiaia (%) per zona urbanistica
+174,6Roma
+Indice di vecchiaia per z.u.
+205,7 4a Monte Sacro
+215,4 4b Val Melaina
+199,7 4c Monte Sacro Alto
+149,8 4d Fidene
+168,3 4e Serpentara
+129,2 4f Casal Boccone
+228,7 4g Conca d'Oro
+189,1 4h Sacco Pastore
+224,8 4i Tufello
+174,4 4l Aeroporto dell' Urbe
+131,7 4m Settebagni
+98,6 4n Bufalotta
+147,0 4o Tor S. Giovanni
+Fonte: Elaborazioni Ufficio di Statistica di Roma Capitale su dati Anagrafe
+Ufficio di Statistica di Roma Capitale 7
+--- pag 8
+Popolazione
+Municipio III
+Indice di dipendenza
+Indice di dipendenza
+Anno 2019
+58,8 Municipio III
+Indice di dipendenza (%) per zona urbanistica
+55,3Roma
+Indice di dipendenza per z.u.
+56,7 4a Monte Sacro
+71,2 4b Val Melaina
+64,0 4c Monte Sacro Alto
+51,0 4d Fidene
+54,1 4e Serpentara
+49,7 4f Casal Boccone
+64,3 4g Conca d'Oro
+51,7 4h Sacco Pastore
+55,9 4i Tufello
+57,6 4l Aeroporto dell' Urbe
+48,6 4m Settebagni
+49,1 4n Bufalotta
+52,7 4o Tor S. Giovanni
+Fonte: Elaborazioni Ufficio di Statistica di Roma Capitale su dati Anagrafe
+Ufficio di Statistica di Roma Capitale 8
+--- pag 10
+Popolazione
+Municipio III
+Incremento/Decremento demografico
+Anno 2019 vs 2014
+Confronto 2019 vs 2014
+Variazione demografica per zona urbanistica
++0,8% Popolazione Municipio III
+(Roma -0,9%)
+Confronto 2019 vs 2014 per z.u.
+-0,2% 4a Monte Sacro
+0,3% 4b Val Melaina
+0,6% 4c Monte Sacro Alto
+0,4% 4d Fidene
+-0,3% 4e Serpentara
+5,5% 4f Casal Boccone
+-2,2% 4g Conca d'Oro
+0,7% 4h Sacco Pastore
+-7,1% 4i Tufello
+-6,1% 4l Aeroporto dell' Urbe
+2,4% 4m Settebagni
+6,4% 4n Bufalotta
+-10,3% 4o Tor S. Giovanni
+Fonte: Elaborazioni Ufficio di Statistica di Roma Capitale su dati Anagrafe
+Ufficio di Statistica di Roma Capitale 10

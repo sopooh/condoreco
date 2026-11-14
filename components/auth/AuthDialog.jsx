@@ -6,6 +6,7 @@ import { PasswordInput } from '@/components/auth/PasswordInput'
 import Modal from '@/components/ui/Modal'
 import { createClient } from '@/lib/supabase/client'
 import { emailLinkClient } from '@/lib/supabase/emailLink'
+import { track } from '@/lib/analytics'
 
 export const MIN_PASSWORD = 8
 
@@ -137,6 +138,7 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
           else setErr(f)
           return
         }
+        track('user_login_succeeded', { login_method: 'password' })
         onClose()
       } else if (mode === 'signup') {
         if (!ageOk) { setErr('Per registrarti conferma di avere almeno 14 anni e di aver letto l’informativa.'); return }
@@ -153,6 +155,10 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
           setErr('Esiste già un account con questa email. Accedi, oppure usa "Password dimenticata?" se non ne hai una.')
           return
         }
+        track('account_signup_submitted', {
+          signup_method: 'password',
+          email_confirmation_required: !data.session,
+        })
         if (data.session) {
           await supabase.auth.setSession({ access_token: data.session.access_token, refresh_token: data.session.refresh_token })
           onClose(); return

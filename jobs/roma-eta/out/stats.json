@@ -1,0 +1,1096 @@
+{
+ "soglie": [
+  149.8,
+  213.4
+ ],
+ "zu": [
+  {
+   "zu": "15E",
+   "nome": "Magliana",
+   "mun": 11,
+   "vecchiaia": 42.0,
+   "pop21": 5293,
+   "classe": "giovani"
+  },
+  {
+   "zu": "7H",
+   "nome": "Omo",
+   "mun": 5,
+   "vecchiaia": 45.2,
+   "pop21": 1917,
+   "classe": "giovani"
+  },
+  {
+   "zu": "8D",
+   "nome": "Acqua Vergine",
+   "mun": 6,
+   "vecchiaia": 54.6,
+   "pop21": 6785,
+   "classe": "giovani"
+  },
+  {
+   "zu": "5I",
+   "nome": "S. Alessandro",
+   "mun": 4,
+   "vecchiaia": 65.7,
+   "pop21": 10554,
+   "classe": "giovani"
+  },
+  {
+   "zu": "10I",
+   "nome": "Barcaccia",
+   "mun": 7,
+   "vecchiaia": 65.7,
+   "pop21": 14419,
+   "classe": "giovani"
+  },
+  {
+   "zu": "8H",
+   "nome": "S. Vittorino",
+   "mun": 6,
+   "vecchiaia": 68.2,
+   "pop21": 13976,
+   "classe": "giovani"
+  },
+  {
+   "zu": "8E",
+   "nome": "Lunghezza",
+   "mun": 6,
+   "vecchiaia": 68.2,
+   "pop21": 37270,
+   "classe": "giovani"
+  },
+  {
+   "zu": "15G",
+   "nome": "Ponte Galeria",
+   "mun": 11,
+   "vecchiaia": 70.0,
+   "pop21": 13174,
+   "classe": "giovani"
+  },
+  {
+   "zu": "12F",
+   "nome": "Mezzocammino",
+   "mun": 9,
+   "vecchiaia": 75.8,
+   "pop21": 15469,
+   "classe": "giovani"
+  },
+  {
+   "zu": "10E",
+   "nome": "Lucrezia Romana",
+   "mun": 7,
+   "vecchiaia": 79.4,
+   "pop21": 5172,
+   "classe": "giovani"
+  },
+  {
+   "zu": "19G",
+   "nome": "Castelluccia",
+   "mun": 14,
+   "vecchiaia": 82.1,
+   "pop21": 30631,
+   "classe": "giovani"
+  },
+  {
+   "zu": "13A",
+   "nome": "Malafede",
+   "mun": 10,
+   "vecchiaia": 85.0,
+   "pop21": 17197,
+   "classe": "giovani"
+  },
+  {
+   "zu": "12I",
+   "nome": "Decima",
+   "mun": 9,
+   "vecchiaia": 89.2,
+   "pop21": 8186,
+   "classe": "giovani"
+  },
+  {
+   "zu": "19D",
+   "nome": "S. Maria della Pietà",
+   "mun": 14,
+   "vecchiaia": 90.7,
+   "pop21": 26349,
+   "classe": "giovani"
+  },
+  {
+   "zu": "8G",
+   "nome": "Borghesiana",
+   "mun": 6,
+   "vecchiaia": 92.8,
+   "pop21": 50425,
+   "classe": "giovani"
+  },
+  {
+   "zu": "12N",
+   "nome": "Santa Palomba",
+   "mun": 9,
+   "vecchiaia": 97.2,
+   "pop21": 1359,
+   "classe": "giovani"
+  },
+  {
+   "zu": "16F",
+   "nome": "Pantano di Grano",
+   "mun": 12,
+   "vecchiaia": 98.3,
+   "pop21": 5477,
+   "classe": "giovani"
+  },
+  {
+   "zu": "4N",
+   "nome": "Bufalotta",
+   "mun": 3,
+   "vecchiaia": 98.6,
+   "pop21": 7464,
+   "classe": "giovani"
+  },
+  {
+   "zu": "13I",
+   "nome": "Infernetto",
+   "mun": 10,
+   "vecchiaia": 98.6,
+   "pop21": 29467,
+   "classe": "giovani"
+  },
+  {
+   "zu": "18F",
+   "nome": "Boccea",
+   "mun": 13,
+   "vecchiaia": 100.3,
+   "pop21": 7664,
+   "classe": "giovani"
+  },
+  {
+   "zu": "20F",
+   "nome": "Grottarossa Est",
+   "mun": 15,
+   "vecchiaia": 100.6,
+   "pop21": 1323,
+   "classe": "giovani"
+  },
+  {
+   "zu": "13E",
+   "nome": "Ostia Antica",
+   "mun": 10,
+   "vecchiaia": 102.2,
+   "pop21": 17809,
+   "classe": "giovani"
+  },
+  {
+   "zu": "20I",
+   "nome": "S. Cornelia",
+   "mun": 15,
+   "vecchiaia": 102.5,
+   "pop21": 9281,
+   "classe": "giovani"
+  },
+  {
+   "zu": "9C",
+   "nome": "Tor Fiscale",
+   "mun": 7,
+   "vecchiaia": 105.5,
+   "pop21": 2172,
+   "classe": "giovani"
+  },
+  {
+   "zu": "10G",
+   "nome": "Romanina",
+   "mun": 7,
+   "vecchiaia": 106.5,
+   "pop21": 6896,
+   "classe": "giovani"
+  },
+  {
+   "zu": "12L",
+   "nome": "Porta Medaglia",
+   "mun": 9,
+   "vecchiaia": 110.2,
+   "pop21": 2487,
+   "classe": "giovani"
+  },
+  {
+   "zu": "16E",
+   "nome": "Massimina",
+   "mun": 12,
+   "vecchiaia": 112.7,
+   "pop21": 9197,
+   "classe": "giovani"
+  },
+  {
+   "zu": "5L",
+   "nome": "Settecamini",
+   "mun": 4,
+   "vecchiaia": 113.3,
+   "pop21": 12476,
+   "classe": "giovani"
+  },
+  {
+   "zu": "8F",
+   "nome": "Torre Angela",
+   "mun": 6,
+   "vecchiaia": 116.0,
+   "pop21": 87128,
+   "classe": "giovani"
+  },
+  {
+   "zu": "20L",
+   "nome": "Prima Porta",
+   "mun": 15,
+   "vecchiaia": 116.9,
+   "pop21": 3853,
+   "classe": "giovani"
+  },
+  {
+   "zu": "10H",
+   "nome": "Gregna",
+   "mun": 7,
+   "vecchiaia": 119.1,
+   "pop21": 7038,
+   "classe": "giovani"
+  },
+  {
+   "zu": "13B",
+   "nome": "Acilia Nord",
+   "mun": 10,
+   "vecchiaia": 124.1,
+   "pop21": 26939,
+   "classe": "giovani"
+  },
+  {
+   "zu": "20N",
+   "nome": "Cesano",
+   "mun": 15,
+   "vecchiaia": 125.1,
+   "pop21": 11025,
+   "classe": "giovani"
+  },
+  {
+   "zu": "13C",
+   "nome": "Acilia Sud",
+   "mun": 10,
+   "vecchiaia": 128.4,
+   "pop21": 25163,
+   "classe": "giovani"
+  },
+  {
+   "zu": "16C",
+   "nome": "Pisana",
+   "mun": 12,
+   "vecchiaia": 128.5,
+   "pop21": 4726,
+   "classe": "giovani"
+  },
+  {
+   "zu": "4F",
+   "nome": "Casal Boccone",
+   "mun": 3,
+   "vecchiaia": 129.2,
+   "pop21": 13671,
+   "classe": "giovani"
+  },
+  {
+   "zu": "10L",
+   "nome": "Morena",
+   "mun": 7,
+   "vecchiaia": 129.9,
+   "pop21": 28873,
+   "classe": "giovani"
+  },
+  {
+   "zu": "4M",
+   "nome": "Settebagni",
+   "mun": 3,
+   "vecchiaia": 131.7,
+   "pop21": 5289,
+   "classe": "giovani"
+  },
+  {
+   "zu": "5F",
+   "nome": "Tor Cervara",
+   "mun": 4,
+   "vecchiaia": 132.4,
+   "pop21": 2589,
+   "classe": "giovani"
+  },
+  {
+   "zu": "20G",
+   "nome": "Giustiniana",
+   "mun": 15,
+   "vecchiaia": 133.7,
+   "pop21": 11056,
+   "classe": "giovani"
+  },
+  {
+   "zu": "18E",
+   "nome": "Casalotti di Boccea",
+   "mun": 13,
+   "vecchiaia": 136.8,
+   "pop21": 17424,
+   "classe": "giovani"
+  },
+  {
+   "zu": "18C",
+   "nome": "Fogaccia",
+   "mun": 13,
+   "vecchiaia": 142.7,
+   "pop21": 28536,
+   "classe": "giovani"
+  },
+  {
+   "zu": "7D",
+   "nome": "La Rustica",
+   "mun": 5,
+   "vecchiaia": 142.9,
+   "pop21": 9905,
+   "classe": "giovani"
+  },
+  {
+   "zu": "20E",
+   "nome": "Grottarossa Ovest",
+   "mun": 15,
+   "vecchiaia": 146.4,
+   "pop21": 2673,
+   "classe": "giovani"
+  },
+  {
+   "zu": "6C",
+   "nome": "Quadraro",
+   "mun": 5,
+   "vecchiaia": 147.1,
+   "pop21": 19968,
+   "classe": "giovani"
+  },
+  {
+   "zu": "4D",
+   "nome": "Fidene",
+   "mun": 3,
+   "vecchiaia": 149.8,
+   "pop21": 11735,
+   "classe": "medio"
+  },
+  {
+   "zu": "20H",
+   "nome": "La Storta",
+   "mun": 15,
+   "vecchiaia": 150.7,
+   "pop21": 19694,
+   "classe": "medio"
+  },
+  {
+   "zu": "7B",
+   "nome": "Alessandrina",
+   "mun": 5,
+   "vecchiaia": 152.1,
+   "pop21": 25837,
+   "classe": "medio"
+  },
+  {
+   "zu": "20B",
+   "nome": "Acquatraversa",
+   "mun": 15,
+   "vecchiaia": 152.7,
+   "pop21": 9607,
+   "classe": "medio"
+  },
+  {
+   "zu": "5E",
+   "nome": "S. Basilio",
+   "mun": 4,
+   "vecchiaia": 154.1,
+   "pop21": 25202,
+   "classe": "medio"
+  },
+  {
+   "zu": "20M",
+   "nome": "Labaro",
+   "mun": 15,
+   "vecchiaia": 157.7,
+   "pop21": 22132,
+   "classe": "medio"
+  },
+  {
+   "zu": "12C",
+   "nome": "Torrino",
+   "mun": 9,
+   "vecchiaia": 158.1,
+   "pop21": 40102,
+   "classe": "medio"
+  },
+  {
+   "zu": "10C",
+   "nome": "Quarto Miglio",
+   "mun": 7,
+   "vecchiaia": 164.6,
+   "pop21": 10439,
+   "classe": "medio"
+  },
+  {
+   "zu": "19C",
+   "nome": "Ottavia",
+   "mun": 14,
+   "vecchiaia": 165.1,
+   "pop21": 14098,
+   "classe": "medio"
+  },
+  {
+   "zu": "19H",
+   "nome": "S. Maria di Galeria",
+   "mun": 14,
+   "vecchiaia": 166.5,
+   "pop21": 3566,
+   "classe": "medio"
+  },
+  {
+   "zu": "4E",
+   "nome": "Serpentara",
+   "mun": 3,
+   "vecchiaia": 168.3,
+   "pop21": 31369,
+   "classe": "medio"
+  },
+  {
+   "zu": "7C",
+   "nome": "Tor Sapienza",
+   "mun": 5,
+   "vecchiaia": 168.9,
+   "pop21": 11975,
+   "classe": "medio"
+  },
+  {
+   "zu": "8B",
+   "nome": "Torre Maura",
+   "mun": 6,
+   "vecchiaia": 171.9,
+   "pop21": 18941,
+   "classe": "medio"
+  },
+  {
+   "zu": "15D",
+   "nome": "Trullo",
+   "mun": 11,
+   "vecchiaia": 172.9,
+   "pop21": 28820,
+   "classe": "medio"
+  },
+  {
+   "zu": "7A",
+   "nome": "Centocelle",
+   "mun": 5,
+   "vecchiaia": 174.5,
+   "pop21": 52682,
+   "classe": "medio"
+  },
+  {
+   "zu": "20C",
+   "nome": "Tomba di Nerone",
+   "mun": 15,
+   "vecchiaia": 178.3,
+   "pop21": 31948,
+   "classe": "medio"
+  },
+  {
+   "zu": "12E",
+   "nome": "Cecchignola",
+   "mun": 9,
+   "vecchiaia": 184.3,
+   "pop21": 14359,
+   "classe": "medio"
+  },
+  {
+   "zu": "2A",
+   "nome": "Villaggio Olimpico",
+   "mun": 2,
+   "vecchiaia": 185.5,
+   "pop21": 2749,
+   "classe": "medio"
+  },
+  {
+   "zu": "18B",
+   "nome": "Val Cannuta",
+   "mun": 13,
+   "vecchiaia": 185.5,
+   "pop21": 33214,
+   "classe": "medio"
+  },
+  {
+   "zu": "11X",
+   "nome": "Appia Antica Nord",
+   "mun": 8,
+   "vecchiaia": 187.0,
+   "pop21": 2582,
+   "classe": "medio"
+  },
+  {
+   "zu": "13D",
+   "nome": "Palocco",
+   "mun": 10,
+   "vecchiaia": 188.7,
+   "pop21": 26858,
+   "classe": "medio"
+  },
+  {
+   "zu": "4H",
+   "nome": "Sacco Pastore",
+   "mun": 3,
+   "vecchiaia": 189.1,
+   "pop21": 10019,
+   "classe": "medio"
+  },
+  {
+   "zu": "6A",
+   "nome": "Torpignattara",
+   "mun": 5,
+   "vecchiaia": 189.4,
+   "pop21": 45326,
+   "classe": "medio"
+  },
+  {
+   "zu": "13H",
+   "nome": "Castel Fusano",
+   "mun": 10,
+   "vecchiaia": 189.7,
+   "pop21": 1494,
+   "classe": "medio"
+  },
+  {
+   "zu": "12B",
+   "nome": "Villaggio Giuliano",
+   "mun": 9,
+   "vecchiaia": 191.5,
+   "pop21": 9857,
+   "classe": "medio"
+  },
+  {
+   "zu": "15F",
+   "nome": "Corviale",
+   "mun": 11,
+   "vecchiaia": 193.8,
+   "pop21": 15522,
+   "classe": "medio"
+  },
+  {
+   "zu": "2E",
+   "nome": "Trieste",
+   "mun": 2,
+   "vecchiaia": 194.1,
+   "pop21": 51759,
+   "classe": "medio"
+  },
+  {
+   "zu": "11E",
+   "nome": "Tormarancia",
+   "mun": 8,
+   "vecchiaia": 195.4,
+   "pop21": 32944,
+   "classe": "medio"
+  },
+  {
+   "zu": "2B",
+   "nome": "Parioli",
+   "mun": 2,
+   "vecchiaia": 196.9,
+   "pop21": 20475,
+   "classe": "medio"
+  },
+  {
+   "zu": "20D",
+   "nome": "Farnesina",
+   "mun": 15,
+   "vecchiaia": 199.2,
+   "pop21": 18744,
+   "classe": "medio"
+  },
+  {
+   "zu": "15A",
+   "nome": "Marconi",
+   "mun": 11,
+   "vecchiaia": 199.3,
+   "pop21": 33026,
+   "classe": "medio"
+  },
+  {
+   "zu": "11F",
+   "nome": "Tre Fontane",
+   "mun": 8,
+   "vecchiaia": 199.7,
+   "pop21": 11763,
+   "classe": "medio"
+  },
+  {
+   "zu": "4C",
+   "nome": "Monte Sacro Alto",
+   "mun": 3,
+   "vecchiaia": 199.7,
+   "pop21": 33539,
+   "classe": "medio"
+  },
+  {
+   "zu": "19E",
+   "nome": "Trionfale",
+   "mun": 14,
+   "vecchiaia": 200.4,
+   "pop21": 16157,
+   "classe": "medio"
+  },
+  {
+   "zu": "10D",
+   "nome": "Pignatelli",
+   "mun": 7,
+   "vecchiaia": 200.5,
+   "pop21": 6564,
+   "classe": "medio"
+  },
+  {
+   "zu": "12A",
+   "nome": "Eur",
+   "mun": 9,
+   "vecchiaia": 200.7,
+   "pop21": 8784,
+   "classe": "medio"
+  },
+  {
+   "zu": "13F",
+   "nome": "Ostia Nord",
+   "mun": 10,
+   "vecchiaia": 201.1,
+   "pop21": 41018,
+   "classe": "medio"
+  },
+  {
+   "zu": "2D",
+   "nome": "Salario",
+   "mun": 2,
+   "vecchiaia": 201.9,
+   "pop21": 24762,
+   "classe": "medio"
+  },
+  {
+   "zu": "4A",
+   "nome": "Monte Sacro",
+   "mun": 3,
+   "vecchiaia": 205.7,
+   "pop21": 17245,
+   "classe": "medio"
+  },
+  {
+   "zu": "16B",
+   "nome": "Buon Pastore",
+   "mun": 12,
+   "vecchiaia": 206.8,
+   "pop21": 30247,
+   "classe": "medio"
+  },
+  {
+   "zu": "7E",
+   "nome": "Tor Tre Teste",
+   "mun": 5,
+   "vecchiaia": 208.1,
+   "pop21": 10529,
+   "classe": "medio"
+  },
+  {
+   "zu": "19B",
+   "nome": "Primavalle",
+   "mun": 14,
+   "vecchiaia": 209.5,
+   "pop21": 55006,
+   "classe": "medio"
+  },
+  {
+   "zu": "13G",
+   "nome": "Ostia Sud",
+   "mun": 10,
+   "vecchiaia": 209.7,
+   "pop21": 36504,
+   "classe": "medio"
+  },
+  {
+   "zu": "20A",
+   "nome": "Tor di Quinto",
+   "mun": 15,
+   "vecchiaia": 210.1,
+   "pop21": 12618,
+   "classe": "medio"
+  },
+  {
+   "zu": "15C",
+   "nome": "Pian Due Torri",
+   "mun": 11,
+   "vecchiaia": 212.0,
+   "pop21": 23316,
+   "classe": "medio"
+  },
+  {
+   "zu": "2C",
+   "nome": "Flaminio",
+   "mun": 2,
+   "vecchiaia": 213.4,
+   "pop21": 12828,
+   "classe": "anziani"
+  },
+  {
+   "zu": "9E",
+   "nome": "Latino",
+   "mun": 7,
+   "vecchiaia": 214.1,
+   "pop21": 22489,
+   "classe": "anziani"
+  },
+  {
+   "zu": "4B",
+   "nome": "Val Melaina",
+   "mun": 3,
+   "vecchiaia": 215.4,
+   "pop21": 35920,
+   "classe": "anziani"
+  },
+  {
+   "zu": "11D",
+   "nome": "Navigatori",
+   "mun": 8,
+   "vecchiaia": 215.6,
+   "pop21": 5231,
+   "classe": "anziani"
+  },
+  {
+   "zu": "12G",
+   "nome": "Spinaceto",
+   "mun": 9,
+   "vecchiaia": 215.9,
+   "pop21": 23476,
+   "classe": "anziani"
+  },
+  {
+   "zu": "5C",
+   "nome": "Tiburtino Nord",
+   "mun": 4,
+   "vecchiaia": 216.1,
+   "pop21": 20043,
+   "classe": "anziani"
+  },
+  {
+   "zu": "11A",
+   "nome": "Ostiense",
+   "mun": 8,
+   "vecchiaia": 216.3,
+   "pop21": 7048,
+   "classe": "anziani"
+  },
+  {
+   "zu": "3A",
+   "nome": "Nomentano",
+   "mun": 2,
+   "vecchiaia": 217.2,
+   "pop21": 37524,
+   "classe": "anziani"
+  },
+  {
+   "zu": "1E",
+   "nome": "Esquilino",
+   "mun": 1,
+   "vecchiaia": 219.0,
+   "pop21": 31668,
+   "classe": "anziani"
+  },
+  {
+   "zu": "5H",
+   "nome": "Casal de' Pazzi",
+   "mun": 4,
+   "vecchiaia": 221.2,
+   "pop21": 25817,
+   "classe": "anziani"
+  },
+  {
+   "zu": "15B",
+   "nome": "Portuense",
+   "mun": 11,
+   "vecchiaia": 221.7,
+   "pop21": 29219,
+   "classe": "anziani"
+  },
+  {
+   "zu": "19A",
+   "nome": "Medaglie d' Oro",
+   "mun": 14,
+   "vecchiaia": 222.9,
+   "pop21": 38883,
+   "classe": "anziani"
+  },
+  {
+   "zu": "9B",
+   "nome": "Tuscolano Sud",
+   "mun": 7,
+   "vecchiaia": 223.3,
+   "pop21": 46464,
+   "classe": "anziani"
+  },
+  {
+   "zu": "4I",
+   "nome": "Tufello",
+   "mun": 3,
+   "vecchiaia": 224.8,
+   "pop21": 13660,
+   "classe": "anziani"
+  },
+  {
+   "zu": "10B",
+   "nome": "Appio-Claudio",
+   "mun": 7,
+   "vecchiaia": 225.5,
+   "pop21": 28225,
+   "classe": "anziani"
+  },
+  {
+   "zu": "16A",
+   "nome": "Colli Portuensi",
+   "mun": 12,
+   "vecchiaia": 226.7,
+   "pop21": 35048,
+   "classe": "anziani"
+  },
+  {
+   "zu": "6D",
+   "nome": "Gordiani",
+   "mun": 5,
+   "vecchiaia": 227.2,
+   "pop21": 40284,
+   "classe": "anziani"
+  },
+  {
+   "zu": "1B",
+   "nome": "Trastevere",
+   "mun": 1,
+   "vecchiaia": 228.2,
+   "pop21": 11774,
+   "classe": "anziani"
+  },
+  {
+   "zu": "4G",
+   "nome": "Conca d'Oro",
+   "mun": 3,
+   "vecchiaia": 228.7,
+   "pop21": 18863,
+   "classe": "anziani"
+  },
+  {
+   "zu": "8A",
+   "nome": "Torrespaccata",
+   "mun": 6,
+   "vecchiaia": 229.4,
+   "pop21": 13206,
+   "classe": "anziani"
+  },
+  {
+   "zu": "5A",
+   "nome": "Casal Bertone",
+   "mun": 4,
+   "vecchiaia": 230.2,
+   "pop21": 15516,
+   "classe": "anziani"
+  },
+  {
+   "zu": "9A",
+   "nome": "Tuscolano Nord",
+   "mun": 7,
+   "vecchiaia": 233.7,
+   "pop21": 20407,
+   "classe": "anziani"
+  },
+  {
+   "zu": "1G",
+   "nome": "Celio",
+   "mun": 1,
+   "vecchiaia": 234.3,
+   "pop21": 3899,
+   "classe": "anziani"
+  },
+  {
+   "zu": "11C",
+   "nome": "Garbatella",
+   "mun": 8,
+   "vecchiaia": 235.8,
+   "pop21": 42119,
+   "classe": "anziani"
+  },
+  {
+   "zu": "16D",
+   "nome": "Gianicolense",
+   "mun": 12,
+   "vecchiaia": 236.7,
+   "pop21": 52543,
+   "classe": "anziani"
+  },
+  {
+   "zu": "11G",
+   "nome": "Grottaperfetta",
+   "mun": 8,
+   "vecchiaia": 237.3,
+   "pop21": 15301,
+   "classe": "anziani"
+  },
+  {
+   "zu": "9D",
+   "nome": "Appio",
+   "mun": 7,
+   "vecchiaia": 239.4,
+   "pop21": 26162,
+   "classe": "anziani"
+  },
+  {
+   "zu": "1C",
+   "nome": "Aventino",
+   "mun": 1,
+   "vecchiaia": 240.6,
+   "pop21": 14999,
+   "classe": "anziani"
+  },
+  {
+   "zu": "12D",
+   "nome": "Laurentino",
+   "mun": 9,
+   "vecchiaia": 240.6,
+   "pop21": 23544,
+   "classe": "anziani"
+  },
+  {
+   "zu": "17B",
+   "nome": "Della Vittoria",
+   "mun": 1,
+   "vecchiaia": 241.0,
+   "pop21": 25303,
+   "classe": "anziani"
+  },
+  {
+   "zu": "5D",
+   "nome": "Tiburtino Sud",
+   "mun": 4,
+   "vecchiaia": 241.2,
+   "pop21": 22164,
+   "classe": "anziani"
+  },
+  {
+   "zu": "3B",
+   "nome": "S. Lorenzo",
+   "mun": 2,
+   "vecchiaia": 241.4,
+   "pop21": 8452,
+   "classe": "anziani"
+  },
+  {
+   "zu": "1D",
+   "nome": "Testaccio",
+   "mun": 1,
+   "vecchiaia": 245.8,
+   "pop21": 7409,
+   "classe": "anziani"
+  },
+  {
+   "zu": "10F",
+   "nome": "Osteria del Curato",
+   "mun": 7,
+   "vecchiaia": 248.8,
+   "pop21": 18613,
+   "classe": "anziani"
+  },
+  {
+   "zu": "5B",
+   "nome": "Casal Bruciato",
+   "mun": 4,
+   "vecchiaia": 251.9,
+   "pop21": 20855,
+   "classe": "anziani"
+  },
+  {
+   "zu": "10A",
+   "nome": "Don Bosco",
+   "mun": 7,
+   "vecchiaia": 254.0,
+   "pop21": 48813,
+   "classe": "anziani"
+  },
+  {
+   "zu": "1A",
+   "nome": "Centro Storico",
+   "mun": 1,
+   "vecchiaia": 255.2,
+   "pop21": 22459,
+   "classe": "anziani"
+  },
+  {
+   "zu": "18A",
+   "nome": "Aurelio Sud",
+   "mun": 13,
+   "vecchiaia": 256.1,
+   "pop21": 23724,
+   "classe": "anziani"
+  },
+  {
+   "zu": "17C",
+   "nome": "Eroi",
+   "mun": 1,
+   "vecchiaia": 256.7,
+   "pop21": 18681,
+   "classe": "anziani"
+  },
+  {
+   "zu": "11B",
+   "nome": "Valco S. Paolo",
+   "mun": 8,
+   "vecchiaia": 256.9,
+   "pop21": 7015,
+   "classe": "anziani"
+  },
+  {
+   "zu": "5G",
+   "nome": "Pietralata",
+   "mun": 4,
+   "vecchiaia": 267.2,
+   "pop21": 13321,
+   "classe": "anziani"
+  },
+  {
+   "zu": "19F",
+   "nome": "Pineto",
+   "mun": 14,
+   "vecchiaia": 270.0,
+   "pop21": 1724,
+   "classe": "anziani"
+  },
+  {
+   "zu": "1F",
+   "nome": "XX Settembre",
+   "mun": 1,
+   "vecchiaia": 273.9,
+   "pop21": 8617,
+   "classe": "anziani"
+  },
+  {
+   "zu": "6B",
+   "nome": "Casilino",
+   "mun": 5,
+   "vecchiaia": 275.6,
+   "pop21": 14634,
+   "classe": "anziani"
+  },
+  {
+   "zu": "18D",
+   "nome": "Aurelio Nord",
+   "mun": 13,
+   "vecchiaia": 276.4,
+   "pop21": 17490,
+   "classe": "anziani"
+  },
+  {
+   "zu": "17A",
+   "nome": "Prati",
+   "mun": 1,
+   "vecchiaia": 280.7,
+   "pop21": 17053,
+   "classe": "anziani"
+  }
+ ]
+}

@@ -1,9 +1,17 @@
-righe vecchiaia 0
-ERR osm https://overpass.private.coffee/api/interpreter TimeoutError('The read operation timed out')
-ERR osm https://overpass-api.de/api/interpreter <HTTPError 406: 'Not Acceptable'>
-OSM https://maps.mail.ru/osm/tools/overpass/api/interpreter 1
-   20G | Giustiniana
-ISTAT BT https://www.istat.it/storage/cartografia/basi_territoriali/2021/R12_21.zip 50215299
-['SHP/', 'SHP/R12_21_WGS84.dbf', 'SHP/R12_21_WGS84.prj', 'SHP/R12_21_WGS84.shp', 'SHP/R12_21_WGS84.shx', 'TAB/', 'TAB/ASC1_R12_21.csv', 'TAB/ASC2_R12_21.csv', 'TAB/ASC3_R12_21.csv', 'TAB/ISAM_R12_21.csv', 'TAB/LOC_R12_21.csv', 'TAB/R12_21.ods', 'TAB/R12_21.xlsx', 'TAB/SEZ_R12_21.csv', 'TAB/ZIC_R12_21.csv']
-layer SHP/R12_21_WGS84.shp 59154 ['COD_REG', 'COD_UTS', 'PRO_COM', 'SEZ21', 'SEZ21_ID', 'COD_TIPO_S', 'TIPO_LOC', 'LOC21_ID', 'COD_ZIC', 'COD_ISAM', 'COD_ACQUE', 'COD_ISOLE', 'COD_MONT_D', 'COD_AREA_S', 'COM_ASC1', 'COM_ASC2', 'COM_ASC3', 'POP21', 'FAM21', 'ABI21', 'EDI21', 'SHAPE_Leng', 'SHAPE_Area']
-  es Record #0: [12, 56, 56001, 1, 560010000001, 1, 1, 5600110001, 0, 0, 0, 0, 0, 0, 0, 0, 0, 812, 354, 375, 103, 3056.76090611, 192886.576751]
+prj PROJCS["WGS_1984_UTM_Zone_32N",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PR
+zu comune 153
+lvl 1 15 [{'COD_REG': '12', 'COD_UTS': '258', 'PRO_COM': '58091', 'COM_ASC1': '58091001', 'COD_ASC1': '1', 'COD_ASC1_T': '1', 'DEN_ASC1': 'Municipio I', 'TIPO_ASC1': 'Municipio'}, {'COD_REG': '12', 'COD_UTS': '258', 'PRO_COM': '58091', 'COM_ASC1': '58091002', 'COD_ASC1': '2', 'COD_ASC1_T': '2', 'DEN_ASC1': 'Municipio II', 'TIPO_ASC1': 'Municipio'}]
+lvl 2 115 [{'COD_REG': '12', 'COD_UTS': '258', 'PRO_COM': '58091', 'COM_ASC2': '58091101', 'COD_ASC2': '101', 'COD_ASC2_T': '101', 'DEN_ASC2': 'Rione Monti', 'TIPO_ASC2': 'Zona Toponomastica'}, {'COD_REG': '12', 'COD_UTS': '258', 'PRO_COM': '58091', 'COM_ASC2': '58091102', 'COD_ASC2': '102', 'COD_ASC2_T': '102', 'DEN_ASC2': 'Rione Trevi', 'TIPO_ASC2': 'Zona Toponomastica'}]
+lvl 3 155 [{'COD_REG': '12', 'COD_UTS': '258', 'PRO_COM': '58091', 'COM_ASC3': '58091001', 'COD_ASC3': '1', 'COD_ASC3_T': '10l', 'DEN_ASC3': 'Morena', 'TIPO_ASC3': 'Zona Urbanistica'}, {'COD_REG': '12', 'COD_UTS': '258', 'PRO_COM': '58091', 'COM_ASC3': '58091002', 'COD_ASC3': '2', 'COD_ASC3_T': '10a', 'DEN_ASC3': 'Don Bosco', 'TIPO_ASC3': 'Zona Urbanistica'}]
+livello ZU = 3
+non trovato 58091030 Vallerano Castel di Leva
+non trovato 58091039 Tor di Valle
+non trovato 58091052 Villa Pamphili
+non trovato 58091118 Aeropoprto dell' Urbe
+non trovato 58091129 Centro Direzionale Centocelle
+non trovato 58091148 Giardinetti-Tor Vergata
+match 149 su 155
+gruppi ASC 155 [58091080, 58091082, 58091081, 58091076, 58091083, 58091078, 58091077, 58091059, 58091109, 58091079]
+classificate 136 soglie 149.8 213.4
+dimensioni 1870 1960
+fatto

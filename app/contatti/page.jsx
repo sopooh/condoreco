@@ -37,7 +37,7 @@ export default function Contacts() {
             </p>
             <p className="contacts-contact-row">
               <span className="contacts-label">Email</span>
-              <a href="mailto:info@condoreco.com" className="contacts-link">info@condoreco.com</a>
+              <a href="mailto:hello@condoreco.com" className="contacts-link">hello@condoreco.com</a>
             </p>
           </section>
 
@@ -48,8 +48,11 @@ export default function Contacts() {
               Per richieste relative al trattamento dei dati personali, cancellazione account, esercizio dei diritti privacy o informazioni GDPR:
             </p>
             <p className="contacts-contact-row">
-              <span className="contacts-label">Email privacy</span>
-              <a href="mailto:privacy@condoreco.com" className="contacts-link">privacy@condoreco.com</a>
+              <span className="contacts-label">Email</span>
+              <a href="mailto:hello@condoreco.com?subject=Privacy" className="contacts-link">hello@condoreco.com</a>
+            </p>
+            <p className="legal-paragraph" style={{ marginTop: 6 }}>
+              Scrivi &quot;Privacy&quot; nell&apos;oggetto: così la richiesta arriva subito alla persona giusta.
             </p>
           </section>
 

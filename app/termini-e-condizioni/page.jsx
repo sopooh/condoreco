@@ -43,7 +43,7 @@ export default function TermsConditions() {
               <li><span className="legal-label">Utente registrato</span> indica l'utente che crea un account su CondoReco.</li>
               <li><span className="legal-label">Contenuti dell'utente</span> indica recensioni, commenti, valutazioni, segnalazioni, immagini, testi, documenti, messaggi, risposte, opinioni o qualsiasi altro contenuto pubblicato, inviato o caricato dall'utente.</li>
               <li><span className="legal-label">Community</span> indica l'insieme degli utenti e delle interazioni che avvengono sulla piattaforma.</li>
-              <li><span className="legal-label">Titolare</span> indica il soggetto che gestisce CondoReco: CondoReco SRL — <a href="mailto:info@condoreco.com" className="legal-link">info@condoreco.com</a></li>
+              <li><span className="legal-label">Titolare</span> indica il soggetto che gestisce CondoReco: CondoReco SRL — <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a></li>
             </ul>
           </section>
 
@@ -479,8 +479,8 @@ export default function TermsConditions() {
             </p>
             <p className="legal-paragraph">
               <strong>CondoReco SRL</strong><br />
-              Email: <a href="mailto:info@condoreco.com" className="legal-link">info@condoreco.com</a><br />
-              Email privacy: <a href="mailto:privacy@condoreco.com" className="legal-link">privacy@condoreco.com</a><br />
+              Email: <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a><br />
+              Email privacy: <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a><br />
               Sede: Viale del Lavoro 54/56
             </p>
           </section>

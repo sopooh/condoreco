@@ -141,7 +141,7 @@ export default function CookiePolicy() {
             </p>
             <p className="legal-paragraph">
               <strong>CondoReco SRL</strong><br />
-              Email privacy: <a href="mailto:privacy@condoreco.com" className="legal-link">privacy@condoreco.com</a>
+              Email privacy: <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a>
             </p>
           </section>
 

@@ -34,8 +34,8 @@ code2zu = {}
 for r in data:
     code = int(r[f'COM_ASC{lvl}'])
     den = next((v for k, v in r.items() if k.startswith('DEN')), '') or ''
-    mm = re.match(r'\s*(\d{1,2}[A-Za-z])\b', den)
-    key = mm.group(1).upper() if mm and mm.group(1).upper() in zu else None
+    t = (r.get(f'COD_ASC{lvl}_T') or '').strip().upper()
+    key = t if t in zu else None
     if not key:
         nd = norm(re.sub(r'^\s*\d{1,2}[A-Za-z]\s*', '', den))
         key = names.get(nd)

@@ -16,6 +16,7 @@ import CategoryRatings from '@/components/buildings/CategoryRatings'
 import InsightCards from '@/components/buildings/InsightCards'
 import ReportsHistory from '@/components/buildings/ReportsHistory'
 import BuildingFacts from '@/components/buildings/BuildingFacts'
+import AskResidentsSection from '@/components/neighbours/AskResidentsSection'
 import { buildingPercentiles } from '@/lib/percentile'
 import { reviewTrend } from '@/lib/trend'
 
@@ -154,6 +155,7 @@ export default async function BuildingPage({ params }) {
         />
         <ReportsHistory reports={reports} />
         <BuildingFacts building={building} />
+        <AskResidentsSection building={{ id: building.id, address: building.address, street_number: building.street_number }} />
       </div>
 
       <BuildingLayout

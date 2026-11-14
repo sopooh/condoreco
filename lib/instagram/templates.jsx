@@ -441,6 +441,7 @@ function ImageCover({ p }) {
   if (p.layout === 'top') return <ImageCoverTop p={p} />
   if (p.layout === 'bottomLeft') return <ImageCoverBottomLeft p={p} />
   if (p.layout === 'topRight') return <ImageCoverTopRight p={p} />
+  if (p.layout === 'bubbleLeft') return <ImageCoverBubbleLeft p={p} />
   // Il personaggio è al centro: il testo sta in una nuvoletta in basso con la
   // punta verso il becco, così il volto resta libero.
   const src = COVERS[p.image] || COVERS['condor-flight']
@@ -546,6 +547,39 @@ function ImageCoverBottomLeft({ p }) {
               <div style={{ fontSize: 26, fontWeight: 800, color: C.teal }}>Scorri</div>
               <Arrow color={C.orange} size={32} />
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Fumetto in alto a sinistra con la punta verso il Condor (al posto del fumetto dell'illustrazione)
+function ImageCoverBubbleLeft({ p }) {
+  const src = COVERS[p.image] || COVERS['condor-desk']
+  return (
+    <div style={{ width: SLIDE_W, height: SLIDE_H, display: 'flex', position: 'relative', fontFamily: 'Inter', background: C.teal }}>
+      {src ? <img src={src} width={SLIDE_W} height={SLIDE_H} style={{ position: 'absolute', top: 0, left: 0 }} alt="" /> : null}
+      <div style={{ display: 'flex', flexDirection: 'column', width: SLIDE_W, height: SLIDE_H, padding: `${p.top || 170}px ${SAFE_X}px ${SAFE_Y}px` }}>
+        {p.noLogo ? null : <Wordmark color={C.white} />}
+        <div style={{ display: 'flex', flexDirection: 'column', width: p.width || 440 }}>
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: 16, background: C.white, borderRadius: 40,
+            padding: '30px 34px', boxShadow: '0 12px 40px rgba(0,0,0,0.22)',
+          }}>
+            {p.kicker ? (
+              <div style={{ display: 'flex' }}>
+                <div style={{ display: 'flex', background: C.teal, color: C.white, fontSize: 16, fontWeight: 800, padding: '7px 14px', borderRadius: 999, letterSpacing: 1, textTransform: 'uppercase' }}>{p.kicker}</div>
+              </div>
+            ) : null}
+            <div style={{ display: 'flex', color: C.ink, fontSize: p.size || 44, fontWeight: 800, lineHeight: 1.12, letterSpacing: -1 }}>{p.text || ''}</div>
+            <div style={{ display: 'flex', alignSelf: 'flex-end', alignItems: 'center', gap: 10 }}>
+              <div style={{ fontSize: 24, fontWeight: 800, color: C.teal }}>Scorri</div>
+              <Arrow color={C.orange} size={30} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignSelf: 'flex-end', paddingRight: 70, marginTop: -2 }}>
+            <svg width="56" height="44" viewBox="0 0 56 44"><path d="M0 0 L56 44 L38 0 Z" fill={C.white} /></svg>
           </div>
         </div>
       </div>

@@ -5,11 +5,12 @@ import { createClient } from '@/lib/supabase/client'
 import { ui } from './ui.jsx'
 import { CHARACTERS } from '@/lib/instagram/characters'
 
-const THEMES = [['teal', 'Teal'], ['light', 'Chiaro'], ['orange', 'Arancio'], ['dark', 'Scuro']]
+const THEMES = [['teal', 'Teal'], ['white', 'Bianco'], ['light', 'Chiaro'], ['orange', 'Arancio'], ['dark', 'Scuro']]
 
 export const TEMPLATE_FIELDS = {
   cover: { label: 'Copertina', fields: [['theme', 'Tema', 'theme'], ['kicker', 'Etichetta'], ['title', 'Titolo', 'area'], ['subtitle', 'Sottotitolo', 'area']] },
   imageCover: { label: 'Copertina illustrata', fields: [['image', 'Illustrazione', 'cover'], ['layout', 'Nuvoletta in alto (scrivi: top)'], ['kicker', 'Etichetta'], ['text', 'Testo nella nuvoletta', 'area']] },
+  whiteMascot: { label: 'Condor su bianco (salta / dorme)', fields: [['pose', 'Condor', 'whitepose'], ['kicker', 'Etichetta (opzionale)'], ['text', 'Cosa dice il Condor', 'area'], ['showLink', 'Mostra link condoreco.com (per la chiusura)', 'checkbox']] },
   mascot: { label: 'Condor (messaggio istituzionale)', fields: [['theme', 'Tema', 'theme'], ['pose', 'Condor', 'pose'], ['kicker', 'Etichetta (opzionale)'], ['text', 'Cosa dice il Condor', 'area'], ['showLink', 'Mostra link condoreco.com (per la chiusura)', 'checkbox']] },
   speak: { label: 'Personaggio che parla', fields: [['theme', 'Tema', 'theme'], ['character', 'Personaggio', 'character'], ['text', 'Cosa dice', 'area'], ['kicker', 'Etichetta (opzionale)'], ['role', 'Sotto il nome (es. esperto di condomini)']] },
   chat: { label: 'Dialogo tra personaggi', fields: [['theme', 'Tema', 'theme'], ['title', 'Titolo (opzionale)'], ['lines', 'Battute, una per riga: "gufo: testo" (max 5)', 'dialogue']] },
@@ -24,6 +25,7 @@ export const TEMPLATE_FIELDS = {
 
 const DEFAULTS = {
   imageCover: { image: 'condor-flight' },
+  whiteMascot: { pose: 'jump' },
   mascot: { theme: 'light', pose: 'happy' },
   speak: { theme: 'light', character: 'gufo' },
   chat: { theme: 'light', lines: 'volpe: Ho trovato casa, firmo domani!\ngufo: Aspetta. Hai chiesto quanto sono le spese condominiali?' },
@@ -117,6 +119,13 @@ export default function SlideComposer({ postId, onAdded, disabled }) {
               <option value="condor-flight">Condor in volo (arancio)</option>
               <option value="condor-desk">Condor al computer (teal)</option>
             </select>
+          ) : type === 'whitepose' ? (
+            <div style={{ display: 'flex', gap: 6 }}>
+              {[['jump', 'Salta (apertura)'], ['sleep', 'Dorme (chiusura)']].map(([v, l]) => (
+                <button key={v} type="button" onClick={() => set('pose', v)}
+                  style={{ ...ui.smallBtn, flex: 1, ...((params.pose || 'jump') === v ? { background: 'var(--teal-lt)', borderColor: 'var(--teal)', color: 'var(--teal-dk)' } : {}) }}>{l}</button>
+              ))}
+            </div>
           ) : type === 'pose' ? (
             <div style={{ display: 'flex', gap: 6 }}>
               {[['happy', 'Apertura (sorride)'], ['determined', 'Chiusura (risponde)']].map(([v, l]) => (

@@ -33,6 +33,7 @@ const THEMES = {
   teal: { bg: C.teal, fg: C.white, sub: '#CFE3E5', accent: C.orange, chipBg: C.orange, chipFg: C.white },
   light: { bg: C.paper, fg: C.ink, sub: C.ink3, accent: C.teal, chipBg: C.tealLt, chipFg: C.tealDk },
   orange: { bg: C.orange, fg: C.white, sub: '#FFE4D3', accent: C.white, chipBg: C.white, chipFg: C.orange },
+  white: { bg: C.white, fg: C.ink, sub: C.ink3, accent: C.teal, chipBg: C.tealLt, chipFg: C.tealDk },
   dark: { bg: '#0B2E31', fg: C.white, sub: C.tealMid, accent: C.orange, chipBg: C.orange, chipFg: C.white },
 }
 
@@ -546,6 +547,55 @@ function ImageCoverBottomLeft({ p }) {
   )
 }
 
+// Condor su sfondo bianco (pose illustrate: salta con le stelline, dorme).
+// Nuvoletta in alto con la punta verso il Condor, Condor sotto, link o Scorri.
+const WHITE_POSES = { jump: [470, 600], sleep: [500, 582] }
+
+function WhiteMascot({ p }) {
+  const pose = WHITE_POSES[p.pose] ? p.pose : 'jump'
+  const [w, h] = WHITE_POSES[pose]
+  const len = (p.text || '').length
+  return (
+    <div style={{ width: SLIDE_W, height: SLIDE_H, display: 'flex', flexDirection: 'column', background: C.white, padding: `${SAFE_Y}px ${SAFE_X}px`, fontFamily: 'Inter' }}>
+      <Wordmark color={C.teal} />
+      <div style={{ display: 'flex', flexDirection: 'column', marginTop: 34 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, background: C.tealLt, borderRadius: 40, padding: '34px 40px' }}>
+          {p.kicker ? (
+            <div style={{ display: 'flex' }}>
+              <div style={{ display: 'flex', background: C.orange, color: C.white, fontSize: 22, fontWeight: 800, padding: '9px 20px', borderRadius: 999, letterSpacing: 2, textTransform: 'uppercase' }}>{p.kicker}</div>
+            </div>
+          ) : null}
+          <div style={{ display: 'flex', color: C.ink, fontSize: len > 90 ? 46 : 54, fontWeight: 800, lineHeight: 1.12, letterSpacing: -1 }}>{p.text || ''}</div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingLeft: 60 }}>
+          <svg width="70" height="50" viewBox="0 0 70 50"><path d="M0 0 L70 0 L20 50 Z" fill={C.tealLt} /></svg>
+        </div>
+      </div>
+      <div style={{ display: 'flex', flex: 1, alignItems: 'flex-end', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', width: 180 }} />
+        {MASCOTS[pose] ? <img src={MASCOTS[pose]} width={w} height={h} alt="" /> : <div style={{ width: w, height: h }} />}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: 180, gap: 12 }}>
+          {p.showLink ? null : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ fontSize: 26, fontWeight: 800, color: C.teal }}>Scorri</div>
+              <Arrow color={C.orange} size={32} />
+            </div>
+          )}
+        </div>
+      </div>
+      {p.showLink ? (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, marginTop: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: C.teal, color: C.white, fontSize: 34, fontWeight: 800, padding: '18px 30px', borderRadius: 20 }}>
+            <div>{p.url || 'condoreco.com'}</div>
+            <Arrow color={C.white} size={34} />
+          </div>
+          <div style={{ fontSize: 26, fontWeight: 600, color: C.ink3 }}>Link in bio</div>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 // Dialogo tra personaggi, stile chat: il primo parla a sinistra, gli altri a destra.
 function Chat({ p }) {
   // Le chat hanno sempre lo sfondo bianco. L'esperto (default il Gufo) parla
@@ -593,6 +643,7 @@ export const TEMPLATES = {
   cover: { label: 'Copertina', render: Cover },
   mascot: { label: 'Condor (messaggio istituzionale)', render: Mascot },
   imageCover: { label: 'Copertina illustrata', render: ImageCover },
+  whiteMascot: { label: 'Condor su bianco (salta / dorme)', render: WhiteMascot },
   speak: { label: 'Personaggio che parla', render: Speak },
   chat: { label: 'Dialogo tra personaggi', render: Chat },
   tip: { label: 'Consiglio numerato', render: Tip },

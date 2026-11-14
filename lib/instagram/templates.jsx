@@ -67,7 +67,7 @@ let MASCOTS = {}
 let COVERS = {}
 export function setCovers(c) { COVERS = c }
 // Illustrazioni a tutta pagina disponibili per la copertina
-export const COVER_IMAGES = { 'condor-flight': 'Condor in volo (arancio)' }
+export const COVER_IMAGES = { 'condor-flight': 'Condor in volo (arancio)', 'condor-desk': 'Condor al computer (teal)' }
 export function setAvatars(a) { AVATARS = a }
 export function setMascots(m) { MASCOTS = m }
 
@@ -432,6 +432,7 @@ function Mascot({ p }) {
 // Copertina illustrata: immagine a tutta pagina, logo bianco, nuvoletta in
 // alto che "esce" dal personaggio. Testo sempre dentro la safe area.
 function ImageCover({ p }) {
+  if (p.layout === 'top') return <ImageCoverTop p={p} />
   // Il personaggio è al centro: il testo sta in una nuvoletta in basso con la
   // punta verso il becco, così il volto resta libero.
   const src = COVERS[p.image] || COVERS['condor-flight']
@@ -463,6 +464,43 @@ function ImageCover({ p }) {
               <Arrow color={C.orange} size={32} />
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Variante con la nuvoletta in alto a sinistra (personaggio a destra/in basso)
+function ImageCoverTop({ p }) {
+  const src = COVERS[p.image] || COVERS['condor-desk']
+  const len = (p.text || '').length
+  return (
+    <div style={{ width: SLIDE_W, height: SLIDE_H, display: 'flex', position: 'relative', fontFamily: 'Inter', background: C.teal }}>
+      {src ? <img src={src} width={SLIDE_W} height={SLIDE_H} style={{ position: 'absolute', top: 0, left: 0 }} alt="" /> : null}
+      <div style={{ display: 'flex', flexDirection: 'column', width: SLIDE_W, height: SLIDE_H, padding: `${SAFE_Y}px ${SAFE_X}px` }}>
+        <Wordmark color={C.white} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: 40, width: p.width || 510 }}>
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: 16, background: C.white, borderRadius: 40,
+            padding: '32px 38px', boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
+          }}>
+            {p.kicker ? (
+              <div style={{ display: 'flex' }}>
+                <div style={{ display: 'flex', background: C.orange, color: C.white, fontSize: 22, fontWeight: 800, padding: '9px 20px', borderRadius: 999, letterSpacing: 2, textTransform: 'uppercase' }}>{p.kicker}</div>
+              </div>
+            ) : null}
+            <div style={{ display: 'flex', color: C.ink, fontSize: len > 70 ? 44 : 52, fontWeight: 800, lineHeight: 1.12, letterSpacing: -1 }}>
+              {p.text || 'Titolo della copertina'}
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignSelf: 'flex-end', paddingRight: 70 }}>
+            <svg width="70" height="60" viewBox="0 0 70 60"><path d="M0 0 L60 0 L70 60 Z" fill={C.white} /></svg>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flex: 1 }} />
+        <div style={{ display: 'flex', alignSelf: 'flex-start', alignItems: 'center', gap: 12, background: C.white, padding: '14px 24px', borderRadius: 999 }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: C.teal }}>Scorri</div>
+          <Arrow color={C.orange} size={34} />
         </div>
       </div>
     </div>

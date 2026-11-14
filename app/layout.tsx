@@ -2,6 +2,8 @@ import './globals.css'
 import { SessionProvider } from '@/components/providers/SessionProvider'
 import Navbar from '@/components/nav/Navbar'
 import Footer from '@/components/nav/Footer'
+import CookieBanner from '@/components/nav/CookieBanner'
+import AnalyticsProvider from '@/components/providers/AnalyticsProvider'
 
 export const metadata = {
   title: {
@@ -24,9 +26,12 @@ export default function RootLayout({
     <html lang="it">
       <body>
         <SessionProvider>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
+          <AnalyticsProvider>
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+            <CookieBanner />
+          </AnalyticsProvider>
         </SessionProvider>
       </body>
     </html>

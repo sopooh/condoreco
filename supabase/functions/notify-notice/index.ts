@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
   const url = Deno.env.get('SUPABASE_URL')!
   const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const resendKey = Deno.env.get('RESEND_API_KEY')
-  const from = Deno.env.get('NOTICE_EMAIL_FROM') || 'Condoreco <avvisi@condoreco.com>'
+  const from = Deno.env.get('NOTICE_EMAIL_FROM') || 'Condoreco <hello@condoreco.com>'
   const siteUrl = Deno.env.get('SITE_URL') || 'https://www.condoreco.com'
 
   const token = (req.headers.get('Authorization') || '').replace('Bearer ', '')

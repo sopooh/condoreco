@@ -51,7 +51,7 @@ export default function PrivacyPolicy() {
             <p className="legal-paragraph">
               <strong>Sophie Perazzolo</strong><br />
               Sede: Viale del Lavoro 54/56<br />
-              Email privacy: <a href="mailto:privacy@condoreco.com" className="legal-link">privacy@condoreco.com</a>
+              Email privacy: <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a>
             </p>
             <p className="legal-paragraph">
               Per qualsiasi richiesta relativa al trattamento dei dati personali, l'utente può contattare il Titolare all'indirizzo email indicato sopra.
@@ -349,7 +349,7 @@ export default function PrivacyPolicy() {
             ]} />
             <p className="legal-paragraph">Le richieste possono essere inviate al Titolare all'indirizzo:</p>
             <p className="legal-paragraph">
-              <a href="mailto:privacy@condoreco.com" className="legal-link">privacy@condoreco.com</a>
+              <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a>
             </p>
             <p className="legal-paragraph">
               Il Titolare risponderà nei termini previsti dalla normativa applicabile.

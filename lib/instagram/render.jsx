@@ -17,8 +17,8 @@ function loadLogos() {
         const entries = await Promise.all(ids.map(async (id) => [id, await uri(`characters/${id}.png`)]))
         setAvatars({ ...Object.fromEntries(entries), condor: await uri('characters/condor-avatar.png') })
         const jpg = async (f) => `data:image/jpeg;base64,${(await readFile(path.join(dir, f))).toString('base64')}`
-        setCovers({ 'condor-flight': await jpg('covers/condor-flight.jpg'), 'condor-desk': await jpg('covers/condor-desk.jpg'), 'condor-wings': await jpg('covers/condor-wings.jpg'), 'map-milano-verde': await jpg('covers/map-milano-verde.jpg'), 'condor-canyon': await jpg('covers/condor-canyon.jpg'), 'condor-expert': await jpg('covers/condor-expert.jpg') })
-        setMascots({ happy: await uri('characters/condor.png'), determined: await uri('characters/condor-determined.png'), jump: await uri('characters/condor-jump.png'), sleep: await uri('characters/condor-sleep.png'), wave: await uri('characters/condor-wave.png'), cool: await uri('characters/condor-cool.png'), shy: await uri('characters/condor-shy.png'), sigh: await uri('characters/condor-sigh.png'), smile: await uri('characters/condor-smile.png') })
+        setCovers({ 'condor-flight': await jpg('covers/condor-flight.jpg'), 'condor-desk': await jpg('covers/condor-desk.jpg'), 'condor-wings': await jpg('covers/condor-wings.jpg'), 'map-milano-verde': await jpg('covers/map-milano-verde.jpg'), 'condor-canyon': await jpg('covers/condor-canyon.jpg'), 'condor-expert': await jpg('covers/condor-expert.jpg'), 'map-roma-eta': await jpg('covers/map-roma-eta.jpg') })
+        setMascots({ happy: await uri('characters/condor.png'), determined: await uri('characters/condor-determined.png'), jump: await uri('characters/condor-jump.png'), sleep: await uri('characters/condor-sleep.png'), wave: await uri('characters/condor-wave.png'), cool: await uri('characters/condor-cool.png'), shy: await uri('characters/condor-shy.png'), sigh: await uri('characters/condor-sigh.png'), smile: await uri('characters/condor-smile.png'), scream: await uri('characters/condor-scream.png'), eyeroll: await uri('characters/condor-eyeroll.png') })
       })
   }
   return logosPromise

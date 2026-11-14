@@ -388,7 +388,7 @@ function Speak({ p }) {
 // Mascotte Condor: apertura (pose "happy", guarda a destra) e risposta
 // finale (pose "determined"). Condor a sinistra in basso, nuvoletta sopra
 // con la punta verso di lui, link o firma a destra.
-const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433], wave: [326, 421], cool: [326, 421], shy: [385, 385], sigh: [374, 385], smile: [307, 385] }
+const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433], wave: [326, 421], cool: [326, 421], shy: [385, 385], sigh: [374, 385], smile: [307, 385], scream: [286, 385], eyeroll: [276, 385] }
 
 function Mascot({ p }) {
   const t = theme(p.theme || 'light')
@@ -667,12 +667,12 @@ function WhiteMascot({ p }) {
 }
 
 // Mappa a tutta larghezza con legenda e fonte (sfondo bianco del brand)
-const LEGEND_COLORS = { teal: C.teal, yellow: '#F4B400', red: C.red }
+const LEGEND_COLORS = { teal: C.teal, yellow: '#F4B400', red: C.red, orange: C.orange }
 
 function MapSlide({ p }) {
   const t = theme('light')
   const src = COVERS[p.image]
-  const mw = 760, mh = Math.round(760 * (p.ratio || 0.902))
+  const mw = p.mapWidth || 760, mh = Math.round(mw * (p.ratio || 0.902))
   return (
     <Frame t={t} footer="none">
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>

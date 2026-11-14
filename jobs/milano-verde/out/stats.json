@@ -1,0 +1,536 @@
+{
+ "soglie": [
+  4.7624133360522,
+  8.8404208277615
+ ],
+ "nil": [
+  {
+   "id": 84,
+   "nome": "PARCO NORD",
+   "valore": 27.09,
+   "classe": "piu"
+  },
+  {
+   "id": 66,
+   "nome": "QT 8",
+   "valore": 25.73,
+   "classe": "piu"
+  },
+  {
+   "id": 8,
+   "nome": "PARCO SEMPIONE",
+   "valore": 24.77,
+   "classe": "piu"
+  },
+  {
+   "id": 3,
+   "nome": "GIARDINI P.TA VENEZIA",
+   "valore": 24.18,
+   "classe": "piu"
+  },
+  {
+   "id": 34,
+   "nome": "CHIARAVALLE",
+   "valore": 19.91,
+   "classe": "piu"
+  },
+  {
+   "id": 88,
+   "nome": "PARCO BOSCO IN CITTA'",
+   "valore": 16.74,
+   "classe": "piu"
+  },
+  {
+   "id": 81,
+   "nome": "BOVISASCA",
+   "valore": 15.86,
+   "classe": "piu"
+  },
+  {
+   "id": 18,
+   "nome": "CIMIANO - ROTTOLE - Q.RE FELTRE",
+   "valore": 15.41,
+   "classe": "piu"
+  },
+  {
+   "id": 83,
+   "nome": "BRUZZANO",
+   "valore": 14.19,
+   "classe": "piu"
+  },
+  {
+   "id": 54,
+   "nome": "MUGGIANO",
+   "valore": 14.11,
+   "classe": "piu"
+  },
+  {
+   "id": 48,
+   "nome": "RONCHETTO SUL NAVIGLIO - Q.RE LODOVICO IL MORO",
+   "valore": 14.01,
+   "classe": "piu"
+  },
+  {
+   "id": 74,
+   "nome": "ROSERIO",
+   "valore": 13.74,
+   "classe": "piu"
+  },
+  {
+   "id": 56,
+   "nome": "FORZE ARMATE",
+   "valore": 12.55,
+   "classe": "piu"
+  },
+  {
+   "id": 82,
+   "nome": "COMASINA",
+   "valore": 12.47,
+   "classe": "piu"
+  },
+  {
+   "id": 61,
+   "nome": "QUARTO CAGNINO",
+   "valore": 12.22,
+   "classe": "piu"
+  },
+  {
+   "id": 14,
+   "nome": "NIGUARDA - CA' GRANDA - PRATO CENTENARO - Q.RE FULVIO TESTI",
+   "valore": 11.67,
+   "classe": "piu"
+  },
+  {
+   "id": 65,
+   "nome": "Q.RE GALLARATESE - Q.RE SAN LEONARDO - LAMPUGNANO",
+   "valore": 11.5,
+   "classe": "piu"
+  },
+  {
+   "id": 60,
+   "nome": "STADIO - IPPODROMI",
+   "valore": 11.38,
+   "classe": "piu"
+  },
+  {
+   "id": 46,
+   "nome": "BARONA",
+   "valore": 10.94,
+   "classe": "piu"
+  },
+  {
+   "id": 87,
+   "nome": "ASSIANO",
+   "valore": 10.8,
+   "classe": "piu"
+  },
+  {
+   "id": 24,
+   "nome": "PARCO FORLANINI - CAVRIANO",
+   "valore": 10.76,
+   "classe": "piu"
+  },
+  {
+   "id": 47,
+   "nome": "CANTALUPA",
+   "valore": 10.51,
+   "classe": "piu"
+  },
+  {
+   "id": 62,
+   "nome": "QUINTO ROMANO",
+   "valore": 10.12,
+   "classe": "piu"
+  },
+  {
+   "id": 63,
+   "nome": "FIGINO",
+   "valore": 10.02,
+   "classe": "piu"
+  },
+  {
+   "id": 80,
+   "nome": "AFFORI",
+   "valore": 10.01,
+   "classe": "piu"
+  },
+  {
+   "id": 55,
+   "nome": "BAGGIO - Q.RE DEGLI OLMI - Q.RE VALSESIA",
+   "valore": 9.8,
+   "classe": "piu"
+  },
+  {
+   "id": 41,
+   "nome": "GRATOSOGLIO - Q.RE MISSAGLIA - Q.RE TERRAZZE",
+   "valore": 9.53,
+   "classe": "piu"
+  },
+  {
+   "id": 39,
+   "nome": "QUINTOSOLE",
+   "valore": 9.27,
+   "classe": "piu"
+  },
+  {
+   "id": 42,
+   "nome": "STADERA - CHIESA ROSSA - Q.RE TORRETTA - CONCA FALLATA",
+   "valore": 9.01,
+   "classe": "piu"
+  },
+  {
+   "id": 68,
+   "nome": "PAGANO",
+   "valore": 8.84,
+   "classe": "piu"
+  },
+  {
+   "id": 86,
+   "nome": "PARCO DEI NAVIGLI",
+   "valore": 8.53,
+   "classe": "medio"
+  },
+  {
+   "id": 38,
+   "nome": "VIGENTINO - Q.RE FATIMA",
+   "valore": 8.42,
+   "classe": "medio"
+  },
+  {
+   "id": 76,
+   "nome": "QUARTO OGGIARO - VIALBA - MUSOCCO",
+   "valore": 8.35,
+   "classe": "medio"
+  },
+  {
+   "id": 77,
+   "nome": "BOVISA",
+   "valore": 8.25,
+   "classe": "medio"
+  },
+  {
+   "id": 85,
+   "nome": "PARCO DELLE ABBAZIE",
+   "valore": 8.07,
+   "classe": "medio"
+  },
+  {
+   "id": 17,
+   "nome": "ADRIANO",
+   "valore": 7.87,
+   "classe": "medio"
+  },
+  {
+   "id": 30,
+   "nome": "TALIEDO - MORSENCHIO - Q.RE FORLANINI",
+   "valore": 7.8,
+   "classe": "medio"
+  },
+  {
+   "id": 31,
+   "nome": "MONLUE' - PONTE LAMBRO",
+   "valore": 7.76,
+   "classe": "medio"
+  },
+  {
+   "id": 12,
+   "nome": "MACIACHINI - MAGGIOLINA",
+   "valore": 7.55,
+   "classe": "medio"
+  },
+  {
+   "id": 40,
+   "nome": "RONCHETTO DELLE RANE",
+   "valore": 7.13,
+   "classe": "medio"
+  },
+  {
+   "id": 53,
+   "nome": "LORENTEGGIO",
+   "valore": 7.04,
+   "classe": "medio"
+  },
+  {
+   "id": 52,
+   "nome": "BANDE NERE",
+   "valore": 6.91,
+   "classe": "medio"
+  },
+  {
+   "id": 35,
+   "nome": "LODI - CORVETTO",
+   "valore": 6.75,
+   "classe": "medio"
+  },
+  {
+   "id": 32,
+   "nome": "TRIULZO SUPERIORE",
+   "valore": 6.68,
+   "classe": "medio"
+  },
+  {
+   "id": 19,
+   "nome": "PADOVA - TURRO - CRESCENZAGO",
+   "valore": 6.33,
+   "classe": "medio"
+  },
+  {
+   "id": 64,
+   "nome": "TRENNO",
+   "valore": 6.25,
+   "classe": "medio"
+  },
+  {
+   "id": 59,
+   "nome": "TRE TORRI",
+   "valore": 6.06,
+   "classe": "medio"
+  },
+  {
+   "id": 72,
+   "nome": "MAGGIORE - MUSOCCO - CERTOSA",
+   "valore": 6.06,
+   "classe": "medio"
+  },
+  {
+   "id": 70,
+   "nome": "GHISOLFA",
+   "valore": 5.93,
+   "classe": "medio"
+  },
+  {
+   "id": 37,
+   "nome": "MORIVIONE",
+   "valore": 5.73,
+   "classe": "medio"
+  },
+  {
+   "id": 5,
+   "nome": "PORTA VIGENTINA - PORTA LODOVICA",
+   "valore": 5.7,
+   "classe": "medio"
+  },
+  {
+   "id": 16,
+   "nome": "GORLA - PRECOTTO",
+   "valore": 5.64,
+   "classe": "medio"
+  },
+  {
+   "id": 71,
+   "nome": "VILLAPIZZONE - CAGNOLA - BOLDINASCO",
+   "valore": 5.41,
+   "classe": "medio"
+  },
+  {
+   "id": 15,
+   "nome": "BICOCCA",
+   "valore": 5.4,
+   "classe": "medio"
+  },
+  {
+   "id": 73,
+   "nome": "CASCINA MERLATA",
+   "valore": 5.39,
+   "classe": "medio"
+  },
+  {
+   "id": 69,
+   "nome": "SARPI",
+   "valore": 5.26,
+   "classe": "medio"
+  },
+  {
+   "id": 23,
+   "nome": "LAMBRATE - ORTICA",
+   "valore": 4.85,
+   "classe": "medio"
+  },
+  {
+   "id": 58,
+   "nome": "DE ANGELI - MONTE ROSA",
+   "valore": 4.81,
+   "classe": "medio"
+  },
+  {
+   "id": 13,
+   "nome": "GRECO - SEGNANO",
+   "valore": 4.76,
+   "classe": "medio"
+  },
+  {
+   "id": 29,
+   "nome": "ORTOMERCATO",
+   "valore": 4.66,
+   "classe": "meno"
+  },
+  {
+   "id": 43,
+   "nome": "TIBALDI",
+   "valore": 4.66,
+   "classe": "meno"
+  },
+  {
+   "id": 45,
+   "nome": "MONCUCCO - SAN CRISTOFORO",
+   "valore": 4.59,
+   "classe": "meno"
+  },
+  {
+   "id": 51,
+   "nome": "PORTA MAGENTA",
+   "valore": 4.48,
+   "classe": "meno"
+  },
+  {
+   "id": 36,
+   "nome": "SCALO ROMANA",
+   "valore": 4.46,
+   "classe": "meno"
+  },
+  {
+   "id": 49,
+   "nome": "GIAMBELLINO",
+   "valore": 4.44,
+   "classe": "meno"
+  },
+  {
+   "id": 67,
+   "nome": "PORTELLO",
+   "valore": 4.43,
+   "classe": "meno"
+  },
+  {
+   "id": 79,
+   "nome": "DERGANO",
+   "valore": 4.4,
+   "classe": "meno"
+  },
+  {
+   "id": 75,
+   "nome": "STEPHENSON",
+   "valore": 4.37,
+   "classe": "meno"
+  },
+  {
+   "id": 28,
+   "nome": "UMBRIA - MOLISE - CALVAIRATE",
+   "valore": 4.12,
+   "classe": "meno"
+  },
+  {
+   "id": 33,
+   "nome": "ROGOREDO - SANTA GIULIA",
+   "valore": 4.08,
+   "classe": "meno"
+  },
+  {
+   "id": 4,
+   "nome": "GUASTALLA",
+   "valore": 3.98,
+   "classe": "meno"
+  },
+  {
+   "id": 11,
+   "nome": "ISOLA",
+   "valore": 3.93,
+   "classe": "meno"
+  },
+  {
+   "id": 44,
+   "nome": "PORTA TICINESE - CONCHETTA",
+   "valore": 3.81,
+   "classe": "meno"
+  },
+  {
+   "id": 7,
+   "nome": "MAGENTA - S. VITTORE",
+   "valore": 3.69,
+   "classe": "meno"
+  },
+  {
+   "id": 20,
+   "nome": "LORETO - CASORETTO - NOLO",
+   "valore": 3.65,
+   "classe": "meno"
+  },
+  {
+   "id": 57,
+   "nome": "SAN SIRO",
+   "valore": 3.64,
+   "classe": "meno"
+  },
+  {
+   "id": 6,
+   "nome": "PORTA TICINESE - CONCA DEL NAVIGLIO",
+   "valore": 3.49,
+   "classe": "meno"
+  },
+  {
+   "id": 78,
+   "nome": "FARINI",
+   "valore": 3.45,
+   "classe": "meno"
+  },
+  {
+   "id": 50,
+   "nome": "PORTA GENOVA",
+   "valore": 3.41,
+   "classe": "meno"
+  },
+  {
+   "id": 25,
+   "nome": "CORSICA",
+   "valore": 3.2,
+   "classe": "meno"
+  },
+  {
+   "id": 2,
+   "nome": "BRERA",
+   "valore": 3.11,
+   "classe": "meno"
+  },
+  {
+   "id": 26,
+   "nome": "XXII MARZO",
+   "valore": 3.1,
+   "classe": "meno"
+  },
+  {
+   "id": 27,
+   "nome": "PTA ROMANA",
+   "valore": 2.84,
+   "classe": "meno"
+  },
+  {
+   "id": 22,
+   "nome": "CITTA' STUDI",
+   "valore": 2.72,
+   "classe": "meno"
+  },
+  {
+   "id": 9,
+   "nome": "PORTA GARIBALDI - PORTA NUOVA",
+   "valore": 2.54,
+   "classe": "meno"
+  },
+  {
+   "id": 21,
+   "nome": "BUENOS AIRES - PORTA VENEZIA - PORTA MONFORTE",
+   "valore": 2.52,
+   "classe": "meno"
+  },
+  {
+   "id": 1,
+   "nome": "DUOMO",
+   "valore": 2.49,
+   "classe": "meno"
+  },
+  {
+   "id": 10,
+   "nome": "STAZIONE CENTRALE - PONTE SEVESO",
+   "valore": 2.2,
+   "classe": "meno"
+  }
+ ]
+}

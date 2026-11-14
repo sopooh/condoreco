@@ -68,7 +68,7 @@ let MASCOTS = {}
 let COVERS = {}
 export function setCovers(c) { COVERS = c }
 // Illustrazioni a tutta pagina disponibili per la copertina
-export const COVER_IMAGES = { 'condor-flight': 'Condor in volo (arancio)', 'condor-desk': 'Condor al computer (teal)', 'condor-wings': 'Condor ali aperte (turchese)', 'condor-canyon': 'Condor nel canyon' }
+export const COVER_IMAGES = { 'condor-flight': 'Condor in volo (arancio)', 'condor-desk': 'Condor al computer (teal)', 'condor-wings': 'Condor ali aperte (turchese)', 'condor-canyon': 'Condor nel canyon', 'condor-expert': 'Condor esperto alla scrivania' }
 export function setAvatars(a) { AVATARS = a }
 export function setMascots(m) { MASCOTS = m }
 
@@ -388,7 +388,7 @@ function Speak({ p }) {
 // Mascotte Condor: apertura (pose "happy", guarda a destra) e risposta
 // finale (pose "determined"). Condor a sinistra in basso, nuvoletta sopra
 // con la punta verso di lui, link o firma a destra.
-const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433], wave: [326, 421], cool: [326, 421], shy: [385, 385], sigh: [374, 385] }
+const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433], wave: [326, 421], cool: [326, 421], shy: [385, 385], sigh: [374, 385], smile: [307, 385] }
 
 function Mascot({ p }) {
   const t = theme(p.theme || 'light')
@@ -440,6 +440,7 @@ function Mascot({ p }) {
 function ImageCover({ p }) {
   if (p.layout === 'top') return <ImageCoverTop p={p} />
   if (p.layout === 'bottomLeft') return <ImageCoverBottomLeft p={p} />
+  if (p.layout === 'topRight') return <ImageCoverTopRight p={p} />
   // Il personaggio è al centro: il testo sta in una nuvoletta in basso con la
   // punta verso il becco, così il volto resta libero.
   const src = COVERS[p.image] || COVERS['condor-flight']
@@ -544,6 +545,38 @@ function ImageCoverBottomLeft({ p }) {
             <div style={{ display: 'flex', alignSelf: 'flex-end', alignItems: 'center', gap: 10 }}>
               <div style={{ fontSize: 26, fontWeight: 800, color: C.teal }}>Scorri</div>
               <Arrow color={C.orange} size={32} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Box in alto a destra con la punta verso il basso a sinistra (illustrazioni con il soggetto in basso)
+function ImageCoverTopRight({ p }) {
+  const src = COVERS[p.image] || COVERS['condor-desk']
+  return (
+    <div style={{ width: SLIDE_W, height: SLIDE_H, display: 'flex', position: 'relative', fontFamily: 'Inter', background: C.teal }}>
+      {src ? <img src={src} width={SLIDE_W} height={SLIDE_H} style={{ position: 'absolute', top: 0, left: 0 }} alt="" /> : null}
+      <div style={{ display: 'flex', flexDirection: 'column', width: SLIDE_W, height: SLIDE_H, padding: `${SAFE_Y}px ${SAFE_X}px` }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Wordmark color={C.white} />
+          <div style={{ display: 'flex', flexDirection: 'column', width: p.width || 430 }}>
+            <div style={{
+              display: 'flex', flexDirection: 'column', gap: 14, background: C.white, borderRadius: 36,
+              padding: '26px 30px', boxShadow: '0 12px 40px rgba(0,0,0,0.22)',
+            }}>
+              {p.kicker ? (
+                <div style={{ display: 'flex' }}>
+                  <div style={{ display: 'flex', background: C.teal, color: C.white, fontSize: 20, fontWeight: 800, padding: '8px 18px', borderRadius: 999, letterSpacing: 2, textTransform: 'uppercase' }}>{p.kicker}</div>
+                </div>
+              ) : null}
+              <div style={{ display: 'flex', color: C.ink, fontSize: p.size || 40, fontWeight: 800, lineHeight: 1.12, letterSpacing: -1 }}>{p.text || ''}</div>
+              <div style={{ display: 'flex', alignSelf: 'flex-end', alignItems: 'center', gap: 10 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: C.teal }}>Scorri</div>
+                <Arrow color={C.orange} size={30} />
+              </div>
             </div>
           </div>
         </div>
@@ -689,6 +722,12 @@ function Chat({ p }) {
             </div>
           )
         })}
+        {p.note ? (
+          <div style={{ display: 'flex', fontSize: 32, lineHeight: 1.35, color: C.ink2, marginTop: 12 }}>{p.note}</div>
+        ) : null}
+        {p.tagline ? (
+          <div style={{ display: 'flex', background: C.tealLt, borderRadius: 28, padding: '24px 30px', fontSize: 34, fontWeight: 700, lineHeight: 1.3, color: C.teal, marginTop: 12 }}>{p.tagline}</div>
+        ) : null}
       </div>
     </Frame>
   )

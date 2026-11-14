@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import sharp from 'sharp'
-import { renderTemplate, setLogos, setAvatars, setMascots, TEMPLATES, SLIDE_W, SLIDE_H } from './templates'
+import { renderTemplate, setLogos, setAvatars, setMascots, setCovers, TEMPLATES, SLIDE_W, SLIDE_H } from './templates'
 import { loadTemplateData } from './data'
 
 let logosPromise = null
@@ -16,6 +16,8 @@ function loadLogos() {
         const ids = ['owl', 'fox', 'dog', 'dolphin', 'lion', 'bunny', 'panda', 'cat', 'frog', 'koala', 'bear', 'octopus']
         const entries = await Promise.all(ids.map(async (id) => [id, await uri(`characters/${id}.png`)]))
         setAvatars(Object.fromEntries(entries))
+        const jpg = async (f) => `data:image/jpeg;base64,${(await readFile(path.join(dir, f))).toString('base64')}`
+        setCovers({ 'condor-flight': await jpg('covers/condor-flight.jpg') })
         setMascots({ happy: await uri('characters/condor.png'), determined: await uri('characters/condor-determined.png') })
       })
   }

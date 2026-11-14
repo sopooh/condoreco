@@ -64,6 +64,10 @@ export function setLogos(l) { LOGOS = l }
 // Avatar dei personaggi (data URI per id), caricati da render.jsx
 let AVATARS = {}
 let MASCOTS = {}
+let COVERS = {}
+export function setCovers(c) { COVERS = c }
+// Illustrazioni a tutta pagina disponibili per la copertina
+export const COVER_IMAGES = { 'condor-flight': 'Condor in volo (arancio)' }
 export function setAvatars(a) { AVATARS = a }
 export function setMascots(m) { MASCOTS = m }
 
@@ -425,6 +429,49 @@ function Mascot({ p }) {
   )
 }
 
+// Copertina illustrata: immagine a tutta pagina, logo bianco, nuvoletta in
+// alto che "esce" dal personaggio. Testo sempre dentro la safe area.
+function ImageCover({ p }) {
+  // Il personaggio è al centro: il testo sta in una nuvoletta in basso con la
+  // punta verso il becco, così il volto resta libero.
+  const src = COVERS[p.image] || COVERS['condor-flight']
+  const len = (p.text || '').length
+  return (
+    <div style={{ width: SLIDE_W, height: SLIDE_H, display: 'flex', position: 'relative', fontFamily: 'Inter', background: C.orange }}>
+      {src ? <img src={src} width={SLIDE_W} height={SLIDE_H} style={{ position: 'absolute', top: 0, left: 0 }} alt="" /> : null}
+      <div style={{ display: 'flex', flexDirection: 'column', width: SLIDE_W, height: SLIDE_H, padding: `${SAFE_Y}px ${SAFE_X}px` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, alignSelf: 'flex-end', background: 'rgba(17,24,39,0.35)', padding: '10px 20px 10px 12px', borderRadius: 999 }}>
+          {LOGOS.white ? <img src={LOGOS.white} width={44} height={44} alt="" /> : null}
+          <div style={{ fontSize: 30, fontWeight: 800, color: C.white }}>condoreco</div>
+        </div>
+        <div style={{ display: 'flex', flex: 1 }} />
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', paddingLeft: 400 }}>
+            <svg width="64" height="54" viewBox="0 0 64 54"><path d="M6 0 L64 54 L0 54 Z" fill={C.white} /></svg>
+          </div>
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: 18, background: C.white, borderRadius: 44,
+            padding: '36px 44px', boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
+          }}>
+            {p.kicker ? (
+              <div style={{ display: 'flex' }}>
+                <div style={{ display: 'flex', background: C.orange, color: C.white, fontSize: 24, fontWeight: 800, padding: '10px 22px', borderRadius: 999, letterSpacing: 2, textTransform: 'uppercase' }}>{p.kicker}</div>
+              </div>
+            ) : null}
+            <div style={{ display: 'flex', color: C.ink, fontSize: len > 90 ? 48 : 56, fontWeight: 800, lineHeight: 1.12, letterSpacing: -1 }}>
+              {p.text || 'Titolo della copertina'}
+            </div>
+            <div style={{ display: 'flex', alignSelf: 'flex-end', alignItems: 'center', gap: 10 }}>
+              <div style={{ fontSize: 26, fontWeight: 800, color: C.teal }}>Scorri</div>
+              <Arrow color={C.orange} size={32} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Dialogo tra personaggi, stile chat: il primo parla a sinistra, gli altri a destra.
 function Chat({ p }) {
   const t = theme(p.theme || 'light')
@@ -469,6 +516,7 @@ function Chat({ p }) {
 export const TEMPLATES = {
   cover: { label: 'Copertina', render: Cover },
   mascot: { label: 'Condor (messaggio istituzionale)', render: Mascot },
+  imageCover: { label: 'Copertina illustrata', render: ImageCover },
   speak: { label: 'Personaggio che parla', render: Speak },
   chat: { label: 'Dialogo tra personaggi', render: Chat },
   tip: { label: 'Consiglio numerato', render: Tip },

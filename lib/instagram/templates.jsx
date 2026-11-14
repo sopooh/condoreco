@@ -567,31 +567,29 @@ function WhiteMascot({ p }) {
           ) : null}
           <div style={{ display: 'flex', color: C.ink, fontSize: len > 90 ? 46 : 54, fontWeight: 800, lineHeight: 1.12, letterSpacing: -1 }}>{p.text || ''}</div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center', paddingLeft: 60 }}>
+        <div style={{ display: 'flex', justifyContent: p.showLink ? 'flex-start' : 'center', paddingLeft: p.showLink ? 260 : 60 }}>
           <svg width="70" height="50" viewBox="0 0 70 50"><path d="M0 0 L70 0 L20 50 Z" fill={C.tealLt} /></svg>
         </div>
       </div>
-      <div style={{ display: 'flex', flex: 1, alignItems: 'flex-end', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', width: 180 }} />
-        {MASCOTS[pose] ? <img src={MASCOTS[pose]} width={w} height={h} alt="" /> : <div style={{ width: w, height: h }} />}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: 180, gap: 12 }}>
-          {p.showLink ? null : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ fontSize: 26, fontWeight: 800, color: C.teal }}>Scorri</div>
-              <Arrow color={C.orange} size={32} />
-            </div>
-          )}
-        </div>
-      </div>
       {p.showLink ? (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, marginTop: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: C.teal, color: C.white, fontSize: 34, fontWeight: 800, padding: '18px 30px', borderRadius: 20 }}>
+        // Chiusura: Condor a sinistra, link nell'angolo in basso a destra della safe area
+        <div style={{ display: 'flex', flex: 1, alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          {MASCOTS[pose] ? <img src={MASCOTS[pose]} width={w} height={h} alt="" /> : <div style={{ width: w, height: h }} />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: C.teal, color: C.white, fontSize: 32, fontWeight: 800, padding: '18px 28px', borderRadius: 20 }}>
             <div>{p.url || 'condoreco.com'}</div>
-            <Arrow color={C.white} size={34} />
+            <Arrow color={C.white} size={32} />
           </div>
-          <div style={{ fontSize: 26, fontWeight: 600, color: C.ink3 }}>Link in bio</div>
         </div>
-      ) : null}
+      ) : (
+        <div style={{ display: 'flex', flex: 1, alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', width: 180 }} />
+          {MASCOTS[pose] ? <img src={MASCOTS[pose]} width={w} height={h} alt="" /> : <div style={{ width: w, height: h }} />}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', width: 180, gap: 10 }}>
+            <div style={{ fontSize: 26, fontWeight: 800, color: C.teal }}>Scorri</div>
+            <Arrow color={C.orange} size={32} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Users, Building2, Wrench, UserRound, Pin, Plus, Search, X, UserPlus, Check } from 'lucide-react'
+import { Users, Building2, Wrench, UserRound, Pin, Plus, Search, X, UserPlus, Check, HousePlus, ChevronRight } from 'lucide-react'
 import { useCondoChat } from '@/hooks/useCondoChat'
 import { usePolls } from '@/hooks/usePolls'
 import { useEvents } from '@/hooks/useEvents'
@@ -14,6 +14,8 @@ import { INTERVENTION_STATUS } from '@/hooks/useInterventions'
 import ChatThreadView from '@/components/condo/chat/ChatThreadView'
 import { Sheet } from '@/components/condo/InterventionsPage'
 import { fuzzyFilter } from '@/lib/fuzzySearch'
+import NeighbourQuestionsPanel from '@/components/neighbours/NeighbourQuestionsPanel'
+import { useNeighbourPendingCount } from '@/hooks/useNeighbourQuestions'
 
 // Chat del condominio: elenco conversazioni (gruppo, amministratore,
 // interventi, private) e conversazione aperta (?c=gruppo | ?t=<id>).
@@ -36,6 +38,7 @@ function ChatInner({ building }) {
 
   const openParam = sp.get('t')
   const groupOpen = sp.get('c') === 'gruppo'
+  const neighboursOpen = sp.get('c') === 'vicini'
   const adminParam = sp.get('admin')
   const interventoParam = sp.get('intervento')
 
@@ -68,6 +71,7 @@ function ChatInner({ building }) {
     const r = await threadsApi.openDirect(userId)
     if (r.id) { threadsApi.reload(); router.push(`${base}?t=${r.id}`) }
   }
+  if (neighboursOpen) return <NeighbourQuestionsPanel building={building} onBack={back} focusId={sp.get('q')} />
   if (groupOpen) return <GroupChat building={building} onBack={back} onOpenContact={openContact} />
   if (openParam) {
     const meta = threadsApi.threads.find((t) => t.thread_id === openParam)
@@ -87,6 +91,9 @@ const FILTERS = [
 
 function Inbox({ building, base, threads, loading, error, openDirect, reload }) {
   const router = useRouter()
+  const { role } = useCondoRole(building.id)
+  const isResident = role === 'resident'
+  const nqPending = useNeighbourPendingCount(building.id, isResident)
   const [filter, setFilter] = useState('all')
   const [q, setQ] = useState('')
   const [searching, setSearching] = useState(false)
@@ -148,6 +155,18 @@ function Inbox({ building, base, threads, loading, error, openDirect, reload }) 
       </div>
 
       {error && <p style={{ fontSize: 13, color: '#B42318', margin: 0 }}>Non riesco a caricare le chat. Riprova tra poco.</p>}
+
+      {isResident && (filter === 'all' || filter === 'condo') && !q && (
+        <button type="button" className="nq-inbox-row" onClick={() => router.push(`${base}?c=vicini`)}>
+          <span className="nq-head-ico"><HousePlus size={24} strokeWidth={1.9} aria-hidden="true" /></span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <strong>Possibili nuovi vicini</strong>
+            <small>{nqPending > 0 ? `${nqPending} ${nqPending === 1 ? 'nuova domanda' : 'nuove domande'} da chi cerca casa qui` : 'Domande di chi sta pensando di venire a vivere qui'}</small>
+          </span>
+          {nqPending > 0 && <span className="nq-inbox-badge">{nqPending}</span>}
+          <ChevronRight size={18} aria-hidden="true" />
+        </button>
+      )}
 
       <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 18, overflow: 'hidden', opacity: loading ? 0.6 : 1 }}>
         {visible.length === 0 ? (

@@ -16,6 +16,7 @@ import InterventionFiles from '@/components/suppliers/InterventionFiles'
 import { createClient } from '@/lib/supabase/client'
 import { useNeighbourNotices } from '@/hooks/useNeighbourNotices'
 import { NoticeForm, NoticeIcon } from '@/components/condo/NeighbourNotice'
+import { track } from '@/lib/analytics'
 
 // "I tuoi interventi" (area personale): il residente segnala un problema,
 // sceglie o aggiunge un manutentore e lo contatta direttamente, senza
@@ -372,6 +373,11 @@ function NewInterventionSheet({ maintainers, defaultCategory, onClose, onAddMain
     const { error, id } = await onCreate(v)
     setSaving(false)
     if (error) { setErr(error); return }
+    track('intervention_created', {
+      category: v.category,
+      is_urgent: v.urgent,
+      has_maintainer: Boolean(v.maintainerId),
+    })
     onCreated({ id, title: v.title, category: v.category, location: v.location, description: v.description, maintainer_id: v.maintainerId, status: 'requested' })
   }
 

@@ -548,9 +548,11 @@ function ImageCoverBottomLeft({ p }) {
 
 // Dialogo tra personaggi, stile chat: il primo parla a sinistra, gli altri a destra.
 function Chat({ p }) {
-  const t = theme(p.theme || 'light')
+  // Le chat hanno sempre lo sfondo bianco. L'esperto (default il Gufo) parla
+  // a destra, tutti gli altri residenti a sinistra.
+  const t = { ...theme('light'), bg: C.white }
   const lines = parseDialogue(p.lines)
-  const first = lines.find((l) => l.character)?.character?.id
+  const expert = findCharacter(p.expert || 'gufo')?.id
   // il testo deve stare tutto nella safe area: più testo, font più piccolo
   const total = lines.reduce((n, l) => n + l.text.length, 0) + lines.length * 40
   const size = total > 330 ? 36 : total > 260 ? 40 : 46
@@ -561,7 +563,7 @@ function Chat({ p }) {
       ) : null}
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center', gap: 24, paddingBottom: 24 }}>
         {lines.map((l, i) => {
-          const left = !l.character || l.character.id === first
+          const left = !l.character || l.character.id !== expert
           const accent = l.character?.color || C.teal
           return (
             <div key={i} style={{ display: 'flex', width: '100%', flexDirection: left ? 'row' : 'row-reverse', alignItems: 'flex-end', gap: 20 }}>
@@ -572,7 +574,7 @@ function Chat({ p }) {
                 </div>
                 <div style={{
                   display: 'flex', background: left ? C.white : accent, color: left ? C.ink : C.white,
-                  border: left && t.bg === C.paper ? `3px solid ${C.line}` : 'none',
+                  border: left ? `3px solid ${C.line}` : 'none',
                   borderRadius: 40, borderBottomLeftRadius: left ? 8 : 40, borderBottomRightRadius: left ? 40 : 8,
                   padding: '26px 34px', fontSize: size, fontWeight: 600, lineHeight: 1.25,
                 }}>{l.text}</div>

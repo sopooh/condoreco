@@ -30,8 +30,12 @@ export async function POST(request) {
   const { accessToken, igUserId } = await request.json().catch(() => ({}))
   if (!accessToken) return json({ error: 'Incolla il token di accesso' }, 400)
   try {
-    let token = accessToken.trim()
-    const me = await getAccount(token, igUserId?.trim() || undefined)
+    // copiando da Meta capita di portarsi dietro spazi, a capo o virgolette
+    let token = String(accessToken).replace(/[\s"'`]/g, '')
+    if (!/^(EAA|IG)[A-Za-z0-9_-]{20,}$/.test(token)) {
+      return json({ error: `Questo non sembra un token di accesso (inizia con "${token.slice(0, 4)}", ${token.length} caratteri). Deve iniziare con EAA o IGAA ed essere lungo più di 100 caratteri.` }, 422)
+    }
+    const me = await getAccount(token, String(igUserId || '').replace(/\D/g, '') || undefined)
     // token utente di sistema (EAA): non scade, niente rinnovo
     let expiresAt = null
     if (isInstagramLoginToken(token)) {

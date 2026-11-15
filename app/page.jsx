@@ -1,125 +1,125 @@
 import Link from 'next/link'
+import {
+  ArrowRight, BarChart3, Building2, CalendarDays, Calculator, FileText, MapPin, MessageCircle,
+  MessagesSquare, Search, Settings, Users, Wrench, HousePlus, UserRound,
+} from 'lucide-react'
 import { createStaticClient } from '@/lib/supabase/static'
 import SearchBar from '@/components/search/SearchBar'
-import LiveReviewedCounter from '@/components/home/LiveReviewedCounter'
 import BuildingList from '@/components/buildings/BuildingList'
+import HeroFacade from '@/components/home/HeroFacade'
+import PhoneStack from '@/components/home/PhoneStack'
 
 export const revalidate = 3600
 
-// "Più recensiti questa settimana" limitava a un numero ragionevole di card;
-// l'originale renderizzava l'intera lista senza ordinamento (la heading non
-// corrispondeva ai dati). Qui l'ordinamento per review_count è reale.
-const TOP_BUILDINGS_LIMIT = 12
+const TOP_BUILDINGS_LIMIT = 6
 
 async function getHomeData() {
   const supabase = createStaticClient()
-
-  const [{ data: cityRows }, { data: topBuildings }, { count: reviewedCount }] = await Promise.all([
-    supabase.from('building_scores').select('city'),
-    supabase.from('building_scores').select('*').order('review_count', { ascending: false }).limit(TOP_BUILDINGS_LIMIT),
-    supabase.from('building_scores').select('id', { count: 'exact', head: true }).gt('review_count', 0),
-  ])
-
-  const cityCounts = new Map()
-  ;(cityRows || []).forEach((b) => {
-    if (!b.city) return
-    cityCounts.set(b.city, (cityCounts.get(b.city) || 0) + 1)
-  })
-  const cities = Array.from(cityCounts.entries())
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-
-  return {
-    cities,
-    topBuildings: topBuildings || [],
-    reviewedCount: reviewedCount || 0,
-  }
+  const { data } = await supabase.from('building_scores').select('*').order('review_count', { ascending: false }).limit(TOP_BUILDINGS_LIMIT)
+  return { topBuildings: data || [] }
 }
 
 export default async function HomePage() {
-  const { cities, topBuildings, reviewedCount } = await getHomeData()
+  const { topBuildings } = await getHomeData()
 
   return (
-    <>
-      <div style={{
-        background: 'radial-gradient(circle at left center, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 24%, rgba(13, 103, 111, 0) 48%), linear-gradient(145deg, #094B50 0%, var(--teal) 56%, #0E7E82 100%)',
-        borderBottom: '1px solid rgba(255,255,255,0.10)',
-        padding: '64px 0 44px',
-      }}>
-        <div className="home-hero-wrap" style={{ margin: '0 auto', textAlign: 'center' }}>
-          <h1 style={{
-            fontSize: 'clamp(34px, 6vw, 54px)',
-            fontWeight: 800,
-            lineHeight: 1.12,
-            letterSpacing: '-1.2px',
-            marginBottom: 14,
-            color: '#FFFFFF',
-            maxWidth: 760,
-            margin: '0 auto 22px',
-          }}>
-            Trasparenza condominiale
-            <br />
-            <span style={{ color: '#BFEDEF' }}>per davvero</span>
-          </h1>
-          <p style={{
-            fontSize: 'clamp(17px, 2.2vw, 20px)',
-            color: 'rgba(255,255,255,0.86)',
-            lineHeight: 1.5,
-            marginBottom: 36,
-            maxWidth: 320,
-            marginInline: 'auto',
-          }}>
-            Uno strumento chiaro per scegliere e vivere il condominio.
-          </p>
-
-          <div style={{ maxWidth: 980, margin: '0 auto' }}>
-            <SearchBar maxWidth="100%" variant="hero" />
-          </div>
-
-          <div style={{ marginTop: 24 }}>
-            <LiveReviewedCounter value={reviewedCount} />
-          </div>
+    <div className="lp">
+      {/* ── Hero ── */}
+      <section className="lp-hero">
+        <div className="lp-hero-txt">
+          <span className="lp-kicker">La piattaforma per condomini, residenti e amministratori</span>
+          <h1 className="lp-title">Trasparenza condominiale <span>per davvero.</span></h1>
+          <p className="lp-lead">Scopri, gestisci e vivi il tuo condominio in modo più semplice, chiaro e condiviso.</p>
+          <SearchBar variant="landing" />
+          <nav className="lp-quick" aria-label="Scorciatoie">
+            <Link href="/cerca"><MapPin size={17} aria-hidden="true" />Esplora i condomini</Link>
+            <Link href="/cerca"><MessageCircle size={17} aria-hidden="true" />Fai una domanda ai residenti</Link>
+            <Link href="/profilo"><Building2 size={17} aria-hidden="true" />Gestisci il tuo condominio</Link>
+          </nav>
         </div>
-      </div>
-
-      <div className="home-city-section" style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ maxWidth: 1080, margin: '0 auto' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 10 }}>
-            Esplora per città
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-            {cities.map((c) => (
-              <Link key={c.name} href={`/cerca?city=${encodeURIComponent(c.name)}`}
-                style={{
-                  background: '#fff', border: '1.5px solid var(--border)', borderRadius: 100,
-                  padding: '8px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-2)',
-                  display: 'inline-block',
-                }}>
-                {c.name}
-                <span style={{ fontSize: 11, color: 'var(--text-4)', marginLeft: 5 }}>{c.count}</span>
-              </Link>
-            ))}
-            <Link
-              href="/cerca"
-              style={{
-                background: 'transparent', border: '1.5px dashed var(--border)', borderRadius: 100,
-                padding: '8px 16px', fontSize: 13, fontWeight: 600, color: 'var(--teal)',
-                display: 'inline-block',
-              }}
-            >
-              + Cerca un'altra città
-            </Link>
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text-4)', lineHeight: 1.5 }}>
-            Oppure cerca qualsiasi via, quartiere o città dalla barra di ricerca qui sopra.
-          </div>
+        <div className="lp-hero-art">
+          <HeroFacade />
+          <div className="lp-float lp-float-1"><Users size={20} aria-hidden="true" /><span>È un condominio tranquillo?<br />C&apos;è molto rumore?</span></div>
+          <div className="lp-float lp-float-2"><BarChart3 size={20} aria-hidden="true" /><span>Com&apos;è la gestione<br />delle spese?</span></div>
+          <div className="lp-float lp-float-3"><Wrench size={20} aria-hidden="true" /><span>Sono previsti<br />lavori a breve?</span></div>
         </div>
-      </div>
+      </section>
 
-      <div className="wrap home-buildings-section">
-        <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Più recensiti questa settimana</div>
-        <BuildingList buildings={topBuildings} />
-      </div>
-    </>
+      {/* ── Due percorsi ── */}
+      <section className="lp-paths">
+        <article className="lp-path is-warm">
+          <div className="lp-path-txt">
+            <span className="lp-tag">Cerchi casa?</span>
+            <h2>Fai domande ai residenti prima di scegliere.</h2>
+            <p>Ricevi risposte reali da chi vive già nel condominio: gestione, spese, manutenzione, servizi e qualità della vita.</p>
+            <Link href="/come-funziona" className="lp-btn">Scopri come funziona<ArrowRight size={17} aria-hidden="true" /></Link>
+          </div>
+          <div className="lp-chatcard" aria-hidden="true">
+            <div className="lp-chatcard-head"><HousePlus size={18} /><b>Possibili nuovi vicini<small>Residenti verificati</small></b></div>
+            <p className="lp-cc-me">Com&apos;è la gestione del riscaldamento?<small>10:24</small></p>
+            <p className="lp-cc-them"><span className="lp-cc-av"><UserRound size={13} /></span>Molto efficiente, spese in linea e nessun problema.<small>10:37</small></p>
+          </div>
+        </article>
+        <article className="lp-path is-sage">
+          <div className="lp-path-txt">
+            <span className="lp-tag">Sei già residente?</span>
+            <h2>Gestisci il tuo condominio online.</h2>
+            <p>Comunicazioni, documenti, spese, interventi e fornitori, tutto in un&apos;unica piattaforma condivisa.</p>
+            <Link href="/profilo" className="lp-btn">Scopri la gestione<ArrowRight size={17} aria-hidden="true" /></Link>
+          </div>
+          <ul className="lp-features" aria-label="Cosa trovi nell'area condominio">
+            <li><MessageCircle size={17} aria-hidden="true" />Chat condominiale<em>3</em></li>
+            <li><CalendarDays size={17} aria-hidden="true" />Interventi e segnalazioni</li>
+            <li><FileText size={17} aria-hidden="true" />Documenti</li>
+            <li><Calculator size={17} aria-hidden="true" />Contabilità</li>
+            <li><BarChart3 size={17} aria-hidden="true" />Sondaggi e assemblee</li>
+          </ul>
+        </article>
+      </section>
+
+      {/* ── Una piattaforma ── */}
+      <section className="lp-platform">
+        <PhoneStack />
+        <div className="lp-platform-txt">
+          <span className="lp-eyebrow">Un&apos;unica piattaforma, tutto il condominio</span>
+          <h2>Dalla scelta alla gestione quotidiana.</h2>
+          <p>Condoreco ti accompagna in ogni fase: valuta un condominio, confronta le esperienze reali, entra nella community e gestisci tutto in modo trasparente e collaborativo.</p>
+          <ul className="lp-steps">
+            <li><span><Search size={24} aria-hidden="true" /></span>Scopri<br />e valuta</li>
+            <li><span><MessagesSquare size={24} aria-hidden="true" /></span>Chiedi ai<br />residenti</li>
+            <li><span><Settings size={24} aria-hidden="true" /></span>Gestisci<br />e organizza</li>
+            <li><span><Users size={24} aria-hidden="true" /></span>Collabora<br />con tutti</li>
+          </ul>
+        </div>
+      </section>
+
+      {/* ── Per chi ── */}
+      <section className="lp-audience">
+        <Link href="/profilo"><Building2 size={26} aria-hidden="true" /><span><b>Per condomini e proprietari</b>Più controllo, comunicazione diretta e una gestione realmente condivisa.</span></Link>
+        <Link href="/amministratori"><UserRound size={26} aria-hidden="true" /><span><b>Per amministratori</b>Uno strumento completo per lavorare in modo più semplice, digitale e trasparente.</span></Link>
+        <Link href="/fornitori"><Wrench size={26} aria-hidden="true" /><span><b>Per fornitori</b>Interventi, preventivi e comunicazioni organizzate, senza perdite di tempo.</span></Link>
+      </section>
+
+      {/* ── I più recensiti ── */}
+      {topBuildings.length > 0 && (
+        <section className="lp-top">
+          <div className="lp-top-head">
+            <h2>Più recensiti questa settimana</h2>
+            <Link href="/cerca">Vedi tutti<ArrowRight size={16} aria-hidden="true" /></Link>
+          </div>
+          <BuildingList buildings={topBuildings} />
+        </section>
+      )}
+
+      {/* ── CTA ── */}
+      <section className="lp-cta">
+        <div className="lp-cta-art" aria-hidden="true"><HeroFacade /></div>
+        <div className="lp-cta-txt">
+          <h2>Crea il tuo condominio<br />su Condoreco.</h2>
+          <p>Entra nella nuova generazione della vita condominiale.</p>
+        </div>
+        <Link href="/aggiungi-condominio" className="lp-cta-btn">Inizia ora<ArrowRight size={17} aria-hidden="true" /></Link>
+      </section>
+    </div>
   )
 }

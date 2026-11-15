@@ -113,21 +113,28 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540, v
   const pad = variant === 'hero' ? '16px 20px' : size === 'lg' ? '15px 18px' : '11px 14px'
   const fs  = variant === 'hero' ? 16 : size === 'lg' ? 15 : 14
 
-  const input = (style) => (
+  const input = (style, ph) => (
     <input
       value={q}
       onChange={e => { touchedRef.current = true; setQ(e.target.value) }}
       onFocus={() => results.length > 0 && setOpen(true)}
       onKeyDown={e => e.key === 'Escape' && setOpen(false)}
-      placeholder={isMobile ? 'Cerca via, città...' : 'Cerca via, quartiere, città (es. Via Manzoni 14, Milano)'}
+      placeholder={ph || (isMobile ? 'Cerca via, città...' : 'Cerca via, quartiere, città (es. Via Manzoni 14, Milano)')}
       aria-label="Cerca via, quartiere o città"
       style={style}
     />
   )
 
   return (
-    <div ref={wrapRef} style={{ position: 'relative', maxWidth: variant === 'dir' ? 720 : maxWidth, width: '100%' }}>
-      {variant === 'dir' ? (
+    <div ref={wrapRef} style={{ position: 'relative', maxWidth: variant === 'dir' ? 720 : variant === 'landing' ? 560 : maxWidth, width: '100%' }}>
+      {variant === 'landing' ? (
+        <form className="lp-search" role="search" onSubmit={handleSubmit}>
+          <Search size={20} strokeWidth={2} aria-hidden="true" />
+          {input(undefined, isMobile ? 'Cerca un indirizzo' : 'Cerca un indirizzo o un condominio')}
+          {loading && <span style={{ color: 'var(--text-4)', fontSize: 12 }}>…</span>}
+          <button type="submit" aria-label="Cerca"><ArrowRight size={20} strokeWidth={2.2} aria-hidden="true" /></button>
+        </form>
+      ) : variant === 'dir' ? (
         <form className="dir-search" role="search" onSubmit={handleSubmit}>
           <label className="dir-search-field">
             <Search size={20} strokeWidth={2} aria-hidden="true" />

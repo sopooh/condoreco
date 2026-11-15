@@ -3008,7 +3008,7 @@ input, select, textarea { font-family: inherit; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
 /* ── Landing page ── */
-.lp { --lp-ink: #0A3D42; --lp-warm: #FBEFE6; --lp-sage: #EEF3EE; background: #FBFAF7; overflow: hidden; }
+.lp { --lp-ink: var(--teal); --lp-warm: #FBEFE6; --lp-sage: #EEF3EE; background: #FBFAF7; overflow: hidden; }
 .lp section { max-width: 1240px; margin: 0 auto; }
 .lp-hero { display: grid; grid-template-columns: 1fr; gap: 28px; padding: 28px 20px 8px; }
 .lp-kicker { display: inline-block; padding: 7px 14px; border-radius: 999px; background: #EFEDE7; color: var(--text-2); font-size: 13px; font-weight: 600; }
@@ -3019,7 +3019,7 @@ input, select, textarea { font-family: inherit; }
 .lp-search { display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 6px 0 20px; border-radius: 999px; background: var(--white); border: 1px solid #ECE9E2; box-shadow: 0 10px 30px rgba(10, 61, 66, 0.08); color: var(--text-3); }
 .lp-search input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font: inherit; font-size: 16px; color: var(--text); }
 .lp-search button { width: 48px; height: 48px; min-height: 0; flex-shrink: 0; border: none; border-radius: 50%; background: var(--lp-ink); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s, transform .15s; }
-.lp-search button:hover { background: var(--teal); transform: translateX(2px); }
+.lp-search button:hover { background: var(--teal-dk); transform: translateX(2px); }
 .lp-search:focus-within { border-color: var(--teal-mid); box-shadow: 0 10px 30px rgba(10, 61, 66, 0.12), 0 0 0 3px var(--teal-lt); }
 .lp-quick { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 18px; }
 .lp-quick a { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 600; color: var(--text-2); }
@@ -3045,7 +3045,7 @@ input, select, textarea { font-family: inherit; }
 .lp-path h2 { margin: 14px 0 10px; font-size: clamp(24px, 2.6vw, 30px); line-height: 1.12; letter-spacing: -.8px; font-weight: 800; color: var(--lp-ink); }
 .lp-path p { margin: 0 0 18px; font-size: 15px; line-height: 1.5; color: var(--text-2); }
 .lp-btn { display: inline-flex; align-items: center; gap: 10px; height: 46px; padding: 0 22px; border-radius: 999px; background: var(--lp-ink); color: #fff; font-size: 14.5px; font-weight: 700; transition: background .15s; }
-.lp-btn:hover { background: var(--teal); }
+.lp-btn:hover { background: var(--teal-dk); }
 .lp-chatcard { align-self: center; padding: 14px; border-radius: 18px; background: var(--white); box-shadow: 0 12px 30px rgba(120, 60, 20, .10); display: flex; flex-direction: column; gap: 10px; max-width: 300px; justify-self: center; width: 100%; }
 .lp-chatcard-head { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border-2); color: var(--lp-ink); }
 .lp-chatcard-head b { font-size: 13.5px; display: flex; flex-direction: column; }
@@ -3108,14 +3108,14 @@ input, select, textarea { font-family: inherit; }
 .lp-audience svg { color: var(--lp-ink); flex-shrink: 0; margin-top: 2px; }
 .lp-audience b { display: block; font-size: 16px; margin-bottom: 6px; color: var(--lp-ink); }
 .lp-audience span { font-size: 14px; line-height: 1.5; color: var(--text-2); }
-.lp-audience a:hover b { color: var(--teal); }
+.lp-audience a:hover b { color: var(--teal-dk); }
 
 .lp-top { padding: 10px 20px 30px; }
 .lp-top-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .lp-top-head h2 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.5px; color: var(--lp-ink); }
 .lp-top-head a { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--teal); }
 
-.lp-cta { position: relative; display: flex; flex-direction: column; gap: 18px; margin: 10px 12px 40px !important; padding: 150px 24px 28px; border-radius: 28px; background: linear-gradient(120deg, #0A3D42, #0D5B61); color: #fff; overflow: hidden; }
+.lp-cta { position: relative; display: flex; flex-direction: column; gap: 18px; margin: 10px 12px 40px !important; padding: 150px 24px 28px; border-radius: 28px; background: var(--teal); color: #fff; overflow: hidden; }
 .lp-cta-art { position: absolute; left: 0; top: 0; right: 0; height: 130px; opacity: .9; }
 .lp-cta-art .lp-facade { height: 100%; }
 .lp-cta-txt h2 { margin: 0 0 8px; font-size: clamp(26px, 3vw, 34px); line-height: 1.1; letter-spacing: -.8px; font-weight: 800; }

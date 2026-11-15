@@ -3050,11 +3050,6 @@ input, select, textarea { font-family: inherit; }
 .lp-chatcard-head { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border-2); color: var(--lp-ink); }
 .lp-chatcard-head b { font-size: 13.5px; display: flex; flex-direction: column; }
 .lp-chatcard-head small { font-size: 11px; font-weight: 500; color: var(--text-3); }
-.lp-cc-me, .lp-cc-them { margin: 0; padding: 10px 12px; border-radius: 12px; font-size: 13px; line-height: 1.35; }
-.lp-cc-me { align-self: flex-end; max-width: 78%; background: #E6F1E3; border-radius: 12px 12px 4px 12px; }
-.lp-cc-them { position: relative; align-self: flex-start; max-width: 82%; margin-left: 30px; background: #F4F4F2; border-radius: 12px 12px 12px 4px; }
-.lp-cc-me small, .lp-cc-them small { display: block; text-align: right; font-size: 10.5px; color: var(--text-4); margin-top: 3px; }
-.lp-cc-av { position: absolute; left: -30px; bottom: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--teal-lt); color: var(--teal-dk); display: flex; align-items: center; justify-content: center; }
 .lp-features { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .lp-features li { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 12px; background: var(--white); font-size: 13.5px; font-weight: 600; color: var(--text); box-shadow: 0 2px 8px rgba(40, 70, 40, .06); transition: transform .15s; }
 .lp-features li:hover { transform: translateX(4px); }
@@ -3160,3 +3155,16 @@ input, select, textarea { font-family: inherit; }
   .lp-phones.is-in .lp-phone-a { transform: translateX(-70px) translateY(10px) rotate(-12deg); }
   .lp-phones.is-in .lp-phone-b { transform: translateX(62px) translateY(-10px) rotate(8deg); box-shadow: 0 34px 60px rgba(10, 40, 40, .28); }
 }
+/* chat della landing nello stile dei post Instagram: Volpe chiede, Condor risponde */
+.lp-chatcard { gap: 14px; padding: 16px; background: #F7F8FA; }
+.lp-cc-row { display: flex; align-items: flex-end; gap: 10px; }
+.lp-cc-row > div { display: flex; flex-direction: column; min-width: 0; }
+.lp-cc-row.is-right { justify-content: flex-end; }
+.lp-cc-row.is-right > div { align-items: flex-end; }
+.lp-cc-av { width: 40px; height: 40px; padding: 7px; border-radius: 50%; flex-shrink: 0; object-fit: contain; background: var(--teal); }
+.lp-cc-av.is-fox { background: #E8651A; padding: 2px; }
+.lp-cc-name { font-size: 10.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--teal); margin: 0 4px 4px; }
+.lp-cc-name.is-fox { color: #E8651A; }
+.lp-chatcard .lp-cc-q, .lp-chatcard .lp-cc-a { margin: 0; padding: 10px 14px; font-size: 14px; font-weight: 700; line-height: 1.3; }
+.lp-chatcard .lp-cc-q { background: var(--white); border: 1.5px solid #E5E7EB; border-radius: 16px 16px 16px 4px; color: var(--text); }
+.lp-chatcard .lp-cc-a { background: var(--teal); color: #fff; border-radius: 16px 16px 4px 16px; }

@@ -5,6 +5,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { fetchWithTimeout } from '@/lib/fetchWithTimeout'
 import { searchNearbyBuildings } from '@/lib/buildings'
+import { createClient } from '@/lib/supabase/client'
+import { parseAddressQuery, ilikeSafe, sameCivic } from '@/lib/addressQuery'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
 async function photon(query) {
@@ -48,9 +50,24 @@ async function photon(query) {
   }
 }
 
+// Condomini già su Condoreco che corrispondono alla via scritta (civico esatto per primo)
+async function archiveMatches(query) {
+  const { words, civic } = parseAddressQuery(query)
+  if (!words.length) return []
+  try {
+    let req = createClient().from('building_scores').select('id, address, street_number, city, neighborhood')
+    words.forEach((w) => { req = req.ilike('address', `%${ilikeSafe(w)}%`) })
+    const { data } = await req.limit(12)
+    const list = data || []
+    const sorted = civic ? [...list.filter((b) => sameCivic(b.street_number, civic)), ...list.filter((b) => !sameCivic(b.street_number, civic))] : list
+    return sorted.slice(0, 5)
+  } catch { return [] }
+}
+
 export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540, variant = 'default' }) {
   const [q, setQ] = useState(initial)
   const [results, setResults] = useState([])
+  const [archive, setArchive] = useState([])
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -71,13 +88,14 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540, v
 
   useEffect(() => {
     clearTimeout(debounceRef.current)
-    if (!touchedRef.current || !q || q.trim().length < 3) { setResults([]); setOpen(false); return }
+    if (!touchedRef.current || !q || q.trim().length < 3) { setResults([]); setArchive([]); setOpen(false); return }
 
     debounceRef.current = setTimeout(async () => {
       setLoading(true)
-      const data = await photon(q)
+      const [data, own] = await Promise.all([photon(q), archiveMatches(q)])
       setResults(data)
-      setOpen(data.length > 0)
+      setArchive(own)
+      setOpen(data.length > 0 || own.length > 0)
       setLoading(false)
     }, 300)
 
@@ -117,7 +135,7 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540, v
     <input
       value={q}
       onChange={e => { touchedRef.current = true; setQ(e.target.value) }}
-      onFocus={() => results.length > 0 && setOpen(true)}
+      onFocus={() => (results.length > 0 || archive.length > 0) && setOpen(true)}
       onKeyDown={e => e.key === 'Escape' && setOpen(false)}
       placeholder={ph || (isMobile ? 'Cerca via, città...' : 'Cerca via, quartiere, città (es. Via Manzoni 14, Milano)')}
       aria-label="Cerca via, quartiere o città"
@@ -154,7 +172,7 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540, v
         <input
           value={q}
           onChange={e => { touchedRef.current = true; setQ(e.target.value) }}
-          onFocus={() => results.length > 0 && setOpen(true)}
+          onFocus={() => (results.length > 0 || archive.length > 0) && setOpen(true)}
           onKeyDown={e => e.key === 'Escape' && setOpen(false)}
           placeholder={isMobile ? 'Cerca via, città...' : 'Cerca via, quartiere, città (es. Via Manzoni 14, Milano)'}
           style={{ flex: 1, border: 'none', outline: 'none', padding: pad, fontSize: fs, fontFamily: 'Inter, sans-serif', minWidth: 0 }}
@@ -182,13 +200,27 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540, v
       </form>
       )}
 
-      {open && results.length > 0 && (
+      {open && (results.length > 0 || archive.length > 0) && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
           background: 'var(--white)', border: '1px solid var(--border)',
           borderRadius: 10, boxShadow: '0 8px 28px rgba(0,0,0,0.12)',
-          zIndex: 500, overflow: 'hidden',
+          zIndex: 500, overflow: 'hidden', textAlign: 'left',
         }}>
+          {archive.length > 0 && (
+            <div style={{ borderBottom: results.length ? '1px solid var(--border)' : 'none', background: '#F4F9F9' }}>
+              <div style={{ padding: '8px 16px 2px', fontSize: 11.5, fontWeight: 800, letterSpacing: '.6px', textTransform: 'uppercase', color: 'var(--teal-dk)' }}>Su Condoreco</div>
+              {archive.map((b) => (
+                <button key={b.id} type="button" onClick={() => { setOpen(false); router.push(`/edificio/${b.id}`) }}
+                  style={{ display: 'flex', flexDirection: 'column', width: '100%', padding: '9px 16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--teal-lt)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{b.address}{b.street_number ? `, ${b.street_number}` : ''}</span>
+                  <span style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 1 }}>{[b.neighborhood, b.city].filter(Boolean).join(' · ')}</span>
+                </button>
+              ))}
+            </div>
+          )}
           {results.map((item, i) => (
             <button
               key={i}

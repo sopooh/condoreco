@@ -1,4 +1,5 @@
 import { createStaticClient } from '@/lib/supabase/static'
+import { parseAddressQuery, ilikeSafe, sameCivic } from '@/lib/addressQuery'
 import SearchResultsView from '@/components/search/SearchResultsView'
 import { AMENITY_DB } from '@/lib/amenities'
 import { attachCoverPhotos } from '@/lib/photos'
@@ -20,10 +21,17 @@ async function getSearchData(searchParams) {
   const feeMax = searchParams.feeMax ? Number(searchParams.feeMax) : 3000
   const sort = searchParams.sort || 'recent'
 
-  function applyCommonFilters(req) {
+  const parsed = parseAddressQuery(query)
+
+  // mode 'street': tutte le parole della via nell'indirizzo (ordine e "via/viale" non contano);
+  // mode 'loose': testo intero in via, quartiere o città (es. "Corvetto", "Milano")
+  function applyCommonFilters(req, mode) {
     if (city) req = req.eq('city', city)
-    if (query) {
-      req = req.or(`address.ilike.%${query}%,neighborhood.ilike.%${query}%,city.ilike.%${query}%`)
+    if (query && mode === 'street') {
+      parsed.words.forEach((w) => { req = req.ilike('address', `%${ilikeSafe(w)}%`) })
+    } else if (query) {
+      const t = ilikeSafe(query)
+      req = req.or(`address.ilike.%${t}%,neighborhood.ilike.%${t}%,city.ilike.%${t}%`)
     }
     amenities.forEach((id) => {
       const column = AMENITY_DB[id]
@@ -32,21 +40,32 @@ async function getSearchData(searchParams) {
     return req
   }
 
-  let req = applyCommonFilters(supabase.from('building_scores').select('*'))
-  // Filtro attivo solo se scostato dal default: altrimenti gte(...,0) su
-  // Postgres escluderebbe gli edifici con monthly_fee null (mai valorizzata).
-  if (feeMin > 0) req = req.gte('monthly_fee', feeMin)
-  if (feeMax < 3000) req = req.lte('monthly_fee', feeMax)
+  async function run(mode) {
+    let req = applyCommonFilters(supabase.from('building_scores').select('*'), mode)
+    // Filtro attivo solo se scostato dal default: altrimenti gte(...,0) su
+    // Postgres escluderebbe gli edifici con monthly_fee null (mai valorizzata).
+    if (feeMin > 0) req = req.gte('monthly_fee', feeMin)
+    if (feeMax < 3000) req = req.lte('monthly_fee', feeMax)
+    // Baseline dell'istogramma: stessi filtri tranne il range fee
+    const feeReq = applyCommonFilters(supabase.from('building_scores').select('monthly_fee'), mode)
+    const [{ data }, { data: fees }] = await Promise.all([req, feeReq])
+    return { data: data || [], fees: fees || [] }
+  }
 
-  // Baseline dell'istogramma: stessi filtri tranne il range fee, così le
-  // barre grigie mostrano sempre la distribuzione completa delle quote.
-  const feeCountsReq = applyCommonFilters(supabase.from('building_scores').select('monthly_fee'))
+  let mode = parsed.words.length ? 'street' : 'loose'
+  let res = await run(mode)
+  if (!res.data.length && mode === 'street') { mode = 'loose'; res = await run(mode) }
+  const buildings = res.data
+  const feeRows = res.fees
 
-  const [{ data: buildings }, { data: cityRows }, { data: feeRows }] = await Promise.all([
-    req,
-    supabase.from('building_scores').select('city'),
-    feeCountsReq,
-  ])
+  // civico: prima quello cercato; se non c'è, si propongono gli altri civici della stessa via
+  let civicMiss = null
+  if (parsed.civic && mode === 'street' && buildings.length) {
+    const exact = buildings.filter((b) => sameCivic(b.street_number, parsed.civic))
+    if (!exact.length) civicMiss = { civic: parsed.civic, street: buildings[0].address || parsed.street }
+  }
+
+  const { data: cityRows } = await supabase.from('building_scores').select('city')
 
   const citySet = new Set()
   ;(cityRows || []).forEach((b) => { if (b.city) citySet.add(b.city) })
@@ -54,7 +73,10 @@ async function getSearchData(searchParams) {
   // Foto caricate dagli utenti in thumbnail al posto della mappa statica
   // (priorità già gestita da getBuildingPreviewImage, manca solo il dato):
   // una per edificio, preferendo la cover e poi il quality_score migliore.
-  const sorted = await sortBuildings(supabase, buildings || [], sort)
+  let sorted = await sortBuildings(supabase, buildings || [], sort)
+  if (parsed.civic && mode === 'street') {
+    sorted = [...sorted.filter((b) => sameCivic(b.street_number, parsed.civic)), ...sorted.filter((b) => !sameCivic(b.street_number, parsed.civic))]
+  }
   const buildingsWithPhotos = await attachCoverPhotos(supabase, sorted)
 
   return {
@@ -65,12 +87,13 @@ async function getSearchData(searchParams) {
     city,
     focusLat,
     focusLng,
+    civicMiss,
   }
 }
 
 export default async function SearchPage({ searchParams }) {
   const resolvedParams = await searchParams
-  const { buildings, cities, feeCounts, query, city, focusLat, focusLng } = await getSearchData(resolvedParams)
+  const { buildings, cities, feeCounts, query, city, focusLat, focusLng, civicMiss } = await getSearchData(resolvedParams)
 
   return (
     <SearchResultsView
@@ -81,6 +104,7 @@ export default async function SearchPage({ searchParams }) {
       city={city}
       focusLat={focusLat}
       focusLng={focusLng}
+      civicMiss={civicMiss}
     />
   )
 }

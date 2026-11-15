@@ -207,18 +207,20 @@ export default function AvatarPicker({ open, onClose, current, onSelect, onSelec
 
         {/* ── Animali ── */}
         {tab === 'animals' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14, padding: 4 }}>
             {ANIMAL_AVATARS.map((a) => {
               const active = current === a.id
               return (
                 <button key={a.id} onClick={() => { onSelect(a.id); onClose() }} title={a.label}
+                  aria-label={a.label} aria-pressed={active}
                   style={{
-                    aspectRatio: '1', borderRadius: 12, cursor: 'pointer', overflow: 'hidden',
-                    border: `2px solid ${active ? 'var(--teal)' : 'var(--border)'}`,
-                    background: 'var(--bg)', padding: 0,
-                    boxShadow: active ? '0 0 0 3px var(--teal-lt)' : 'none',
+                    width: '100%', aspectRatio: '1', minHeight: 0, height: 'auto', padding: 3,
+                    borderRadius: '50%', cursor: 'pointer', overflow: 'hidden', background: 'var(--white)',
+                    border: `2.5px solid ${active ? 'var(--teal)' : 'transparent'}`,
+                    boxShadow: active ? '0 0 0 3px var(--teal-lt)' : '0 1px 4px rgba(0,0,0,0.08)',
+                    display: 'block', transition: 'transform .12s',
                   }}>
-                  <img src={a.src} alt={a.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <img src={a.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: '50%' }} />
                 </button>
               )
             })}

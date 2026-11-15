@@ -5,6 +5,7 @@ import { ArrowLeft, KeyRound, Mail, MailCheck } from 'lucide-react'
 import { PasswordInput } from '@/components/auth/PasswordInput'
 import Modal from '@/components/ui/Modal'
 import { createClient } from '@/lib/supabase/client'
+import { emailLinkClient } from '@/lib/supabase/emailLink'
 
 export const MIN_PASSWORD = 8
 
@@ -118,7 +119,7 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
   }
 
   async function resendConfirm() {
-    const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim(), options: { emailRedirectTo: `${origin}/auth/callback` } })
+    const { error } = await emailLinkClient().auth.resend({ type: 'signup', email: email.trim(), options: { emailRedirectTo: `${origin}/auth/callback` } })
     if (error) setErr(friendlyError(error))
     else { setCooldown(60); setSent('confirm') }
   }
@@ -140,7 +141,7 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
       } else if (mode === 'signup') {
         if (!ageOk) { setErr('Per registrarti conferma di avere almeno 14 anni e di aver letto l’informativa.'); return }
         if (password.length < MIN_PASSWORD) { setErr(`La password deve avere almeno ${MIN_PASSWORD} caratteri.`); return }
-        const { data, error } = await supabase.auth.signUp({ email: addr, password, options: { emailRedirectTo: `${origin}/auth/callback` } })
+        const { data, error } = await emailLinkClient().auth.signUp({ email: addr, password, options: { emailRedirectTo: `${origin}/auth/callback` } })
         if (error) {
           const f = friendlyError(error, 'signup')
           setErr(f === 'exists' ? 'Esiste già un account con questa email. Accedi, oppure usa "Password dimenticata?" se non ne hai una.' : f)
@@ -152,12 +153,15 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
           setErr('Esiste già un account con questa email. Accedi, oppure usa "Password dimenticata?" se non ne hai una.')
           return
         }
-        if (data.session) { onClose(); return }
+        if (data.session) {
+          await supabase.auth.setSession({ access_token: data.session.access_token, refresh_token: data.session.refresh_token })
+          onClose(); return
+        }
         setCooldown(60); setSent('confirm')
       } else if (mode === 'forgot') {
         if (await sendReset()) setSent('reset')
       } else if (mode === 'magic') {
-        const { error } = await supabase.auth.signInWithOtp({ email: addr, options: { emailRedirectTo: `${origin}/auth/callback` } })
+        const { error } = await emailLinkClient().auth.signInWithOtp({ email: addr, options: { emailRedirectTo: `${origin}/auth/callback` } })
         if (error) { setErr(friendlyError(error)); return }
         setCooldown(60); setSent('magic')
       }
@@ -176,7 +180,7 @@ export default function AuthDialog({ open, onClose, initialMode = 'login' }) {
     }[sent]
     const resend = sent === 'reset' ? async () => { setErr(''); await sendReset() }
       : sent === 'confirm' ? resendConfirm
-      : async () => { await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: `${origin}/auth/callback` } }); setCooldown(60) }
+      : async () => { await emailLinkClient().auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: `${origin}/auth/callback` } }); setCooldown(60) }
     return (
       <Modal open onClose={onClose} title={texts[0]}>
         <div className="auth-sent">

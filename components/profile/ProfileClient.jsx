@@ -19,6 +19,8 @@ import { AdminBuildingRow, AdminInbox, AdminKpis } from '@/components/profile/Ad
 import { ViewAsPicker } from '@/components/nav/ViewAsSwitcher'
 import { useViewAs } from '@/hooks/useViewAs'
 import PrivacySection from '@/components/profile/PrivacySection'
+import PlansModal from '@/components/plans/PlansModal'
+import { plansSeen, markPlansSeen } from '@/lib/plans'
 
 export default function ProfileClient() {
   const session = useSession()
@@ -61,6 +63,15 @@ export default function ProfileClient() {
   const clients = useSupplierBuildings(asSupplier)
   const myTeams = useMyTeams(!!session)
   const [pastClientsOpen, setPastClientsOpen] = useState(false)
+
+  // Popup dei piani: una volta per ruolo (condomino, amministratore, fornitore)
+  const plansRole = asSupplier || (view !== 'admin' && profile.role === 'condofixer') ? 'supplier' : view === 'admin' ? 'admin' : 'resident'
+  const [plansOpen, setPlansOpen] = useState(false)
+  useEffect(() => {
+    if (!userId || admin.loading || onboardingOpen) return
+    if (!plansSeen(plansRole, userId)) setPlansOpen(true)
+  }, [userId, admin.loading, onboardingOpen, plansRole])
+  const closePlans = () => { markPlansSeen(plansRole, userId); setPlansOpen(false) }
 
   // ── Carica profilo reale da Supabase ──
   // Onboarding automatico al primo accesso: la fonte di verità è il profilo
@@ -162,6 +173,7 @@ export default function ProfileClient() {
 
   return (
     <>
+      {plansOpen && <PlansModal role={plansRole} onClose={closePlans} />}
       {/* HEADER */}
       <div className="wrap profile-header-wrap">
         <div className="profile-card">
@@ -332,6 +344,7 @@ export default function ProfileClient() {
                 {view === 'admin' && <ActionRow href="/notifiche" icon={<Bell size={18} strokeWidth={2} aria-hidden="true" />} label="Notifiche e avvisi" />}
                 {view === 'admin' && <ActionRow href="/fornitori" icon={<Wrench size={18} strokeWidth={2} aria-hidden="true" />} label="Fornitori per i preventivi" />}
                 {view !== 'admin' && <ActionRow href="/fornitore" icon={<Wrench size={18} strokeWidth={2} aria-hidden="true" />} label={profile.role === 'condofixer' || asSupplier ? 'I miei interventi (Recofixer)' : 'Sei un fornitore? Diventa Recofixer'} />}
+                <ActionRow onClick={() => setPlansOpen(true)} icon={<Sparkles size={18} strokeWidth={2} aria-hidden="true" />} label="Piani e abbonamento" />
                 <ActionRow href="/aggiungi-condominio" icon={<BuildingIcon />} label="Aggiungi condominio" />
                 <ActionRow href="/cerca" icon={<MapIcon />} label="Esplora edifici" />
                 <ActionRow href="/amministratori" icon={<UsersIcon />} label="Cerca amministratori" />
@@ -411,17 +424,22 @@ const card = {
 }
 
 // riga della card "Azioni rapide": icona a sinistra, freccia a destra, separatori
-function ActionRow({ href, icon, label, last = false }) {
-  return (
-    <Link href={href} style={{
-      display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px',
-      borderBottom: last ? 'none' : '1px solid var(--border)', color: 'inherit',
-    }}>
+function ActionRow({ href, onClick, icon, label, last = false }) {
+  const style = {
+    display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', width: '100%',
+    borderBottom: last ? 'none' : '1px solid var(--border)', color: 'inherit',
+  }
+  const body = (
+    <>
       <span className="profile-action-icon">{icon}</span>
-      <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{label}</span>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, color: 'var(--text)', textAlign: 'left' }}>{label}</span>
       <span style={{ color: 'var(--text-4)', display: 'inline-flex', flexShrink: 0 }}><ChevronRightIcon /></span>
-    </Link>
+    </>
   )
+  if (onClick) {
+    return <button type="button" onClick={onClick} style={{ ...style, minHeight: 0, border: 'none', borderBottom: style.borderBottom, background: 'none', font: 'inherit', cursor: 'pointer' }}>{body}</button>
+  }
+  return <Link href={href} style={style}>{body}</Link>
 }
 
 function BuildingIcon({ size = 18 } = {}) { return <Building2 size={size} strokeWidth={1.8} aria-hidden="true" /> }

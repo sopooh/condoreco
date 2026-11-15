@@ -34,6 +34,7 @@ export default async function HomePage() {
             <Link href="/cerca"><MapPin size={17} aria-hidden="true" />Esplora i condomini</Link>
             <Link href="/cerca"><MessageCircle size={17} aria-hidden="true" />Fai una domanda ai residenti</Link>
             <Link href="/profilo"><Building2 size={17} aria-hidden="true" />Gestisci il tuo condominio</Link>
+            <Link href="/fornitori"><Wrench size={17} aria-hidden="true" />Contatta direttamente i fornitori per gli interventi</Link>
           </nav>
         </div>
         <div className="lp-hero-art">

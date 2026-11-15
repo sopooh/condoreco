@@ -3115,7 +3115,7 @@ input, select, textarea { font-family: inherit; }
 .lp-top-head h2 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.5px; color: var(--lp-ink); }
 .lp-top-head a { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--teal); }
 
-.lp-cta { position: relative; display: flex; flex-direction: column; gap: 18px; margin: 10px 12px 40px !important; padding: 150px 24px 28px; border-radius: 28px; background: var(--teal); color: #fff; overflow: hidden; }
+.lp-cta { position: relative; display: flex; flex-direction: column; gap: 18px; margin: 10px auto 40px !important; width: calc(100% - 24px); padding: 150px 24px 28px; border-radius: 28px; background: var(--teal); color: #fff; overflow: hidden; }
 .lp-cta-art { position: absolute; left: 0; top: 0; right: 0; height: 130px; opacity: .9; }
 .lp-cta-art .lp-facade { height: 100%; }
 .lp-cta-txt h2 { margin: 0 0 8px; font-size: clamp(26px, 3vw, 34px); line-height: 1.1; letter-spacing: -.8px; font-weight: 800; }
@@ -3135,7 +3135,7 @@ input, select, textarea { font-family: inherit; }
   .lp-audience a { border-top: none; padding: 6px 26px; }
   .lp-audience a + a { border-left: 1px solid #E7E4DC; }
   .lp-top { padding: 10px 32px 40px; }
-  .lp-cta { flex-direction: row; align-items: center; margin: 10px 32px 48px !important; padding: 44px 44px 44px 40%; min-height: 170px; }
+  .lp-cta { flex-direction: row; align-items: center; margin: 10px auto 48px !important; width: calc(100% - 64px); max-width: 1176px; padding: 44px 44px 44px 40%; min-height: 170px; }
   .lp-cta-art { right: auto; width: 34%; height: 100%; clip-path: polygon(0 0, 100% 0, 82% 100%, 0 100%); }
   .lp-cta-txt { flex: 1; }
   .lp-cta-btn { align-self: center; }

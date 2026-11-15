@@ -76,7 +76,7 @@ export default async function HomePage() {
             <Link href="/profilo" className="lp-btn">Scopri la gestione<ArrowRight size={17} aria-hidden="true" /></Link>
           </div>
           <ul className="lp-features" aria-label="Cosa trovi nell'area condominio">
-            <li><MessageCircle size={17} aria-hidden="true" />Chat condominiale<em>3</em></li>
+            <li><MessageCircle size={17} aria-hidden="true" />Chat condominiale</li>
             <li><CalendarDays size={17} aria-hidden="true" />Interventi e segnalazioni</li>
             <li><FileText size={17} aria-hidden="true" />Documenti</li>
             <li><Calculator size={17} aria-hidden="true" />Contabilità</li>

@@ -56,8 +56,16 @@ export default async function HomePage() {
           </div>
           <div className="lp-chatcard" aria-hidden="true">
             <div className="lp-chatcard-head"><HousePlus size={18} /><b>Possibili nuovi vicini<small>Residenti verificati</small></b></div>
-            <p className="lp-cc-me">Com&apos;è la gestione del riscaldamento?<small>10:24</small></p>
-            <p className="lp-cc-them"><span className="lp-cc-av"><UserRound size={13} /></span>Molto efficiente, spese in linea e nessun problema.<small>10:37</small></p>
+            <div className="lp-cc-row">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/volpe.png" alt="" className="lp-cc-av is-fox" />
+              <div><span className="lp-cc-name is-fox">Volpe</span><p className="lp-cc-q">Com&apos;è la gestione del riscaldamento?</p></div>
+            </div>
+            <div className="lp-cc-row is-right">
+              <div><span className="lp-cc-name">Condor</span><p className="lp-cc-a">Molto efficiente, spese in linea e nessun problema.</p></div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/condor-white.png" alt="" className="lp-cc-av" />
+            </div>
           </div>
         </article>
         <article className="lp-path is-sage">

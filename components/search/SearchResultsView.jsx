@@ -17,7 +17,7 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 // Esplora: stessa testata di Amministratori e Fornitori (ricerca, città,
 // filtri, mappa). La mappa si apre col tasto Mappa: a schermo intero su
 // mobile, in colonna accanto alla lista su desktop.
-export default function SearchResultsView({ buildings, cities, feeCounts, query, city, focusLat, focusLng }) {
+export default function SearchResultsView({ buildings, cities, feeCounts, query, city, focusLat, focusLng, civicMiss }) {
   const isMobile = useIsMobile()
   const { searchParams } = useParamNav()
   const [showMap, setShowMap] = useState(false)
@@ -94,6 +94,15 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
           <div className="dir-listhead">
             <span>{`${buildings.length} ${buildings.length === 1 ? 'edificio trovato' : 'edifici trovati'}${city ? ` a ${city}` : ''}`}</span>
           </div>
+          {civicMiss && (
+            <div className="dir-civic-note">
+              <span>
+                Il civico <b>{civicMiss.civic}</b> di <b>{civicMiss.street}</b> non è ancora su Condoreco.
+                {' '}Forse cercavi uno di questi:
+              </span>
+              <Link href="/aggiungi-condominio"><Plus size={15} strokeWidth={2.2} aria-hidden="true" />Aggiungi il civico {civicMiss.civic}</Link>
+            </div>
+          )}
           <div className="dir-list">
             {buildings.map((b) => (
               <div key={b.id} id={`building-row-${b.id}`}>

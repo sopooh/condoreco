@@ -3168,3 +3168,5 @@ input, select, textarea { font-family: inherit; }
 .lp-chatcard .lp-cc-q, .lp-chatcard .lp-cc-a { margin: 0; padding: 10px 14px; font-size: 14px; font-weight: 700; line-height: 1.3; }
 .lp-chatcard .lp-cc-q { background: var(--white); border: 1.5px solid #E5E7EB; border-radius: 16px 16px 16px 4px; color: var(--text); }
 .lp-chatcard .lp-cc-a { background: var(--teal); color: #fff; border-radius: 16px 16px 4px 16px; }
+.dir-civic-note { display: flex; align-items: center; justify-content: space-between; gap: 8px 14px; flex-wrap: wrap; margin: 0 0 12px; padding: 12px 14px; border-radius: 14px; background: #FFF6EF; border: 1px solid #F7DCC6; font-size: 14px; color: #7A2E0E; }
+.dir-civic-note a { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--teal-dk); white-space: nowrap; }

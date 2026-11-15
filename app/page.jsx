@@ -27,7 +27,6 @@ export default async function HomePage() {
       {/* ── Hero ── */}
       <section className="lp-hero">
         <div className="lp-hero-txt">
-          <span className="lp-kicker">La piattaforma per condomini, residenti e amministratori</span>
           <h1 className="lp-title">Trasparenza condominiale <span>per davvero.</span></h1>
           <p className="lp-lead">Scopri, gestisci e vivi il tuo condominio in modo più semplice, chiaro e condiviso.</p>
           <SearchBar variant="landing" />

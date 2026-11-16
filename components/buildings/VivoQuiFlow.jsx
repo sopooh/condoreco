@@ -78,7 +78,7 @@ export default function VivoQuiFlow({ open, onClose, building }) {
   const band = totalFee > 0 ? feeBand(totalFee) : null
   const perSqm = costPerSqm(totalFee, Number(sqm))
 
-  async function next() {
+  async function next({ skipPhotos = false } = {}) {
     if (!isLast) { setStep((s) => s + 1); return }
     const userId = session?.user?.id
     if (!userId) { setSaveError('Accedi per salvare dove abiti.'); return }
@@ -99,7 +99,7 @@ export default function VivoQuiFlow({ open, onClose, building }) {
       setSaveError('Non sono riuscito a salvare. Riprova tra poco.')
       return
     }
-    if (photos.length > 0) {
+    if (!skipPhotos && photos.length > 0) {
       await Promise.all(photos.map((f) => uploadPhoto(f.blob, building.id, null))).catch(console.warn)
     }
     setUploadingPhotos(false)
@@ -241,13 +241,17 @@ export default function VivoQuiFlow({ open, onClose, building }) {
           {step > 0 && (
             <button onClick={() => setStep((s) => s - 1)} style={btnGhost}>Indietro</button>
           )}
-          <button onClick={next} disabled={!canProceed}
+          <button onClick={() => next()} disabled={!canProceed}
             style={{ ...btnPrimary, opacity: canProceed ? 1 : 0.5, cursor: canProceed ? 'pointer' : 'not-allowed' }}>
-            {uploadingPhotos ? 'Salvataggio...' : isLast ? 'Invia contributo' : 'Continua'}
+            {uploadingPhotos ? 'Salvataggio...' : isLast ? (photos.length ? 'Invia contributo' : 'Invia senza foto') : 'Continua'}
           </button>
         </div>
         {saveError && <p style={{ fontSize: 13, color: '#B42318', margin: '10px 0 0' }}>{saveError}</p>}
-        <button onClick={onClose} style={btnSkip}>Annulla</button>
+        {current === 'photos' ? (
+          <button onClick={() => next({ skipPhotos: true })} disabled={uploadingPhotos} style={{ ...btnSkip, color: 'var(--teal)', fontWeight: 700 }}>Salta per ora</button>
+        ) : (
+          <button onClick={onClose} style={btnSkip}>Annulla</button>
+        )}
       </div>
     </div>
   )

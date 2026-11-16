@@ -1,6 +1,6 @@
 'use client'
 
-import { Lock, Hourglass, ShieldCheck } from 'lucide-react'
+import { Lock, Hourglass, ShieldCheck, Bell } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { withdrawJoinRequest } from '@/lib/residenceVerification'
@@ -25,17 +25,30 @@ export default function ResidenceVerificationPrompt({ condominiumId, status, req
 
   if (status === 'pending') {
     return (
-      <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-        <div style={{ marginBottom: 20, color: '#D97706', display: 'flex', justifyContent: 'center' }}><Hourglass size={44} strokeWidth={1.6} aria-hidden="true" /></div>
-        <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>Richiesta in attesa di approvazione</h1>
-        <p style={{ fontSize: 14, color: 'var(--text-3)', textAlign: 'center', maxWidth: 380 }}>
-          L&apos;amministratore del condominio (o lo staff Condoreco, se il condominio non ha un amministratore) sta controllando il documento. Ti avviseremo con una notifica. Il documento viene cancellato appena la richiesta è decisa.
-        </p>
-        <button onClick={withdraw} disabled={busy}
-          style={{ marginTop: 18, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--text-2)', fontWeight: 600, fontSize: 14, cursor: busy ? 'wait' : 'pointer' }}>
-          {busy ? 'Ritiro in corso...' : 'Ritira la richiesta e cancella il documento'}
-        </button>
-        {err && <p role="alert" style={{ color: '#DC2626', fontSize: 13, marginTop: 10 }}>{err}</p>}
+      <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+        <div style={{ width: '100%', maxWidth: 420, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+          <div style={{ width: 76, height: 76, borderRadius: 22, background: '#FDEFDC', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+            <Hourglass size={36} strokeWidth={1.8} aria-hidden="true" />
+          </div>
+          <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.6px', lineHeight: 1.15, color: 'var(--text)', margin: '0 0 12px' }}>
+            Richiesta in attesa di approvazione
+          </h1>
+          <p style={{ fontSize: 15, color: 'var(--text-3)', lineHeight: 1.5, margin: '0 0 20px' }}>
+            L&apos;amministratore del condominio (o lo staff Condoreco, se il condominio non ha un amministratore) sta controllando il documento. Il documento viene cancellato appena la richiesta è decisa.
+          </p>
+          <div style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left', background: 'var(--teal-lt)', borderRadius: 16, padding: '14px 16px', marginBottom: 18 }}>
+            <Bell size={24} strokeWidth={1.8} aria-hidden="true" style={{ color: 'var(--teal)', flexShrink: 0 }} />
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>Ti avviseremo noi</div>
+              <div style={{ fontSize: 13.5, color: 'var(--text-3)', lineHeight: 1.4 }}>Riceverai una notifica appena la richiesta viene approvata o respinta.</div>
+            </div>
+          </div>
+          <button onClick={withdraw} disabled={busy}
+            style={{ width: '100%', minHeight: 0, height: 52, padding: '0 16px', borderRadius: 14, border: 'none', background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: busy ? 'wait' : 'pointer' }}>
+            {busy ? 'Ritiro in corso...' : 'Ritira la richiesta e cancella il documento'}
+          </button>
+          {err && <p role="alert" style={{ color: '#DC2626', fontSize: 13, marginTop: 10 }}>{err}</p>}
+        </div>
       </div>
     )
   }

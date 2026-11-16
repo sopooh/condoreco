@@ -91,8 +91,8 @@ export default function VerificaResidenzaPage({ params }) {
           <h1 style={titleStyle}>Richiesta inviata</h1>
           <p style={{ ...subStyle, marginBottom: 18 }}>In attesa di approvazione. L&apos;amministratore del condominio (o lo staff Condoreco, se il condominio non ha un amministratore) controllerà il documento. Ti avviseremo con una notifica appena la richiesta sarà decisa.</p>
           <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.5, margin: '0 0 24px' }}>Il documento viene cancellato appena la richiesta è approvata o respinta.</p>
-          <button onClick={() => router.push(`/edificio/${condominiumId}`)} style={primaryBtn(true)}>
-            Torna alla scheda del condominio <ArrowRightIcon />
+          <button onClick={() => router.push('/profilo')} style={primaryBtn(true)}>
+            Torna al profilo <ArrowRightIcon />
           </button>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function VerificaResidenzaPage({ params }) {
             <IconTile><House size={28} strokeWidth={1.8} aria-hidden="true" /></IconTile>
             <h2 style={titleStyle}>La tua casa nel condominio</h2>
             <p style={subStyle}>Dicci se sei proprietario o in affitto. Se sei proprietario, indica anche i tuoi millesimi.</p>
-            <UnitForm building={{}} initial={unit} submitLabel="Continua" onSubmit={(v) => { setUnit(v); next(); return null }} />
+            <UnitForm building={{}} buildingId={condominiumId} initial={unit} submitLabel="Continua" onSubmit={(v) => { setUnit(v); next(); return null }} />
           </>
         )}
 

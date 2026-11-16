@@ -4,10 +4,11 @@ import { useState } from 'react'
 import { KeyRound, House, Info } from 'lucide-react'
 import { FloorPicker } from '@/components/condo/NeighbourNotice'
 import { parseMillesimi } from '@/hooks/useNeighbourNotices'
+import MillesimiEstimator from '@/components/condo/MillesimiEstimator'
 
 // Dati dell'unità del residente: proprietario o inquilino, millesimi
 // (obbligatori per i proprietari) e piano.
-export default function UnitForm({ building, initial, submitLabel = 'Salva', onSubmit, onCancel }) {
+export default function UnitForm({ building, buildingId, initial, submitLabel = 'Salva', onSubmit, onCancel }) {
   const [tenure, setTenure] = useState(initial?.tenure ?? null)
   const [mill, setMill] = useState(initial?.millesimi != null ? String(initial.millesimi).replace('.', ',') : '')
   const [floor, setFloor] = useState(initial?.floor ?? null)
@@ -57,6 +58,9 @@ export default function UnitForm({ building, initial, submitLabel = 'Salva', onS
             <span>Li trovi nel riparto spese o nel regolamento di condominio (tabella A, proprietà generale). Se hai più unità, sommali.</span>
           </div>
         </label>
+      )}
+      {tenure === 'owner' && (buildingId || building?.id) && (
+        <MillesimiEstimator buildingId={buildingId || building.id} />
       )}
 
       {tenure === 'tenant' && (

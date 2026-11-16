@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Copy, EyeOff, Pencil, Share, TextSelect, X } from 'lucide-react'
+import { Copy, EyeOff, Pencil, Share, TextSelect, Trash2, X } from 'lucide-react'
 
 // Menu del messaggio: tasto destro (desktop) o pressione lunga (mobile).
 // Copia, Modifica (solo i propri messaggi di testo), Seleziona testo,
-// Condividi, Nascondi (moderazione dell'amministratore).
+// Condividi, Elimina per tutti (i propri, entro 2 minuti),
+// Nascondi (moderazione dell'amministratore).
 
 const LONG_PRESS_MS = 450
 const MOVE_TOLERANCE = 10
@@ -70,10 +71,10 @@ export function messageText(m) {
   return [m.content, name && name !== m.content ? name : null].filter(Boolean).join('\n')
 }
 
-export default function MessageMenu({ menu, onClose, onEdit, onSelect, onHide, toast }) {
+export default function MessageMenu({ menu, onClose, onEdit, onSelect, onHide, onDelete, toast }) {
   const ref = useRef(null)
   const [pos, setPos] = useState(null)
-  const { m, x, y, rect, mine, canEdit, canHide } = menu
+  const { m, x, y, rect, mine, canEdit, canDelete, canHide } = menu
   const text = messageText(m)
 
   // posizione: vicino al punto toccato, sempre dentro lo schermo
@@ -106,6 +107,9 @@ export default function MessageMenu({ menu, onClose, onEdit, onSelect, onHide, t
     text && { key: 'share', icon: Share, label: 'Condividi', run: async () => {
       if (navigator.share) { try { await navigator.share({ text }) } catch { /* annullato */ } }
       else toast(await copyText(text) ? 'Copiato, incollalo dove vuoi' : 'Non riesco a condividere')
+    } },
+    canDelete && { key: 'delete', icon: Trash2, label: 'Elimina per tutti', danger: true, run: () => {
+      if (window.confirm('Eliminare questo messaggio per tutti?')) onDelete(m.id)
     } },
     canHide && { key: 'hide', icon: EyeOff, label: 'Nascondi a tutti', danger: true, run: () => onHide(m.id) },
   ].filter(Boolean)

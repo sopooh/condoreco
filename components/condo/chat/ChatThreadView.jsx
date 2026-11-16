@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ChevronLeft } from 'lucide-react'
+import { Ban, ChevronLeft } from 'lucide-react'
 import Composer from '@/components/condo/chat/Composer'
 import MessageBody from '@/components/condo/chat/MessageBody'
 import MessageMenu, { EditMessageSheet, SelectTextSheet, useMessagePress } from '@/components/condo/chat/MessageMenu'
@@ -18,7 +18,7 @@ function dayLabel(iso) {
 
 // Vista di una conversazione: intestazione, bolle dei messaggi, campo di scrittura.
 // composer: { buildingId, threadId, isGroup, onAction }; ctx: dati per sondaggi, eventi, contatti
-export default function ChatThreadView({ title, subtitle, avatar, headerRight, messages, names, userId, onSend, onEdit, onBack, onHide, banner, emptyText, composer = {}, ctx }) {
+export default function ChatThreadView({ title, subtitle, avatar, headerRight, messages, names, userId, onSend, onEdit, onDelete, onBack, onHide, banner, emptyText, composer = {}, ctx }) {
   const endRef = useRef(null)
   const [menu, setMenu] = useState(null) // { m, x, y, mine, canEdit, canHide }
   const [editing, setEditing] = useState(null)
@@ -69,14 +69,14 @@ export default function ChatThreadView({ title, subtitle, avatar, headerRight, m
               )}
               <Bubble m={m} mine={mine} showName={showName} who={who} ctx={{ ...ctx, userId }}
                 active={menu?.m.id === m.id}
-                onOpen={(x, y, rect) => setMenu({ m, x, y, rect, mine, canEdit: mine && !!onEdit && (m.kind || 'text') === 'text', canHide: !!onHide && !mine })} />
+                onOpen={m.deleted_at ? null : (x, y, rect) => setMenu({ m, x, y, rect, mine, canEdit: mine && !!onEdit && (m.kind || 'text') === 'text', canDelete: mine && !!onDelete && canStillDelete(m), canHide: !!onHide && !mine })} />
             </div>
           )
         })}
         <div ref={endRef} />
       </div>
 
-      {menu && <MessageMenu menu={menu} onClose={closeMenu} onEdit={setEditing} onSelect={setSelecting} onHide={(id) => onHide?.(id)} toast={toast} />}
+      {menu && <MessageMenu menu={menu} onClose={closeMenu} onEdit={setEditing} onSelect={setSelecting} onHide={(id) => onHide?.(id)} onDelete={async (id) => { const r = await onDelete?.(id); if (r?.error) toast(r.error) }} toast={toast} />}
       {editing && <EditMessageSheet m={editing} onClose={() => setEditing(null)} onSave={onEdit} />}
       {selecting && <SelectTextSheet m={selecting} onClose={() => setSelecting(null)} toast={toast} />}
       {toastMsg && <div className="msgm-toast" role="status">{toastMsg}</div>}
@@ -86,8 +86,30 @@ export default function ChatThreadView({ title, subtitle, avatar, headerRight, m
   )
 }
 
+// Elimina per tutti: consentito nei primi 2 minuti (lo verifica anche il database)
+const DELETE_WINDOW_MS = 2 * 60 * 1000
+function canStillDelete(m) {
+  return !m.deleted_at && m.kind !== 'poll' && Date.now() - new Date(m.created_at).getTime() < DELETE_WINDOW_MS
+}
+
 function Bubble({ m, mine, showName, who, ctx, active, onOpen }) {
-  const press = useMessagePress(onOpen)
+  const press = useMessagePress(onOpen || (() => {}))
+  if (m.deleted_at) {
+    return (
+      <div style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginTop: showName ? 6 : 0 }}>
+        <div style={{ maxWidth: '80%', padding: '8px 12px 6px', borderRadius: 16, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4,
+          background: 'var(--white)', color: 'var(--text-3)', border: '1px solid var(--border)' }}>
+          {showName && <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--teal-dk)', margin: '0 0 2px' }}>{who}</div>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14.5, fontStyle: 'italic' }}>
+            <Ban size={15} aria-hidden="true" />{mine ? 'Hai eliminato questo messaggio' : 'Messaggio eliminato'}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
+            <span style={{ fontSize: 11, opacity: 0.7 }}>{time(m.created_at)}</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
   const media = ['image', 'video'].includes(m.kind)
   return (
     <div style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginTop: showName ? 6 : 0 }}>

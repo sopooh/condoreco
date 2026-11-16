@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { CHAT_BUCKET } from '@/lib/chatFiles'
 import { useSession } from '@/components/providers/SessionProvider'
 
 // Chat del condominio: carica lo storico, si sottoscrive ai nuovi
@@ -15,7 +16,7 @@ export function useCondoChat(buildingId) {
     const supabase = createClient()
     const { data, error } = await supabase
       .from('messages')
-      .select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta, edited_at, profiles:created_by(display_name, avatar_url, role)')
+      .select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta, edited_at, deleted_at, profiles:created_by(display_name, avatar_url, role)')
       .eq('building_id', buildingId)
       .order('created_at', { ascending: false })
       .limit(50)
@@ -83,7 +84,7 @@ export function useCondoChat(buildingId) {
         attachment: extra.attachment || null,
         ref_id: extra.ref_id || null,
         meta: extra.meta || null,
-      }).select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta, edited_at').single()
+      }).select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta, edited_at, deleted_at').single()
 
       if (error) return { error: 'Messaggio non inviato. Riprova.' }
       // subito visibile anche se Realtime arriva in ritardo
@@ -114,5 +115,20 @@ export function useCondoChat(buildingId) {
     return { error: null }
   }, [])
 
-  return { messages, loading, error, sendMessage, hideMessage, editMessage, reload: loadMessages }
+  // Elimina per tutti un proprio messaggio (entro 2 minuti dall'invio)
+  const deleteMessage = useCallback(async (messageId) => {
+    const supabase = createClient()
+    const { data: path, error } = await supabase.rpc('delete_chat_message', { p_id: messageId, p_thread: false })
+    if (error) {
+      console.error('[useCondoChat] delete failed', error.message)
+      return { error: 'Puoi eliminare un messaggio solo nei primi 2 minuti.' }
+    }
+    if (path) supabase.storage.from(CHAT_BUCKET).remove([path]).then(({ error: e }) => e && console.error('[useCondoChat] file delete', e.message))
+    setMessages((prev) => prev.map((m) => (m.id === messageId
+      ? { ...m, content: 'Messaggio eliminato', kind: 'text', attachment: null, ref_id: null, meta: null, edited_at: null, deleted_at: new Date().toISOString() }
+      : m)))
+    return { error: null }
+  }, [])
+
+  return { messages, loading, error, sendMessage, hideMessage, editMessage, deleteMessage, reload: loadMessages }
 }

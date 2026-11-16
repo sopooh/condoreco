@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { CHAT_BUCKET } from '@/lib/chatFiles'
 import { useSession } from '@/components/providers/SessionProvider'
 
 // Elenco conversazioni del condominio (gruppo, amministratore, private,
@@ -69,7 +70,7 @@ export function useThreadMessages(threadId) {
     if (!threadId || !userId) return
     const supabase = createClient()
     const [{ data: msgs }, { data: mem }] = await Promise.all([
-      supabase.from('condo_thread_messages').select('id, content, created_at, created_by, kind, attachment, ref_id, meta, edited_at').eq('thread_id', threadId).order('created_at', { ascending: true }).limit(300),
+      supabase.from('condo_thread_messages').select('id, content, created_at, created_by, kind, attachment, ref_id, meta, edited_at, deleted_at').eq('thread_id', threadId).order('created_at', { ascending: true }).limit(300),
       supabase.from('condo_thread_members').select('user_id, joined_at').eq('thread_id', threadId),
     ])
     setMessages(msgs || [])
@@ -104,12 +105,26 @@ export function useThreadMessages(threadId) {
     return { error: null }
   }
 
+  async function remove(messageId) {
+    const supabase = createClient()
+    const { data: path, error } = await supabase.rpc('delete_chat_message', { p_id: messageId, p_thread: true })
+    if (error) {
+      console.error('[useThreadMessages] delete failed', error.message)
+      return { error: 'Puoi eliminare un messaggio solo nei primi 2 minuti.' }
+    }
+    if (path) supabase.storage.from(CHAT_BUCKET).remove([path]).then(({ error: e }) => e && console.error('[useThreadMessages] file delete', e.message))
+    setMessages((prev) => prev.map((m) => (m.id === messageId
+      ? { ...m, content: 'Messaggio eliminato', kind: 'text', attachment: null, ref_id: null, meta: null, edited_at: null, deleted_at: new Date().toISOString() }
+      : m)))
+    return { error: null }
+  }
+
   async function send(content, extra = {}) {
     const text = content.trim()
     if (!text) return { error: 'Messaggio vuoto' }
     const { data, error } = await createClient().from('condo_thread_messages')
       .insert({ thread_id: threadId, created_by: userId, content: text.slice(0, 2000), kind: extra.kind || 'text', attachment: extra.attachment || null, meta: extra.meta || null })
-      .select('id, content, created_at, created_by, kind, attachment, ref_id, meta, edited_at').single()
+      .select('id, content, created_at, created_by, kind, attachment, ref_id, meta, edited_at, deleted_at').single()
     if (error) return { error: 'Messaggio non inviato. Riprova.' }
     setMessages((prev) => (prev.some((m) => m.id === data.id) ? prev : [...prev, data]))
     return { error: null }
@@ -122,7 +137,7 @@ export function useThreadMessages(threadId) {
     return { error: null }
   }
 
-  return { messages, members, names, loading, userId, send, edit, addMembers }
+  return { messages, members, names, loading, userId, send, edit, remove, addMembers }
 }
 
 export async function markGroupRead(buildingId, userId) {

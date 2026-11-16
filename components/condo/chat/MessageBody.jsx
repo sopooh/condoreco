@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { BarChart3, CalendarDays, Clock, Download, FileText, MapPin, MessageCircle, UserRound, X } from 'lucide-react'
-import { extOf, formatSize, signedChatUrl } from '@/lib/chatFiles'
+import { downloadChatFile, extOf, formatSize, signedChatUrl } from '@/lib/chatFiles'
 import { pollImageUrl } from '@/lib/pollImages'
 
 // Contenuto di una bolla in base al tipo di messaggio.
@@ -63,7 +63,7 @@ function ImageAtt({ att }) {
         <div className="chat-lightbox" role="dialog" aria-label="Foto" onClick={() => setZoom(false)}>
           <img src={url} alt={att.name || 'Foto'} />
           <div className="chat-lightbox-bar" onClick={(e) => e.stopPropagation()}>
-            <a href={url} download={att.name} target="_blank" rel="noopener noreferrer" aria-label="Scarica"><Download size={22} aria-hidden="true" /></a>
+            <button type="button" onClick={() => downloadChatFile(att)} aria-label="Scarica"><Download size={22} aria-hidden="true" /></button>
             <button type="button" onClick={() => setZoom(false)} aria-label="Chiudi"><X size={24} aria-hidden="true" /></button>
           </div>
         </div>

@@ -41,6 +41,7 @@ Deno.serve(async (req) => {
     const { data: msgs } = await svc.from('messages')
       .select('content, created_at, kind, hidden, profiles:created_by(display_name)')
       .eq('building_id', building_id)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false }).limit(60)
     const lines = (msgs ?? [])
       .filter((m) => !m.hidden && m.content && (!m.kind || m.kind === 'text'))

@@ -140,10 +140,6 @@ export default function Navbar() {
             position: 'relative', background: 'linear-gradient(180deg, #FFFFFF 0%, #F4FAFA 55%, #E6F2F2 100%)',
             padding: 'calc(14px + env(safe-area-inset-top)) 20px 0', boxShadow: '0 18px 40px rgba(13,103,111,0.18)',
           }}>
-            {/* decorazione a onda in alto */}
-            <svg aria-hidden="true" viewBox="0 0 390 120" preserveAspectRatio="none" style={{ position: 'absolute', top: 0, right: 0, width: '75%', height: 120, pointerEvents: 'none' }}>
-              <path d="M0 0h390v70C320 20 230 110 120 60 70 38 30 30 0 34z" fill="rgba(13,103,111,0.07)" />
-            </svg>
 
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, marginBottom: 14 }}>
               <Link href="/" onClick={closeMenu} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: 'var(--teal)', letterSpacing: '-0.5px' }}>

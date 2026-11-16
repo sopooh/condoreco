@@ -146,16 +146,16 @@ export default async function BuildingPage({ params }) {
       </div>
 
       <div className="wrap" style={{ padding: '24px 40px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <RankingBar percentile={percentiles?.score ?? null} sampleSize={percentiles?.sampleSize} />
+        <AskResidentsSection building={{ id: building.id, address: building.address, street_number: building.street_number }} />
+        {percentiles?.score != null && <RankingBar percentile={percentiles.score} sampleSize={percentiles.sampleSize} />}
         <CategoryRatings building={building} percentiles={percentiles} />
-        <InsightCards
+        {(!trend?.insufficient || percentiles?.score_maintenance != null || reportStats) && <InsightCards
           trend={trend}
           maintenancePercentile={percentiles?.score_maintenance ?? null}
           reportStats={reportStats}
-        />
+        />}
         <ReportsHistory reports={reports} />
         <BuildingFacts building={building} />
-        <AskResidentsSection building={{ id: building.id, address: building.address, street_number: building.street_number }} />
       </div>
 
       <BuildingLayout

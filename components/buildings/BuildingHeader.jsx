@@ -21,12 +21,16 @@ export default function BuildingHeader({ building: b, hideScore = false }) {
           {!hideScore && (
             <div style={{ background: 'var(--teal-lt)', borderRadius: 10, padding: 20, textAlign: 'center' }}>
               <div style={{ fontSize: 52, fontWeight: 800, color: scoreColor(b.score), letterSpacing: '-2px', lineHeight: 1 }}>
-                {b.score?.toFixed(1) ?? 'N/D'}<span style={{ fontSize: 18, color: 'var(--teal-mid)' }}>/5</span>
+                {b.score?.toFixed(1) ?? '–'}<span style={{ fontSize: 18, color: 'var(--teal-mid)' }}>/5</span>
               </div>
               <div style={{ fontSize: 11, color: 'var(--teal-dk)', fontWeight: 600, marginTop: 5, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Score complessivo
               </div>
-              <div style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 3 }}>{b.review_count} recensioni</div>
+              <div style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 3 }}>
+                {!b.review_count ? 'Il rating parte dalla prima recensione'
+                  : b.review_count < 3 ? `Primo rating su ${b.review_count} ${b.review_count === 1 ? 'recensione' : 'recensioni'}: si affina con le prossime`
+                  : `${b.review_count} recensioni`}
+              </div>
               <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--teal-mid)', display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <Row label="Verificati" val={b.score_verified} strong />
                 <Row label="Ex residenti" val={b.score_former} />

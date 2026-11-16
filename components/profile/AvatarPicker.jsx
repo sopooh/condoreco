@@ -214,13 +214,13 @@ export default function AvatarPicker({ open, onClose, current, onSelect, onSelec
                 <button key={a.id} onClick={() => { onSelect(a.id); onClose() }} title={a.label}
                   aria-label={a.label} aria-pressed={active}
                   style={{
-                    width: '100%', aspectRatio: '1', minHeight: 0, height: 'auto', padding: 3,
+                    width: '100%', minHeight: 0, height: 'auto', padding: 3, lineHeight: 0, WebkitAppearance: 'none', appearance: 'none',
                     borderRadius: '50%', cursor: 'pointer', overflow: 'hidden', background: 'var(--white)',
                     border: `2.5px solid ${active ? 'var(--teal)' : 'transparent'}`,
                     boxShadow: active ? '0 0 0 3px var(--teal-lt)' : '0 1px 4px rgba(0,0,0,0.08)',
                     display: 'block', transition: 'transform .12s',
                   }}>
-                  <img src={a.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: '50%' }} />
+                  <img src={a.src} alt="" width={256} height={256} style={{ width: '100%', height: 'auto', aspectRatio: '1 / 1', objectFit: 'cover', display: 'block', borderRadius: '50%' }} />
                 </button>
               )
             })}

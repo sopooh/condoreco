@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Users, Building2, Wrench, UserRound, Pin, Plus, Search, X, UserPlus, Check, HousePlus, ChevronRight } from 'lucide-react'
+import { Users, Building2, Wrench, UserRound, Pin, Plus, Search, X, UserPlus, Check, HousePlus, ChevronRight, Home } from 'lucide-react'
 import { useCondoChat } from '@/hooks/useCondoChat'
 import { usePolls } from '@/hooks/usePolls'
 import { useEvents } from '@/hooks/useEvents'
@@ -30,6 +30,12 @@ export default function ChatPage({ building }) {
   )
 }
 
+// I due gruppi del condominio: nomi brevi per i titoli
+export const GROUPS = {
+  all: { kind: 'group', title: 'Condominio', subtitle: 'Residenti e amministratore', param: 'gruppo' },
+  residents: { kind: 'group_residents', title: 'Tra vicini', subtitle: 'Solo condòmini · l\'amministratore non lo vede', param: 'condomini' },
+}
+
 function ChatInner({ building }) {
   const buildingId = building.id
   const base = `/edificio/${buildingId}/condominio/chat`
@@ -40,6 +46,7 @@ function ChatInner({ building }) {
 
   const openParam = sp.get('t')
   const groupOpen = sp.get('c') === 'gruppo'
+  const residentsOpen = sp.get('c') === 'condomini'
   const neighboursOpen = sp.get('c') === 'vicini'
   const adminParam = sp.get('admin')
   const interventoParam = sp.get('intervento')
@@ -74,7 +81,8 @@ function ChatInner({ building }) {
     if (r.id) { threadsApi.reload(); router.push(`${base}?t=${r.id}`) }
   }
   if (neighboursOpen) return <NeighbourQuestionsPanel building={building} onBack={back} focusId={sp.get('q')} />
-  if (groupOpen) return <GroupChat building={building} onBack={back} onOpenContact={openContact} />
+  if (groupOpen) return <GroupChat key="all" building={building} channel="all" onBack={back} onOpenContact={openContact} />
+  if (residentsOpen) return <GroupChat key="residents" building={building} channel="residents" onBack={back} onOpenContact={openContact} />
   if (openParam) {
     const meta = threadsApi.threads.find((t) => t.thread_id === openParam)
     return <ThreadChat key={openParam} building={building} threadId={openParam} meta={meta} onBack={back} onOpenContact={openContact} />
@@ -107,13 +115,13 @@ function Inbox({ building, base, threads, loading, error, openDirect, reload }) 
     if (!list.some((t) => t.kind === 'admin')) {
       list.push({ thread_id: null, kind: 'admin', title: 'Amministratore', virtual: true, unread: 0 })
     }
-    const order = (t) => (t.kind === 'group' ? 0 : t.kind === 'admin' && t.title === 'Amministratore' ? 1 : 2)
+    const order = (t) => (t.kind === 'group' ? 0 : t.kind === 'group_residents' ? 1 : t.kind === 'admin' && t.title === 'Amministratore' ? 2 : 3)
     return list.sort((a, b) => order(a) - order(b) || new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0))
   }, [threads])
 
   const visible = fuzzyFilter(
     rows.filter((t) => filter === 'all'
-      || (filter === 'condo' && (t.kind === 'group' || t.kind === 'admin'))
+      || (filter === 'condo' && (t.kind === 'group' || t.kind === 'group_residents' || t.kind === 'admin'))
       || (filter === 'direct' && t.kind === 'direct')
       || (filter === 'intervention' && t.kind === 'intervention')),
     q,
@@ -122,6 +130,7 @@ function Inbox({ building, base, threads, loading, error, openDirect, reload }) 
 
   function open(t) {
     if (t.kind === 'group') router.push(`${base}?c=gruppo`)
+    else if (t.kind === 'group_residents') router.push(`${base}?c=condomini`)
     else if (t.virtual) router.push(`${base}?admin=1`)
     else router.push(`${base}?t=${t.thread_id}`)
   }
@@ -219,7 +228,7 @@ function InboxRow({ t, first, onClick }) {
       <span style={{ flex: 1, minWidth: 0 }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 16, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
-          {t.kind === 'group' && <Pin size={15} strokeWidth={2} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--text-2)' }} />}
+          {(t.kind === 'group' || t.kind === 'group_residents') && <Pin size={15} strokeWidth={2} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--text-2)' }} />}
           {st && <span style={{ flexShrink: 0, fontSize: 11.5, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: st.bg, color: st.tx }}>{st.label}</span>}
           <span style={{ marginLeft: 'auto', flexShrink: 0, fontSize: 12.5, color: 'var(--text-3)' }}>{t.last_message_at ? listTime(t.last_message_at) : ''}</span>
         </span>
@@ -249,6 +258,7 @@ function initials(name) {
 
 function ThreadAvatar({ t, size = 44 }) {
   if (t.kind === 'group') return <span style={avatarBox('#E6F1F1', 'var(--teal-dk)', size)}><Users size={size * 0.46} strokeWidth={1.8} aria-hidden="true" /></span>
+  if (t.kind === 'group_residents') return <span style={avatarBox('#FDE9DC', '#C2410C', size)}><Home size={size * 0.44} strokeWidth={1.8} aria-hidden="true" /></span>
   if (t.kind === 'admin') return <span style={avatarBox('#E6F1F1', 'var(--teal-dk)', size)}><Building2 size={size * 0.44} strokeWidth={1.8} aria-hidden="true" /></span>
   if (t.kind === 'intervention') return <span style={avatarBox('#FDE9DC', '#C2410C', size)}><Wrench size={size * 0.44} strokeWidth={1.8} aria-hidden="true" /></span>
   return <span style={{ ...avatarBox('#EEF0F2', 'var(--text-2)', size), fontSize: size * 0.32, fontWeight: 800 }}>{initials(t.title)}</span>
@@ -256,17 +266,18 @@ function ThreadAvatar({ t, size = 44 }) {
 
 /* ─────────────── Conversazioni ─────────────── */
 
-function GroupChat({ building, onBack, onOpenContact }) {
+function GroupChat({ building, channel = 'all', onBack, onOpenContact }) {
   const { isCondoAdmin, userId } = useCondoRole(building.id)
-  const { messages, sendMessage, hideMessage, editMessage, deleteMessage } = useCondoChat(building.id)
+  const g = GROUPS[channel]
+  const { messages, sendMessage, hideMessage, editMessage, deleteMessage } = useCondoChat(building.id, channel)
   const { polls, castVote, changeVote, createPoll, voteOption, reload: reloadPolls } = usePolls(building.id)
   const { createEvent } = useEvents(building.id)
   const [sheet, setSheet] = useState(null) // 'contact' | 'poll' | 'event'
-  const condor = useCondorSummary(building.id)
+  const condor = useCondorSummary(building.id, channel)
   const [info, setInfo] = useState(null) // null | { members }
   const [events, setEvents] = useState({})
   const [eventsLoaded, setEventsLoaded] = useState(false)
-  useEffect(() => { markGroupRead(building.id, userId) }, [building.id, userId, messages.length])
+  useEffect(() => { markGroupRead(building.id, userId, channel) }, [building.id, userId, channel, messages.length])
   const names = useMemo(() => Object.fromEntries(messages.filter((m) => m.profiles).map((m) => [m.created_by, m.profiles])), [messages])
   const pollMap = useMemo(() => Object.fromEntries(polls.map((p) => [p.id, p])), [polls])
 
@@ -294,30 +305,30 @@ function GroupChat({ building, onBack, onOpenContact }) {
   return (
     <>
       <ChatThreadView
-        title="Chat del condominio"
-        subtitle="Tutti i residenti verificati"
-        avatar={<ThreadAvatar t={{ kind: 'group' }} size={38} />}
+        title={g.title}
+        subtitle={g.subtitle}
+        avatar={<ThreadAvatar t={{ kind: g.kind }} size={38} />}
         headerRight={<CondorSummaryButton loading={!!condor.state?.loading} onClick={condor.state ? undefined : condor.run} />}
         pinned={<CondorSummaryPanel state={condor.state} onClose={condor.close} onRefresh={condor.refresh} />}
-        onOpenInfo={() => { setInfo({ members: null }); loadDirectory(building.id).then((members) => setInfo((i) => (i ? { members } : i))) }}
+        onOpenInfo={() => { setInfo({ members: null }); loadDirectory(building.id).then((members) => setInfo((i) => (i ? { members: channel === 'residents' ? members.filter((m) => m.role !== 'admin') : members } : i))) }}
         messages={messages.filter((m) => !m.hidden)}
         names={names}
         userId={userId}
         onSend={sendMessage}
         onEdit={editMessage}
         onDelete={deleteMessage}
-        onHide={isCondoAdmin ? hideMessage : null}
+        onHide={isCondoAdmin && channel === 'all' ? hideMessage : null}
         onBack={onBack}
-        composer={{ buildingId: building.id, isGroup: true, onAction: setSheet }}
+        composer={{ buildingId: building.id, channel, isGroup: channel === 'all', onAction: setSheet }}
         ctx={{ polls: pollMap, events, eventsLoaded, onVote, onVoteOption: voteOption, onOpenContact, buildingId: building.id }}
       />
       {info && (
-        <ChatInfo kind="group" buildingId={building.id} title="Chat del condominio"
+        <ChatInfo kind="group" channel={channel} buildingId={building.id} title={g.title}
           subtitle={[[building.address, building.street_number].filter(Boolean).join(' '), info.members ? `${info.members.length} membri` : null].filter(Boolean).join(' · ')}
           avatar={building.photo_url
             // eslint-disable-next-line @next/next/no-img-element
             ? <img src={building.photo_url} alt="" style={{ width: 88, height: 88, borderRadius: '50%', objectFit: 'cover' }} />
-            : <ThreadAvatar t={{ kind: 'group' }} size={88} />} members={info.members} userId={userId} onClose={() => setInfo(null)} />
+            : <ThreadAvatar t={{ kind: g.kind }} size={88} />} members={info.members} userId={userId} onClose={() => setInfo(null)} />
       )}
       <ChatSheets sheet={sheet} onClose={() => setSheet(null)} buildingId={building.id} send={sendMessage}
         createPoll={async (v) => { const r = await createPoll(v); if (!r.error) await reloadPolls(); return r }}

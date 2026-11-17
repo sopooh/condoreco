@@ -140,7 +140,7 @@ export function useThreadMessages(threadId) {
   return { messages, members, names, loading, userId, send, edit, remove, addMembers }
 }
 
-export async function markGroupRead(buildingId, userId) {
+export async function markGroupRead(buildingId, userId, channel = 'all') {
   if (!buildingId || !userId) return
-  await createClient().from('condo_group_reads').upsert({ building_id: buildingId, user_id: userId, last_read_at: new Date().toISOString() })
+  await createClient().from('condo_group_reads').upsert({ building_id: buildingId, user_id: userId, channel, last_read_at: new Date().toISOString() })
 }

@@ -15,12 +15,12 @@ const ERRORS = {
   ai_error: 'Condor non è riuscito a fare il riassunto. Riprova tra poco.',
 }
 
-export function useCondorSummary(buildingId) {
+export function useCondorSummary(buildingId, channel = 'all') {
   const [state, setState] = useState(null) // null | { loading, data? } | { data } | { error, pro }
 
   async function run(refresh = false) {
     setState((s) => ({ loading: true, data: s?.data }))
-    const { data, error } = await createClient().functions.invoke('condor-chat-summary', { body: { building_id: buildingId, refresh } })
+    const { data, error } = await createClient().functions.invoke('condor-chat-summary', { body: { building_id: buildingId, channel, refresh } })
     if (error) {
       let code = null
       try { code = (await error.context?.json())?.error ?? null } catch { /* risposta non JSON */ }

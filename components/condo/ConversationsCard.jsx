@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Building2, ChevronRight, MessagesSquare, Users, Wrench } from 'lucide-react'
+import { ArrowRight, Building2, ChevronRight, Home, MessagesSquare, Users, Wrench } from 'lucide-react'
 
 function when(iso) {
   if (!iso) return ''
@@ -20,14 +20,15 @@ export default function ConversationsCard({ threads, base, addr, asAdmin = false
   const unreadTotal = threads.reduce((n, t) => n + (t.unread || 0), 0)
   const convs = useMemo(() => {
     const group = threads.find((t) => t.kind === 'group')
-    const rest = threads.filter((t) => t !== group)
+    const residents = threads.find((t) => t.kind === 'group_residents')
+    const rest = threads.filter((t) => t !== group && t !== residents)
       .sort((a, b) => (b.unread > 0) - (a.unread > 0) || String(b.last_message_at || '').localeCompare(String(a.last_message_at || '')))
-    const list = [group, ...rest].filter(Boolean)
+    const list = [group, residents, ...rest].filter(Boolean)
     if (!asAdmin && !list.some((t) => t.kind === 'admin')) list.splice(1, 0, { thread_id: null, kind: 'admin', title: 'Amministratore', virtual: true, unread: 0 })
-    if (asAdmin && !group) list.unshift({ thread_id: null, kind: 'group', title: 'Chat del condominio', unread: 0 })
+    if (asAdmin && !group) list.unshift({ thread_id: null, kind: 'group', title: 'Condominio', unread: 0 })
     return list.slice(0, 3)
   }, [threads, asAdmin])
-  const href = (t) => t.kind === 'group' ? `${base}/chat?c=gruppo` : t.virtual ? `${base}/chat?admin=1` : `${base}/chat?t=${t.thread_id}`
+  const href = (t) => t.kind === 'group' ? `${base}/chat?c=gruppo` : t.kind === 'group_residents' ? `${base}/chat?c=condomini` : t.virtual ? `${base}/chat?admin=1` : `${base}/chat?t=${t.thread_id}`
 
   return (
     <section className="aco-card" style={style}>
@@ -38,10 +39,10 @@ export default function ConversationsCard({ threads, base, addr, asAdmin = false
       </div>
       <div className="rco-convs">
         {convs.map((t) => (
-          <Link key={t.thread_id || t.kind} href={href(t)} className={`rco-conv${t.kind === 'group' ? ' is-group' : ''}`}>
+          <Link key={t.thread_id || t.kind} href={href(t)} className={`rco-conv${t.kind === 'group' || t.kind === 'group_residents' ? ' is-group' : ''}`}>
             <ThreadAvatar t={t} asAdmin={asAdmin} />
             <span className="rco-conv-main">
-              <span className="rco-conv-top"><strong>{t.kind === 'group' ? 'Chat del condominio' : t.title}</strong><small>{when(t.last_message_at)}</small></span>
+              <span className="rco-conv-top"><strong>{t.kind === 'group' ? 'Condominio' : t.kind === 'group_residents' ? 'Tra vicini' : t.title}</strong><small>{when(t.last_message_at)}</small></span>
               <span className="rco-conv-msg">
                 <span>{t.last_message_preview
                   ? <>{t.kind !== 'direct' && t.last_message_author ? <b>{t.last_message_author}: </b> : null}{t.last_message_preview}</>
@@ -50,7 +51,7 @@ export default function ConversationsCard({ threads, base, addr, asAdmin = false
                 <ChevronRight size={18} aria-hidden="true" />
               </span>
               <span className="rco-conv-foot">
-                {t.kind === 'group' ? `Gruppo · ${addr}` : t.kind === 'intervention' ? <span className="rco-tag">{t.subtitle || 'Intervento'}</span> : 'Conversazione privata'}
+                {t.kind === 'group' ? `Con l'amministratore · ${addr}` : t.kind === 'group_residents' ? 'Solo condòmini' : t.kind === 'intervention' ? <span className="rco-tag">{t.subtitle || 'Intervento'}</span> : 'Conversazione privata'}
               </span>
             </span>
           </Link>
@@ -63,6 +64,7 @@ export default function ConversationsCard({ threads, base, addr, asAdmin = false
 
 function ThreadAvatar({ t, asAdmin }) {
   if (t.kind === 'group') return <span className="rco-av is-sq"><Users size={26} strokeWidth={1.7} aria-hidden="true" /></span>
+  if (t.kind === 'group_residents') return <span className="rco-av is-sq" style={{ background: '#FDE9DC', color: '#C2410C' }}><Home size={24} strokeWidth={1.7} aria-hidden="true" /></span>
   if (t.kind === 'admin' && !asAdmin) return <span className="rco-av"><Building2 size={24} strokeWidth={1.8} aria-hidden="true" /></span>
   if (t.kind === 'intervention') return <span className="rco-av is-sq is-violet"><Wrench size={24} strokeWidth={1.8} aria-hidden="true" /></span>
   const ini = (t.title || '?').split(/\s+/).map((x) => x[0]).slice(0, 2).join('').toUpperCase()

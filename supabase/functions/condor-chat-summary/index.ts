@@ -41,7 +41,7 @@ const SUMMARY_TOOL = {
   },
 }
 
-const SYSTEM = `Sei Condor, l'assistente di Condoreco. Riassumi la chat di un condominio in italiano, in modo neutro e pratico, per un residente che non l'ha letta.
+const SYSTEM = `Sei Condor, l'assistente di Condoreco. Riassumi un gruppo chat di un condominio in italiano, in modo neutro e pratico, per un residente che non l'ha letta.
 Rispondi sempre con lo strumento summary. Regole:
 - Non inventare nulla: se un'informazione non c'è, non la aggiungi. Liste vuote quando non c'è niente.
 - Niente giudizi sulle persone; puoi citare chi ha scritto solo se serve a capire.
@@ -51,8 +51,9 @@ Rispondi sempre con lo strumento summary. Regole:
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
   try {
-    const { building_id, refresh } = await req.json().catch(() => ({}))
+    const { building_id, refresh, channel: rawChannel } = await req.json().catch(() => ({}))
     if (!building_id) return json({ error: 'building_id mancante' }, 400)
+    const channel = rawChannel === 'residents' ? 'residents' : 'all'
 
     const anon = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
       global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } },
@@ -66,12 +67,15 @@ Deno.serve(async (req) => {
     if (!enabled) return json({ error: 'pro_required' }, 403)
 
     const { data: member } = await svc.from('condo_members')
-      .select('user_id').eq('building_id', building_id).eq('user_id', user.id).maybeSingle()
+      .select('user_id, role').eq('building_id', building_id).eq('user_id', user.id).maybeSingle()
     if (!member) return json({ error: 'Non sei membro di questo condominio' }, 403)
+    // il gruppo Tra vicini e' solo per i condomini: l'amministratore non lo vede
+    if (channel === 'residents' && member.role === 'admin') return json({ error: 'Non fai parte di questo gruppo' }, 403)
 
     const { data: msgs, error: mErr } = await svc.from('messages')
       .select('content, created_at, kind, hidden, profiles:created_by(display_name)')
       .eq('building_id', building_id)
+      .eq('channel', channel)
       .is('deleted_at', null)
       .order('created_at', { ascending: false }).limit(60)
     if (mErr) { console.error('[condor-chat-summary] messages', mErr.message); return json({ error: 'Errore inatteso' }, 500) }
@@ -79,7 +83,7 @@ Deno.serve(async (req) => {
     const lastAt = visible.length ? visible[visible.length - 1].created_at : null
 
     // riusa l'ultimo riassunto se la chat non e' cambiata (e non e' stato chiesto di rifarlo)
-    const { data: cached } = await svc.from('chat_summaries').select('summary, message_count, last_message_at, created_at').eq('building_id', building_id).maybeSingle()
+    const { data: cached } = await svc.from('chat_summaries').select('summary, message_count, last_message_at, created_at').eq('building_id', building_id).eq('channel', channel).maybeSingle()
     const unchanged = cached && cached.message_count === visible.length && (cached.last_message_at ?? null) === (lastAt ?? null)
     if (cached && unchanged && !refresh) {
       return json({ ...cached.summary, message_count: cached.message_count, generated_at: cached.created_at, cached: true })
@@ -127,7 +131,7 @@ Deno.serve(async (req) => {
       dates: s.dates || [],
     }
     const now = new Date().toISOString()
-    const { error: upErr } = await svc.from('chat_summaries').upsert({ building_id, summary, message_count: visible.length, last_message_at: lastAt, created_at: now })
+    const { error: upErr } = await svc.from('chat_summaries').upsert({ building_id, channel, summary, message_count: visible.length, last_message_at: lastAt, created_at: now })
     if (upErr) console.error('[condor-chat-summary] cache', upErr.message)
 
     return json({ ...summary, message_count: visible.length, generated_at: now, remaining })

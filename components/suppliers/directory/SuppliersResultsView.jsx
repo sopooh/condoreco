@@ -115,7 +115,7 @@ export default function SuppliersResultsView({ suppliers, cities, categoryCounts
           )}
           <div className="dir-list">
             {list.map((s) => <SupplierRow key={s.id} supplier={s} saved={saved.has(s.id)} onToggleSave={() => toggle(s.id)} />)}
-            {list.length === 0 && (
+            {list.length === 0 && !(total === 0 && !onlySaved) && (
               <div className="empty">
                 <div className="empty-title">{onlySaved ? 'Nessun fornitore salvato' : total === 0 ? 'Ancora nessun Recofixer' : 'Nessun fornitore trovato'}</div>
                 <p>{onlySaved ? 'Tocca il segnalibro su una card per ritrovarla qui.' : total === 0 ? 'I primi fornitori stanno arrivando. Lavori con i condomini? Iscriviti gratis.' : 'Prova a cambiare categoria o città.'}</p>

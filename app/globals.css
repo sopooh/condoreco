@@ -3401,7 +3401,7 @@ a.ci-card.ci-row { border: 1px solid var(--border); }
 .sx-err { color: #B42318 !important; font-size: 13px !important; }
 
 /* ---- Pagina profilo fornitore ---- */
-.sp-page { max-width: 760px; margin: 0 auto; padding: 8px 18px 120px; }
+.sp-page { max-width: 760px; margin: 0 auto; padding: 18px 18px 120px; }
 .sp-top { display: flex; justify-content: space-between; align-items: center; margin: 0 -8px 8px; }
 .sp-icon { min-height: 0; min-width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; background: none; color: var(--text); cursor: pointer; padding: 0 6px; }
 .sp-demo { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; margin-bottom: 14px; border-radius: 12px; background: #FEF0C7; color: #93370D; font-size: 13.5px; line-height: 1.45; }
@@ -3448,3 +3448,33 @@ a.ci-card.ci-row { border: 1px solid var(--border); }
 .sp-price b { display: block; font-size: 20px; font-weight: 800; white-space: nowrap; }
 .sp-tab-link { padding: 10px 2px 12px; font-size: 15.5px; font-weight: 600; color: var(--text-3); text-decoration: none; white-space: nowrap; }
 .sp-page .sp-job-ico { font-weight: 800; font-size: 16px; }
+
+/* ---- Profili (amministratori e fornitori): card comuni ---- */
+.pf-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 18px 18px 16px; margin-top: 12px; box-shadow: 0 1px 3px rgba(16,24,40,.04); }
+.pf-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.pf-card-head h2 { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; margin: 0; color: var(--text); }
+.pf-text { font-size: 15px; color: var(--text-2); line-height: 1.6; margin: 0; }
+.pf-more { display: inline-flex; align-items: center; gap: 4px; min-height: 0; margin-top: 8px; padding: 0; border: none; background: none; color: var(--teal-dk); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.pf-bars { display: flex; flex-direction: column; gap: 11px; }
+.pf-bar { display: grid; grid-template-columns: 20px minmax(96px, auto) 1fr 30px; align-items: center; gap: 10px; color: var(--text-2); }
+.pf-bar svg { color: var(--text-2); }
+.pf-bar-label { font-size: 14.5px; color: var(--text); white-space: nowrap; }
+.pf-bar-track { height: 8px; border-radius: 999px; background: #EEF2F2; overflow: hidden; }
+.pf-bar-track span { display: block; height: 100%; border-radius: 999px; background: var(--teal); }
+.pf-bar b { font-size: 14.5px; font-weight: 600; color: var(--text); text-align: right; }
+.pf-sum { display: flex; align-items: center; gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-2); }
+.pf-sum-score { padding-right: 16px; border-right: 1px solid var(--border); }
+.pf-sum-score span { display: flex; align-items: center; gap: 6px; color: var(--teal-dk); }
+.pf-sum-score b { font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+.pf-sum-score small { display: block; font-size: 13px; color: var(--text-3); }
+.pf-reco { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; background: #F2F8F8; color: var(--teal-dk); font-weight: 800; font-size: 14.5px; margin: 0 auto; }
+.pf-review { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border-2); }
+.pf-review:first-child { border-top: none; padding-top: 0; }
+.pf-review-av { width: 40px; height: 40px; border-radius: 50%; background: #EEF1E8; color: var(--text-2); display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
+.pf-review-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pf-review-top b { font-size: 15px; }
+.pf-review-top span { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 700; }
+.pf-review small { display: block; font-size: 13px; color: var(--text-3); margin-top: 1px; }
+.pf-review p { font-size: 14.5px; color: var(--text-2); line-height: 1.5; margin: 6px 0 0; }
+.sp-page .sp-tabs { margin-bottom: 0; }
+.sp-page .sp-stats div { background: #F7FAFA; }

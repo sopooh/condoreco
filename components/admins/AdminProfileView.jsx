@@ -1,53 +1,45 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { BadgeCheck, Briefcase, Building2, CalendarDays, ChevronLeft, Mail, MapPin, MessageSquarePlus, Phone, Share2, Star } from 'lucide-react'
-import ScoreBar from '@/components/ui/ScoreBar'
+import { BadgeCheck, Briefcase, Building2, CalendarDays, Mail, MapPin, MessageSquarePlus, Phone } from 'lucide-react'
 import ReviewForm from '@/components/reviews/ReviewForm'
 import ReviewsSection from '@/components/reviews/ReviewsSection'
 import { ADMIN_RESIDENT_TYPES, ADMIN_REVIEW_CATEGORIES } from '@/lib/reviewOptions'
 import { scoreColor } from '@/lib/score'
+import { ProfileCard, RATING_ICONS, RatingsCard, ReviewMini, StatsRow, recommendFrom } from '@/components/profiles/ProfileParts'
 
-// Pagina di presentazione di un amministratore, sullo stesso schema della
-// pagina fornitore. I palazzi amministrati restano in fondo (fuori dalle tab).
+// Pagina di presentazione di un amministratore, stesso schema della pagina
+// fornitore. Peculiarità: recensioni dei residenti con form, contatti dello
+// studio e palazzi amministrati in fondo (fuori dalle tab).
 export default function AdminProfileView({ admin: a, reviews, buildingsCount, children }) {
   const [tab, setTab] = useState('panoramica')
   const [reviewOpen, setReviewOpen] = useState(false)
-  const [contactOpen, setContactOpen] = useState(false)
-  const [shared, setShared] = useState(false)
 
+  const reviewCount = a.review_count ?? reviews.length
+  const condos = a.building_count ?? buildingsCount
+  const fee = a.avg_monthly_fee != null ? `${Math.round(a.avg_monthly_fee)} €` : null
+  const ratingItems = [
+    { key: 'availability', label: 'Reperibilità', value: a.score_availability, icon: RATING_ICONS.availability },
+    { key: 'transparency', label: 'Trasparenza', value: a.score_transparency, icon: RATING_ICONS.transparency },
+    { key: 'speed', label: 'Velocità', value: a.score_speed, icon: RATING_ICONS.speed },
+    { key: 'assemblies', label: 'Assemblee', value: a.score_assemblies, icon: RATING_ICONS.people },
+    { key: 'value', label: 'Qualità/prezzo', value: a.score_value, icon: RATING_ICONS.value },
+  ]
   const tabs = [
     { id: 'panoramica', label: 'Panoramica' },
-    { id: 'recensioni', label: `Recensioni (${a.review_count ?? reviews.length})` },
+    { id: 'recensioni', label: `Recensioni (${reviewCount})` },
   ]
-
-  async function share() {
-    const url = window.location.href
-    try {
-      if (navigator.share) await navigator.share({ title: a.name, url })
-      else { await navigator.clipboard.writeText(url); setShared(true); setTimeout(() => setShared(false), 1500) }
-    } catch { /* annullato */ }
-  }
-
-  const fee = a.avg_monthly_fee != null ? `${Math.round(a.avg_monthly_fee)} €/mese` : null
-  const hasContact = a.phone || a.email
+  const mini = (r) => ({ name: r.profiles?.display_name, context: r.resident_type === 'former_resident' ? 'Ex residente' : r.resident_type === 'evaluating' ? 'Sta valutando' : 'Residente', score: r.score, body: r.body })
 
   return (
     <div className="sp-page">
-      <div className="sp-top">
-        <Link href="/amministratori" className="sp-icon" aria-label="Torna agli amministratori"><ChevronLeft size={26} aria-hidden="true" /></Link>
-        <button type="button" className="sp-icon" onClick={share} aria-label="Condividi">{shared ? <span style={{ fontSize: 12, fontWeight: 700 }}>Copiato</span> : <Share2 size={22} aria-hidden="true" />}</button>
-      </div>
-
       <header className="sp-head">
         <span className="sp-logo"><Briefcase size={38} aria-hidden="true" /></span>
         <div style={{ minWidth: 0 }}>
           <h1>{a.name}{a.verified && <BadgeCheck size={24} fill="var(--teal)" color="#fff" aria-label="Verificato" />}</h1>
           <div className="sp-cats">{a.studio_name || 'Amministratore di condominio'}</div>
           <div className="sp-meta">
-            <span><Star size={15} fill="currentColor" aria-hidden="true" style={{ color: scoreColor(a.score) }} />
-              <b style={{ color: scoreColor(a.score) }}>{a.score?.toFixed(1) ?? 'N/D'}</b>&nbsp;({a.review_count ?? 0} {a.review_count === 1 ? 'recensione' : 'recensioni'})</span>
+            <span><Building2 size={15} aria-hidden="true" />{condos} {condos === 1 ? 'condominio' : 'condomini'}</span>
             {a.active_since && <span><CalendarDays size={15} aria-hidden="true" />Dal {a.active_since}</span>}
             <span><MapPin size={15} aria-hidden="true" />{a.city}</span>
           </div>
@@ -63,17 +55,6 @@ export default function AdminProfileView({ admin: a, reviews, buildingsCount, ch
           ? <a className="sp-btn" href={`mailto:${a.email}`} style={{ textDecoration: 'none' }}><Mail size={18} aria-hidden="true" />Email</a>
           : <button type="button" className="sp-btn" disabled><Mail size={18} aria-hidden="true" />Email</button>}
       </div>
-      {hasContact && (
-        <button type="button" className="sp-more" onClick={() => setContactOpen((v) => !v)} style={{ marginTop: 10 }}>
-          {contactOpen ? 'Nascondi contatti' : 'Mostra contatti'}
-        </button>
-      )}
-      {contactOpen && (
-        <div className="sp-text" style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {a.phone && <a href={`tel:${a.phone}`} style={{ color: 'var(--teal-dk)', fontWeight: 600 }}>{a.phone}</a>}
-          {a.email && <a href={`mailto:${a.email}`} style={{ color: 'var(--teal-dk)', fontWeight: 600 }}>{a.email}</a>}
-        </div>
-      )}
 
       <nav className="sp-tabs" role="tablist">
         {tabs.map((t) => (
@@ -84,51 +65,33 @@ export default function AdminProfileView({ admin: a, reviews, buildingsCount, ch
 
       {tab === 'panoramica' && (
         <>
-          <section className="sp-sec">
-            <h2>Valutazioni dei residenti</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <ScoreBar label="Reperibilità" value={a.score_availability} />
-              <ScoreBar label="Trasparenza" value={a.score_transparency} />
-              <ScoreBar label="Velocità" value={a.score_speed} />
-              <ScoreBar label="Assemblee" value={a.score_assemblies} />
-              <ScoreBar label="Qualità/prezzo" value={a.score_value} />
+          <RatingsCard items={ratingItems} score={a.score} count={reviewCount} recommendPct={recommendFrom(reviews)}
+            emptyText="Ancora nessuna valutazione: sii il primo a recensire questo amministratore." />
+          <ProfileCard title="Lo studio">
+            <div className="sp-chips">
+              <span className="sp-chip"><Briefcase size={17} aria-hidden="true" />{a.studio_name || 'Amministratore'}</span>
+              {a.address && <span className="sp-chip"><MapPin size={17} aria-hidden="true" />{[a.address, a.city].filter(Boolean).join(', ')}</span>}
+              {a.phone && <a className="sp-chip is-soft" href={`tel:${a.phone}`} style={{ textDecoration: 'none' }}><Phone size={16} aria-hidden="true" />{a.phone}</a>}
+              {a.email && <a className="sp-chip is-soft" href={`mailto:${a.email}`} style={{ textDecoration: 'none' }}><Mail size={16} aria-hidden="true" />{a.email}</a>}
             </div>
-          </section>
-          <section className="sp-sec">
-            <h2>Su Condoreco</h2>
-            <div className="sp-stats">
-              <div><b style={{ color: scoreColor(a.score) }}>{a.score?.toFixed(1) ?? 'N/D'}</b><span>rating medio</span></div>
-              <div><b>{a.building_count ?? buildingsCount}</b><span>condomini gestiti</span></div>
-              <div><b>{fee || (a.review_count ?? 0)}</b><span>{fee ? 'spese medie' : 'recensioni'}</span></div>
-            </div>
-          </section>
-          {a.address && (
-            <section className="sp-sec">
-              <h2>Studio</h2>
-              <p className="sp-text"><MapPin size={15} aria-hidden="true" style={{ verticalAlign: -2, marginRight: 4 }} />{[a.address, a.city].filter(Boolean).join(', ')}</p>
-            </section>
-          )}
+          </ProfileCard>
+          <ProfileCard title="Su Condoreco">
+            <StatsRow stats={[
+              { value: a.score != null ? a.score.toFixed(1) : 'N/D', label: 'rating medio', color: scoreColor(a.score) },
+              { value: condos, label: condos === 1 ? 'condominio gestito' : 'condomini gestiti' },
+              fee ? { value: fee, label: 'spese medie al mese' } : { value: reviewCount, label: 'recensioni' },
+            ]} />
+          </ProfileCard>
           {reviews.length > 0 && (
-            <section className="sp-sec">
-              <div className="sp-sec-head"><h2>Recensioni</h2><button type="button" className="sp-more" onClick={() => setTab('recensioni')}>Vedi tutte ({reviews.length})</button></div>
-              <div className="sp-recent">
-                {reviews.slice(0, 2).map((r) => (
-                  <div key={r.id} className="sp-job" style={{ alignItems: 'flex-start' }}>
-                    <span className="sp-job-ico">{(r.profiles?.display_name || 'R')[0].toUpperCase()}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <b>{r.profiles?.display_name || 'Residente'} <span style={{ float: 'right', color: scoreColor(r.score) }}>★ {Number(r.score).toFixed(1)}</span></b>
-                      {r.body && <small style={{ color: 'var(--text-2)', fontSize: 14, lineHeight: 1.5 }}>{r.body.length > 160 ? `${r.body.slice(0, 160).trim()}…` : r.body}</small>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+            <ProfileCard title={`Recensioni (${reviewCount})`} action={<button type="button" className="pf-more" style={{ marginTop: 0 }} onClick={() => setTab('recensioni')}>Vedi tutte</button>}>
+              {reviews.slice(0, 2).map((r) => <ReviewMini key={r.id} {...mini(r)} />)}
+            </ProfileCard>
           )}
         </>
       )}
 
       {tab === 'recensioni' && (
-        <section className="sp-sec">
+        <section className="pf-card">
           <ReviewsSection
             reviews={reviews}
             table="admin_reviews"
@@ -147,9 +110,9 @@ export default function AdminProfileView({ admin: a, reviews, buildingsCount, ch
       <div id="palazzi" style={{ scrollMarginTop: 70 }}>{children}</div>
 
       <div className="sp-bar">
-        <div className="sp-price"><small>{a.building_count ?? buildingsCount} condomini</small><b style={{ color: scoreColor(a.score) }}>★ {a.score?.toFixed(1) ?? 'N/D'}</b></div>
+        <div className="sp-price"><small>{reviewCount} {reviewCount === 1 ? 'recensione' : 'recensioni'}</small><b style={{ color: scoreColor(a.score) }}>★ {a.score != null ? a.score.toFixed(1) : 'N/D'}</b></div>
         <button type="button" className="sp-btn is-main is-wide" onClick={() => setReviewOpen(true)}>
-          <Building2 size={18} aria-hidden="true" />Scrivi una recensione
+          <MessageSquarePlus size={18} aria-hidden="true" />Scrivi una recensione
         </button>
       </div>
 

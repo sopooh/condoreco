@@ -12,7 +12,7 @@ import { defaultAvatarFor, ROLES } from '@/lib/avatars'
 // Punteggi per categoria, condomini e recensioni stanno nel profilo.
 export default function AdminRow({ admin: a, saved = false, onToggleSave }) {
   const [contactOpen, setContactOpen] = useState(false)
-  const canContact = Boolean(a.phone || a.email)
+  const canContact = !a.demo && Boolean(a.phone || a.email)
   const score = formatScore(a.score)
 
   return (
@@ -28,16 +28,17 @@ export default function AdminRow({ admin: a, saved = false, onToggleSave }) {
               </span>
             )}
           </h2>
+          {a.demo && <span style={{ display: 'inline-block', marginTop: 4, fontSize: 12, fontWeight: 800, color: '#B54708', background: '#FEF0C7', padding: '2px 9px', borderRadius: 999 }}>Esempio</span>}
           <div className="dir-rating">
             {score && <b>{score}</b>}
             <Stars value={a.score} size={17} />
             <span className="muted">{a.review_count > 0 ? `(${a.review_count} recension${a.review_count === 1 ? 'e' : 'i'})` : 'Ancora nessuna recensione'}</span>
           </div>
         </div>
-        <button type="button" className={`dir-bookmark${saved ? ' is-on' : ''}`} onClick={onToggleSave}
+        {!a.demo && <button type="button" className={`dir-bookmark${saved ? ' is-on' : ''}`} onClick={onToggleSave}
           aria-pressed={saved} aria-label={saved ? 'Rimuovi dai salvati' : 'Salva amministratore'}>
           <Bookmark size={24} strokeWidth={2} fill={saved ? 'currentColor' : 'none'} aria-hidden="true" />
-        </button>
+        </button>}
       </div>
 
       <div className="dir-meta">

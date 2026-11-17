@@ -3,6 +3,9 @@ import { notFound } from 'next/navigation'
 import { createStaticClient } from '@/lib/supabase/static'
 import AdminBuildings from '@/components/admins/AdminBuildings'
 import AdminProfileView from '@/components/admins/AdminProfileView'
+import DemoBuildings from '@/components/admins/DemoBuildings'
+import { findDemoAdmin } from '@/lib/demoAdmins'
+import { DEMO_SUPPLIERS } from '@/lib/demoSuppliers'
 
 export const revalidate = 3600
 
@@ -17,7 +20,7 @@ const getAdminData = cache(async (id) => {
 
   if (!admin) return null
 
-  const [buildingsRes, reviewsRes] = await Promise.all([
+  const [buildingsRes, reviewsRes, suppliersRes] = await Promise.all([
     supabase
       .from('building_scores')
       .select('*')
@@ -28,12 +31,14 @@ const getAdminData = cache(async (id) => {
       .eq('administrator_id', id)
       .eq('is_published', true)
       .order('created_at', { ascending: false }),
+    supabase.rpc('admin_suppliers', { p_admin: id }),
   ])
 
   return {
     admin,
     buildings: buildingsRes.data || [],
     reviews: reviewsRes.data || [],
+    suppliers: suppliersRes.data || [],
   }
 })
 
@@ -48,6 +53,8 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }) {
   const { id } = await params
+  const demoA = findDemoAdmin(id)
+  if (demoA) return { title: `${demoA.name} (esempio)`, robots: { index: false } }
   const data = await getAdminData(id)
   if (!data) return {}
 
@@ -68,13 +75,22 @@ export async function generateMetadata({ params }) {
 
 export default async function AdminPage({ params }) {
   const { id } = await params
+  const demoA = findDemoAdmin(id)
+  if (demoA) {
+    const sups = DEMO_SUPPLIERS.filter((x) => demoA.supplierIds.includes(x.id)).map((x) => ({ ...x, condos: Math.min(x.condos, demoA.building_count) }))
+    return (
+      <AdminProfileView admin={demoA} reviews={demoA.reviews} buildingsCount={demoA.buildings.length} suppliers={sups}>
+        <DemoBuildings buildings={demoA.buildings} />
+      </AdminProfileView>
+    )
+  }
   const data = await getAdminData(id)
   if (!data) notFound()
 
-  const { admin, buildings, reviews } = data
+  const { admin, buildings, reviews, suppliers } = data
 
   return (
-    <AdminProfileView admin={admin} reviews={reviews} buildingsCount={buildings.length}>
+    <AdminProfileView admin={admin} reviews={reviews} buildingsCount={buildings.length} suppliers={suppliers}>
       <AdminBuildings buildings={buildings} />
     </AdminProfileView>
   )

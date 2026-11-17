@@ -12,6 +12,7 @@ import { useCondoRole } from '@/hooks/useCondoRole'
 import { useCondoThreads, useThreadMessages, loadDirectory, markGroupRead } from '@/hooks/useCondoThreads'
 import { INTERVENTION_STATUS } from '@/hooks/useInterventions'
 import ChatThreadView from '@/components/condo/chat/ChatThreadView'
+import ChatInfo from '@/components/condo/chat/ChatInfo'
 import { Sheet } from '@/components/condo/InterventionsPage'
 import { fuzzyFilter } from '@/lib/fuzzySearch'
 import NeighbourQuestionsPanel from '@/components/neighbours/NeighbourQuestionsPanel'
@@ -262,6 +263,7 @@ function GroupChat({ building, onBack, onOpenContact }) {
   const { createEvent } = useEvents(building.id)
   const [sheet, setSheet] = useState(null) // 'contact' | 'poll' | 'event'
   const condor = useCondorSummary(building.id)
+  const [info, setInfo] = useState(null) // null | { members }
   const [events, setEvents] = useState({})
   const [eventsLoaded, setEventsLoaded] = useState(false)
   useEffect(() => { markGroupRead(building.id, userId) }, [building.id, userId, messages.length])
@@ -297,6 +299,7 @@ function GroupChat({ building, onBack, onOpenContact }) {
         avatar={<ThreadAvatar t={{ kind: 'group' }} size={38} />}
         headerRight={<CondorSummaryButton loading={!!condor.state?.loading} onClick={condor.run} />}
         banner={<CondorSummaryPanel state={condor.state} onClose={condor.close} />}
+        onOpenInfo={() => { setInfo({ members: null }); loadDirectory(building.id).then((members) => setInfo((i) => (i ? { members } : i))) }}
         messages={messages.filter((m) => !m.hidden)}
         names={names}
         userId={userId}
@@ -308,6 +311,14 @@ function GroupChat({ building, onBack, onOpenContact }) {
         composer={{ buildingId: building.id, isGroup: true, onAction: setSheet }}
         ctx={{ polls: pollMap, events, eventsLoaded, onVote, onVoteOption: voteOption, onOpenContact, buildingId: building.id }}
       />
+      {info && (
+        <ChatInfo kind="group" buildingId={building.id} title="Chat del condominio"
+          subtitle={[[building.address, building.street_number].filter(Boolean).join(' '), info.members ? `${info.members.length} membri` : null].filter(Boolean).join(' · ')}
+          avatar={building.photo_url
+            // eslint-disable-next-line @next/next/no-img-element
+            ? <img src={building.photo_url} alt="" style={{ width: 88, height: 88, borderRadius: '50%', objectFit: 'cover' }} />
+            : <ThreadAvatar t={{ kind: 'group' }} size={88} />} members={info.members} userId={userId} onClose={() => setInfo(null)} />
+      )}
       <ChatSheets sheet={sheet} onClose={() => setSheet(null)} buildingId={building.id} send={sendMessage}
         createPoll={async (v) => { const r = await createPoll(v); if (!r.error) await reloadPolls(); return r }}
         createEvent={createEvent} isCondoAdmin={isCondoAdmin} />
@@ -319,6 +330,7 @@ function ThreadChat({ building, threadId, meta, onBack, onOpenContact }) {
   const { messages, members, names, userId, send, edit, remove, addMembers, loading } = useThreadMessages(threadId)
   const [adding, setAdding] = useState(false)
   const [sheet, setSheet] = useState(null)
+  const [infoOpen, setInfoOpen] = useState(false)
   const kind = meta?.kind
   const others = members.filter((m) => m.user_id !== userId).map((m) => names[m.user_id]?.display_name || 'Residente')
   const title = meta?.title || (loading ? 'Chat' : 'Conversazione')
@@ -333,6 +345,7 @@ function ThreadChat({ building, threadId, meta, onBack, onOpenContact }) {
         title={title}
         subtitle={subtitle}
         avatar={<ThreadAvatar t={meta || { kind: 'direct', title }} size={38} />}
+        onOpenInfo={() => setInfoOpen(true)}
         headerRight={kind === 'intervention' && (
           <button type="button" aria-label="Aggiungi vicini alla chat" onClick={() => setAdding(true)} style={{ ...iconBtn(false), width: 40, height: 40, background: 'var(--teal)', color: '#fff', border: 'none' }}>
             <UserPlus size={19} strokeWidth={2} aria-hidden="true" />
@@ -354,6 +367,13 @@ function ThreadChat({ building, threadId, meta, onBack, onOpenContact }) {
         composer={{ buildingId: building.id, threadId, isGroup: false, onAction: setSheet }}
         ctx={{ onOpenContact, buildingId: building.id }}
       />
+      {infoOpen && (
+        <ChatInfo kind="thread" buildingId={building.id} threadId={threadId} title={title}
+          subtitle={subtitle || `${members.length} ${members.length === 1 ? 'persona' : 'persone'}`}
+          avatar={<ThreadAvatar t={meta || { kind: 'direct', title }} size={88} />}
+          members={members.map((m) => ({ user_id: m.user_id, display_name: names[m.user_id]?.display_name, role: names[m.user_id]?.role === 'condoranked' ? 'admin' : null }))}
+          userId={userId} onClose={() => setInfoOpen(false)} />
+      )}
       <ChatSheets sheet={sheet} onClose={() => setSheet(null)} buildingId={building.id} send={send} />
       {adding && (
         <Sheet onClose={() => setAdding(false)} title="Aggiungi vicini" subtitle="Vedranno questa chat dell'intervento">

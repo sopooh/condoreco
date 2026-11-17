@@ -19,7 +19,7 @@ function dayLabel(iso) {
 
 // Vista di una conversazione: intestazione, bolle dei messaggi, campo di scrittura.
 // composer: { buildingId, threadId, isGroup, onAction }; ctx: dati per sondaggi, eventi, contatti
-export default function ChatThreadView({ title, subtitle, avatar, headerRight, messages, names, userId, onSend, onEdit, onDelete, onBack, onHide, banner, emptyText, composer = {}, ctx }) {
+export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, headerRight, messages, names, userId, onSend, onEdit, onDelete, onBack, onHide, banner, emptyText, composer = {}, ctx }) {
   const endRef = useRef(null)
   const [menu, setMenu] = useState(null) // { m, x, y, mine, canEdit, canHide }
   const [editing, setEditing] = useState(null)
@@ -42,11 +42,20 @@ export default function ChatThreadView({ title, subtitle, avatar, headerRight, m
         <button type="button" onClick={onBack} aria-label="Torna alle chat" style={{ minHeight: 0, width: 36, height: 36, borderRadius: '50%', border: 'none', background: 'none', color: 'var(--teal-dk)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}>
           <ChevronLeft size={24} strokeWidth={2.2} aria-hidden="true" />
         </button>
-        {avatar}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div>
-          {subtitle && <div style={{ fontSize: 12.5, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</div>}
-        </div>
+        {(() => {
+          const inner = (
+            <>
+              {avatar}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div>
+                {subtitle && <div style={{ fontSize: 12.5, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</div>}
+              </div>
+            </>
+          )
+          return onOpenInfo
+            ? <button type="button" className="chat-head-btn" onClick={onOpenInfo} aria-label={`Info: ${title}`}>{inner}</button>
+            : inner
+        })()}
         {headerRight}
       </header>
 

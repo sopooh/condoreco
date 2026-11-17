@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { BarChart3, CalendarDays, Clock, Download, FileText, MapPin, MessageCircle, UserRound, X } from 'lucide-react'
-import { extOf, formatSize, signedChatUrl } from '@/lib/chatFiles'
+import { downloadChatFile, extOf, formatSize, signedChatUrl } from '@/lib/chatFiles'
 import { pollImageUrl } from '@/lib/pollImages'
 
 // Contenuto di una bolla in base al tipo di messaggio.
@@ -50,6 +51,9 @@ function Missing() {
   return <div style={{ fontSize: 13.5, opacity: 0.75, padding: '6px 0' }}>File non disponibile</div>
 }
 
+const stop = (e) => e.stopPropagation()
+const STOP_BUBBLE = { onPointerDown: stop, onPointerUp: stop, onPointerMove: stop, onPointerCancel: stop, onPointerLeave: stop, onContextMenu: stop }
+
 function ImageAtt({ att }) {
   const { url, failed } = useSigned(att?.path)
   const [zoom, setZoom] = useState(false)
@@ -60,13 +64,16 @@ function ImageAtt({ att }) {
         {url ? <img src={url} alt={att.name || 'Foto'} loading="lazy" /> : <span className="chat-media-ph" />}
       </button>
       {zoom && (
-        <div className="chat-lightbox" role="dialog" aria-label="Foto" onClick={() => setZoom(false)}>
+        // portale su body: la bolla premuta ha un transform che "intrappolerebbe" il position:fixed.
+        // Gli eventi non devono risalire alla bolla (pressione lunga = menu del messaggio).
+        createPortal(
+        <div className="chat-lightbox" role="dialog" aria-label="Foto" onClick={(e) => { e.stopPropagation(); setZoom(false) }} {...STOP_BUBBLE}>
           <img src={url} alt={att.name || 'Foto'} />
           <div className="chat-lightbox-bar" onClick={(e) => e.stopPropagation()}>
-            <a href={url} download={att.name} target="_blank" rel="noopener noreferrer" aria-label="Scarica"><Download size={22} aria-hidden="true" /></a>
+            <button type="button" onClick={() => downloadChatFile(att)} aria-label="Scarica"><Download size={22} aria-hidden="true" /></button>
             <button type="button" onClick={() => setZoom(false)} aria-label="Chiudi"><X size={24} aria-hidden="true" /></button>
           </div>
-        </div>
+        </div>, document.body)
       )}
     </>
   )

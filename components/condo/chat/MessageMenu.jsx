@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Copy, EyeOff, Pencil, Share, TextSelect, Trash2, X } from 'lucide-react'
+import { Copy, Download, EyeOff, Pencil, Share, TextSelect, Trash2, X } from 'lucide-react'
+import { downloadChatFile } from '@/lib/chatFiles'
 
 // Menu del messaggio: tasto destro (desktop) o pressione lunga (mobile).
-// Copia, Modifica (solo i propri messaggi di testo), Seleziona testo,
+// Scarica (allegati), Copia, Modifica (solo i propri messaggi di testo), Seleziona testo,
 // Condividi, Elimina per tutti (i propri, entro 2 minuti),
 // Nascondi (moderazione dell'amministratore).
 
@@ -100,7 +101,9 @@ export default function MessageMenu({ menu, onClose, onEdit, onSelect, onHide, o
     return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('scroll', onScroll) }
   }, [onClose])
 
+  const hasFile = !!m.attachment?.path && ['file', 'image', 'video', 'audio'].includes(m.kind)
   const items = [
+    hasFile && { key: 'download', icon: Download, label: 'Scarica', run: async () => { if (!await downloadChatFile(m.attachment)) toast('File non disponibile') } },
     text && { key: 'copy', icon: Copy, label: 'Copia', run: async () => { toast(await copyText(text) ? 'Copiato' : 'Non riesco a copiare') } },
     canEdit && { key: 'edit', icon: Pencil, label: 'Modifica', run: () => onEdit(m) },
     text && { key: 'select', icon: TextSelect, label: 'Seleziona testo', run: () => onSelect(m) },

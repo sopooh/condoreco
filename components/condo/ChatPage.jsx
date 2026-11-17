@@ -70,7 +70,14 @@ function ChatInner({ building }) {
     return () => { cancelled = true }
   }, [adminParam, interventoParam, threadsApi.userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const back = () => { threadsApi.reload(); router.push(base) }
+  // Torna all'elenco: cambia solo l'URL nel browser (Next sincronizza
+  // useSearchParams) senza una nuova navigazione del router, che sulla pagina
+  // statica della chat a volte non riportava all'elenco.
+  const back = () => {
+    threadsApi.reload()
+    if (typeof window !== 'undefined' && window.location.pathname === base) window.history.pushState(null, '', base)
+    else router.push(base)
+  }
 
   if (adminParam || interventoParam) {
     return <p style={{ padding: 24, fontSize: 14, color: opening && !opening.endsWith('...') ? '#B42318' : 'var(--text-3)' }}>{opening || 'Caricamento...'}</p>

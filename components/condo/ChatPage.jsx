@@ -15,6 +15,7 @@ import ChatThreadView from '@/components/condo/chat/ChatThreadView'
 import { Sheet } from '@/components/condo/InterventionsPage'
 import { fuzzyFilter } from '@/lib/fuzzySearch'
 import NeighbourQuestionsPanel from '@/components/neighbours/NeighbourQuestionsPanel'
+import { CondorSummaryButton, CondorSummaryPanel, useCondorSummary } from '@/components/condo/chat/CondorSummary'
 import { useNeighbourPendingCount } from '@/hooks/useNeighbourQuestions'
 
 // Chat del condominio: elenco conversazioni (gruppo, amministratore,
@@ -260,6 +261,7 @@ function GroupChat({ building, onBack, onOpenContact }) {
   const { polls, castVote, changeVote, createPoll, voteOption, reload: reloadPolls } = usePolls(building.id)
   const { createEvent } = useEvents(building.id)
   const [sheet, setSheet] = useState(null) // 'contact' | 'poll' | 'event'
+  const condor = useCondorSummary(building.id)
   const [events, setEvents] = useState({})
   const [eventsLoaded, setEventsLoaded] = useState(false)
   useEffect(() => { markGroupRead(building.id, userId) }, [building.id, userId, messages.length])
@@ -293,6 +295,8 @@ function GroupChat({ building, onBack, onOpenContact }) {
         title="Chat del condominio"
         subtitle="Tutti i residenti verificati"
         avatar={<ThreadAvatar t={{ kind: 'group' }} size={38} />}
+        headerRight={<CondorSummaryButton loading={!!condor.state?.loading} onClick={condor.run} />}
+        banner={<CondorSummaryPanel state={condor.state} onClose={condor.close} />}
         messages={messages.filter((m) => !m.hidden)}
         names={names}
         userId={userId}

@@ -19,7 +19,7 @@ const MENU = [
 // Campo di scrittura della chat.
 // onSend(text, extra?) con extra = { kind, attachment, ref_id, meta }
 // onAction('contact' | 'poll' | 'event') apre i fogli gestiti dalla pagina.
-export default function Composer({ onSend, onAction, buildingId, threadId, isGroup }) {
+export default function Composer({ onSend, onAction, buildingId, threadId, channel, isGroup }) {
   const [draft, setDraft] = useState('')
   const [menu, setMenu] = useState(false)
   const [menuMax, setMenuMax] = useState(null)
@@ -77,7 +77,7 @@ export default function Composer({ onSend, onAction, buildingId, threadId, isGro
     setBusy(true); setErr(null)
     const files = pending.files
     for (let i = 0; i < files.length; i++) {
-      const up = await uploadChatFile({ buildingId, threadId, file: files[i] })
+      const up = await uploadChatFile({ buildingId, threadId, channel, file: files[i] })
       if (up.error) { setErr(up.error); setBusy(false); return }
       const text = (i === files.length - 1 && caption.trim()) || labelFor(up.kind, up.attachment.name)
       const { error } = await onSend(text, { kind: up.kind, attachment: up.attachment })
@@ -93,7 +93,7 @@ export default function Composer({ onSend, onAction, buildingId, threadId, isGro
   return (
     <div className="chat-composer">
       {err && <p className="chat-composer-err" role="alert">{err}<button type="button" onClick={() => setErr(null)} aria-label="Chiudi"><X size={14} /></button></p>}
-      <Recorder disabled={busy} buildingId={buildingId} threadId={threadId} onSend={onSend} onError={setErr}>
+      <Recorder disabled={busy} buildingId={buildingId} threadId={threadId} channel={channel} onSend={onSend} onError={setErr}>
         {(mic) => (
           <form onSubmit={sendText} className="chat-composer-row">
             <div ref={menuRef} style={{ position: 'relative' }}>
@@ -193,7 +193,7 @@ function SendPreview({ files, busy, onCancel, onSend }) {
 }
 
 /* Messaggio vocale: tocca il microfono, parla, tocca invia (o il cestino per annullare) */
-function Recorder({ children, disabled, buildingId, threadId, onSend, onError }) {
+function Recorder({ children, disabled, buildingId, threadId, channel, onSend, onError }) {
   const [rec, setRec] = useState(null) // { start }
   const [secs, setSecs] = useState(0)
   const [sending, setSending] = useState(false)
@@ -238,7 +238,7 @@ function Recorder({ children, disabled, buildingId, threadId, onSend, onError })
     const ext = mime.includes('mp4') ? 'm4a' : 'webm'
     const file = new File(chunks.current, `vocale-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.${ext}`, { type: mime.split(';')[0] })
     setSending(true)
-    const up = await uploadChatFile({ buildingId, threadId, file })
+    const up = await uploadChatFile({ buildingId, threadId, channel, file })
     if (up.error) { onError(up.error); setSending(false); return }
     const { error } = await onSend('Messaggio vocale', { kind: 'audio', attachment: { ...up.attachment, duration: Math.round(duration) } })
     setSending(false)

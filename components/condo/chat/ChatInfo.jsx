@@ -14,7 +14,7 @@ import { fuzzyFilter } from '@/lib/fuzzySearch'
 const TABS = [['members', 'Membri'], ['media', 'Media'], ['docs', 'Documenti'], ['links', 'Link']]
 const URL_RE = /https?:\/\/[^\s<>"')]+/gi
 
-export default function ChatInfo({ kind, buildingId, threadId, title, subtitle, avatar, members, userId, onClose }) {
+export default function ChatInfo({ kind, channel = 'all', buildingId, threadId, title, subtitle, avatar, members, userId, onClose }) {
   const [tab, setTab] = useState('members')
   const [files, setFiles] = useState(null)
   const [links, setLinks] = useState(null)
@@ -34,7 +34,7 @@ export default function ChatInfo({ kind, buildingId, threadId, title, subtitle, 
     const supabase = createClient()
     const base = (cols) => {
       const qb = kind === 'group'
-        ? supabase.from('messages').select(cols).eq('building_id', buildingId).eq('hidden', false)
+        ? supabase.from('messages').select(cols).eq('building_id', buildingId).eq('channel', channel).eq('hidden', false)
         : supabase.from('condo_thread_messages').select(cols).eq('thread_id', threadId)
       return qb.is('deleted_at', null).order('created_at', { ascending: false })
     }
@@ -51,7 +51,7 @@ export default function ChatInfo({ kind, buildingId, threadId, title, subtitle, 
       setLinks(out)
     })
     return () => { off = true }
-  }, [kind, buildingId, threadId])
+  }, [kind, channel, buildingId, threadId])
 
   const media = useMemo(() => (files || []).filter((m) => m.kind === 'image' || m.kind === 'video'), [files])
   const docs = useMemo(() => (files || []).filter((m) => m.kind === 'file' || m.kind === 'audio'), [files])

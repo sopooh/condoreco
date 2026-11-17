@@ -3,10 +3,12 @@ import { createClient } from '@/lib/supabase/client'
 import { CHAT_BUCKET } from '@/lib/chatFiles'
 import { useSession } from '@/components/providers/SessionProvider'
 
-// Chat del condominio: carica lo storico, si sottoscrive ai nuovi
+// Gruppi del condominio: carica lo storico, si sottoscrive ai nuovi
 // messaggi via Realtime, espone sendMessage.
+// channel 'all' = gruppo Condominio (con amministratore),
+// channel 'residents' = gruppo Tra vicini (solo condomini).
 // RLS: se l'utente non e' membro del building, le query tornano vuote.
-export function useCondoChat(buildingId) {
+export function useCondoChat(buildingId, chatChannel = 'all') {
   const [messages, setMessages] = useState([])
   const session = useSession()
   const [loading, setLoading] = useState(true)
@@ -16,8 +18,9 @@ export function useCondoChat(buildingId) {
     const supabase = createClient()
     const { data, error } = await supabase
       .from('messages')
-      .select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta, edited_at, deleted_at, profiles:created_by(display_name, avatar_url, role)')
+      .select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta, edited_at, deleted_at, channel, profiles:created_by(display_name, avatar_url, role)')
       .eq('building_id', buildingId)
+      .eq('channel', chatChannel)
       .order('created_at', { ascending: false })
       .limit(50)
 
@@ -27,7 +30,7 @@ export function useCondoChat(buildingId) {
       setMessages(data.reverse()) // dal piu' vecchio al piu' recente
     }
     setLoading(false)
-  }, [buildingId])
+  }, [buildingId, chatChannel])
 
   useEffect(() => {
     if (!buildingId) return
@@ -35,7 +38,7 @@ export function useCondoChat(buildingId) {
 
     const supabase = createClient()
     const channel = supabase
-      .channel(`chat-${buildingId}`)
+      .channel(`chat-${buildingId}-${chatChannel}`)
       .on(
         'postgres_changes',
         {
@@ -45,6 +48,7 @@ export function useCondoChat(buildingId) {
           filter: `building_id=eq.${buildingId}`,
         },
         async (payload) => {
+          if ((payload.new.channel || 'all') !== chatChannel) return
           // Il payload Realtime non contiene la join col profilo: la recuperiamo
           const { data: profile } = await supabase
             .from('profiles')
@@ -59,6 +63,7 @@ export function useCondoChat(buildingId) {
         }
       )
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `building_id=eq.${buildingId}` }, (payload) => {
+        if ((payload.new.channel || 'all') !== chatChannel) return
         setMessages((prev) => prev.map((m) => (m.id === payload.new.id ? { ...m, ...payload.new, profiles: m.profiles } : m)))
       })
       .subscribe()
@@ -66,7 +71,7 @@ export function useCondoChat(buildingId) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [buildingId, loadMessages])
+  }, [buildingId, chatChannel, loadMessages])
 
   const sendMessage = useCallback(
     // extra: { kind, attachment, ref_id, meta } per allegati, contatti, eventi
@@ -78,13 +83,14 @@ export function useCondoChat(buildingId) {
       const supabase = createClient()
       const { data, error } = await supabase.from('messages').insert({
         building_id: buildingId,
+        channel: chatChannel,
         created_by: session.user.id, // la RLS verifica che coincida con auth.uid()
         content: trimmed.slice(0, 2000),
         kind: extra.kind || 'text',
         attachment: extra.attachment || null,
         ref_id: extra.ref_id || null,
         meta: extra.meta || null,
-      }).select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta, edited_at, deleted_at').single()
+      }).select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta, edited_at, deleted_at, channel').single()
 
       if (error) {
         console.error('[useCondoChat] send failed', error.message)
@@ -94,7 +100,7 @@ export function useCondoChat(buildingId) {
       setMessages((prev) => (prev.some((m) => m.id === data.id) ? prev : [...prev, { ...data, profiles: null }]))
       return { error: null }
     },
-    [buildingId, session?.user?.id]
+    [buildingId, chatChannel, session?.user?.id]
   )
 
   // Solo per admin condominiale: nasconde un messaggio (moderazione)

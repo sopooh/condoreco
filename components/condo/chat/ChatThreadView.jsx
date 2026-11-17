@@ -107,7 +107,7 @@ export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, he
       {selecting && <SelectTextSheet m={selecting} onClose={() => setSelecting(null)} toast={toast} />}
       {toastMsg && <div className="msgm-toast" role="status">{toastMsg}</div>}
 
-      <Composer onSend={onSend} buildingId={composer.buildingId} threadId={composer.threadId} isGroup={composer.isGroup} onAction={composer.onAction} />
+      <Composer onSend={onSend} buildingId={composer.buildingId} threadId={composer.threadId} channel={composer.channel} isGroup={composer.isGroup} onAction={composer.onAction} />
     </div>
   )
 }

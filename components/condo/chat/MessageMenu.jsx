@@ -120,8 +120,11 @@ export default function MessageMenu({ menu, onClose, onEdit, onSelect, onHide, o
   ].filter(Boolean)
 
   return (
-    <div className="msgm-wrap" role="presentation" onClick={onClose} onContextMenu={(e) => { e.preventDefault(); onClose() }}>
-      <div ref={ref} className="msgm" role="menu" aria-label="Azioni sul messaggio" onClick={(e) => e.stopPropagation()}
+    // sfondo e menu sono fratelli (non annidati): cosi' il menu sta sopra la bolla
+    // premuta (z 961) anche quando la bolla e' alta, come una foto o un video
+    <>
+      <div className="msgm-wrap" role="presentation" onClick={onClose} onContextMenu={(e) => { e.preventDefault(); onClose() }} />
+      <div ref={ref} className="msgm" role="menu" aria-label="Azioni sul messaggio"
         style={pos ? { left: pos.left, top: pos.top } : { left: -9999, top: -9999 }}>
         <div className="msgm-when">{when(m.created_at)}{m.edited_at ? ' · modificato' : ''}</div>
         {items.map((it) => (
@@ -131,7 +134,7 @@ export default function MessageMenu({ menu, onClose, onEdit, onSelect, onHide, o
           </button>
         ))}
       </div>
-    </div>
+    </>
   )
 }
 

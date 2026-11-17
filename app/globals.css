@@ -3290,3 +3290,57 @@ a.ci-card.ci-row { border: 1px solid var(--border); }
 .ci-dl { width: 38px; height: 38px; }
 .ci-empty { font-size: 14px; color: var(--text-3); text-align: center; padding: 22px 14px; margin: 0; }
 .chat-head-btn { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 0; padding: 0; border: none; background: none; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+
+/* Riassunto di Condor (CondorSummary) */
+.cs-btn { min-height: 0; display: flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--white); color: var(--teal-dk); font: inherit; font-size: 14.5px; font-weight: 800; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.04); flex-shrink: 0; }
+.cs-btn:disabled { opacity: .7; cursor: wait; }
+.cs-wrap { padding: 12px 12px 0; }
+.cs-card { position: relative; max-width: 760px; margin: 0 auto; box-sizing: border-box; padding: 16px 16px 14px; border-radius: 20px; background: linear-gradient(180deg, #EAF4F4 0%, #F6FAFA 38%, #FBFCFC 100%); border: 1px solid #D6E7E8; box-shadow: 0 2px 10px rgba(13,103,111,.06); color: var(--text); }
+.cs-top { display: flex; align-items: center; justify-content: space-between; }
+.cs-brand { display: inline-flex; align-items: center; gap: 7px; color: var(--teal-dk); font-weight: 800; font-size: 15px; }
+.cs-beta { font-size: 11.5px; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: #D7EBEB; color: var(--teal-dk); }
+.cs-more { min-height: 0; width: 36px; height: 36px; border-radius: 50%; border: none; background: none; color: var(--teal-dk); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.cs-menu { position: absolute; right: 0; top: 40px; z-index: 30; min-width: 190px; padding: 6px; border-radius: 14px; background: var(--white); border: 1px solid var(--border); box-shadow: 0 12px 32px rgba(16,24,40,.16); }
+.cs-menu button { width: 100%; min-height: 0; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: none; background: none; border-radius: 10px; font: inherit; font-size: 14.5px; color: var(--text); cursor: pointer; text-align: left; }
+.cs-menu button:hover { background: var(--bg); }
+.cs-title { font-size: 22px; font-weight: 800; letter-spacing: -.3px; margin: 6px 0 2px; }
+.cs-sub { font-size: 13.5px; color: var(--text-3); margin: 0 0 12px; }
+.cs-text { font-size: 14.5px; margin: 0 0 10px; }
+.cs-link { color: var(--teal-dk); font-weight: 700; }
+.cs-error { font-size: 14px; color: #B42318; margin: 0 0 10px; }
+.cs-status { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 14px; font-size: 15px; font-weight: 800; margin-bottom: 10px; }
+.cs-status.is-calm { background: #DDEFE7; color: #0D5E46; }
+.cs-status.is-calm svg { color: #fff; fill: #12805C; }
+.cs-status.is-attention { background: #FFF1E3; color: #9A4A0B; }
+.cs-status.is-urgent { background: #FDE8E7; color: #A32A1E; }
+.cs-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.cs-stat { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 9px 8px; min-width: 0; }
+.cs-stat-n { display: flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 800; color: var(--text); }
+.cs-stat-n svg { color: var(--teal-dk); flex-shrink: 0; }
+.cs-stat-l { display: block; font-size: 12px; color: var(--text-3); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-block { margin-bottom: 12px; }
+.cs-block h4 { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; margin: 0 0 6px; }
+.cs-block h4 svg { color: var(--teal-dk); }
+.cs-list { margin: 0; padding-left: 22px; font-size: 14.5px; line-height: 1.5; }
+.cs-list li + li { margin-top: 3px; }
+.cs-dates { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--white); margin-bottom: 12px; }
+.cs-dates-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #EEF5F5; font-weight: 800; font-size: 15.5px; }
+.cs-dates-head span { display: inline-flex; align-items: center; gap: 8px; }
+.cs-dates-head svg { color: var(--teal-dk); }
+.cs-date-row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-top: 1px solid var(--border); }
+.cs-dates-head + .cs-date-row { border-top: none; }
+.cs-date-row b { display: block; font-size: 14.5px; }
+.cs-date-row small { display: block; font-size: 13px; color: var(--text-3); margin-top: 1px; }
+.cs-date-ok { width: 40px; height: 40px; border-radius: 50%; background: #E2EFEE; color: var(--teal-dk); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.cs-date-badge { width: 44px; height: 44px; border-radius: 12px; background: #E2EFEE; color: var(--teal-dk); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; line-height: 1; }
+.cs-date-badge b { font-size: 16px; display: block; }
+.cs-date-badge small { font-size: 11px; text-transform: uppercase; margin-top: 2px; color: var(--teal-dk); }
+.cs-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--border); }
+.cs-updated { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text-3); }
+.cs-refresh { min-height: 0; display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--teal); background: var(--white); color: var(--teal-dk); font: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer; }
+.cs-refresh:disabled { opacity: .7; cursor: wait; }
+.cs-spin { animation: cs-spin 1s linear infinite; }
+@keyframes cs-spin { to { transform: rotate(360deg); } }
+.cs-sk { border-radius: 12px; background: linear-gradient(90deg, #E7EFEF 25%, #F3F7F7 50%, #E7EFEF 75%); background-size: 200% 100%; animation: cs-sk 1.2s ease infinite; }
+@keyframes cs-sk { to { background-position: -200% 0; } }
+@media (max-width: 380px) { .cs-stat-l { font-size: 11px; } .cs-stat { padding: 8px 6px; } }

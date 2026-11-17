@@ -5,6 +5,7 @@ import { Ban, ChevronLeft } from 'lucide-react'
 import Composer from '@/components/condo/chat/Composer'
 import MessageBody from '@/components/condo/chat/MessageBody'
 import MessageMenu, { EditMessageSheet, SelectTextSheet, useMessagePress } from '@/components/condo/chat/MessageMenu'
+import SaveToArchiveSheet from '@/components/condo/chat/SaveToArchiveSheet'
 
 const time = (iso) => new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
 function dayLabel(iso) {
@@ -23,6 +24,7 @@ export default function ChatThreadView({ title, subtitle, avatar, headerRight, m
   const [menu, setMenu] = useState(null) // { m, x, y, mine, canEdit, canHide }
   const [editing, setEditing] = useState(null)
   const [selecting, setSelecting] = useState(null)
+  const [archiving, setArchiving] = useState(null)
   const [toastMsg, setToastMsg] = useState(null)
   const toastTimer = useRef(null)
   const toast = useCallback((t) => {
@@ -76,8 +78,10 @@ export default function ChatThreadView({ title, subtitle, avatar, headerRight, m
         <div ref={endRef} />
       </div>
 
-      {menu && <MessageMenu menu={menu} onClose={closeMenu} onEdit={setEditing} onSelect={setSelecting} onHide={(id) => onHide?.(id)} onDelete={async (id) => { const r = await onDelete?.(id); if (r?.error) toast(r.error) }} toast={toast} />}
+      {menu && <MessageMenu menu={menu} onClose={closeMenu} onEdit={setEditing} onSelect={setSelecting} onHide={(id) => onHide?.(id)} onDelete={async (id) => { const r = await onDelete?.(id); if (r?.error) toast(r.error) }} onArchive={ctx?.buildingId ? setArchiving : null} toast={toast} />}
       {editing && <EditMessageSheet m={editing} onClose={() => setEditing(null)} onSave={onEdit} />}
+      {archiving && <SaveToArchiveSheet m={archiving} buildingId={ctx.buildingId} userId={userId} onClose={() => setArchiving(null)}
+        onDone={() => { setArchiving(null); toast('Salvato nell\'archivio') }} />}
       {selecting && <SelectTextSheet m={selecting} onClose={() => setSelecting(null)} toast={toast} />}
       {toastMsg && <div className="msgm-toast" role="status">{toastMsg}</div>}
 

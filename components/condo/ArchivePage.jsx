@@ -211,12 +211,12 @@ function FileBadge({ doc }) {
   return <span className="docs-file-icon">PDF</span>
 }
 
-function UploadForm({ defaultCategory, onCancel, onUpload }) {
-  const [file, setFile] = useState(null)
-  const [title, setTitle] = useState('')
+export function UploadForm({ defaultCategory, onCancel, onUpload, presetFile = null, defaultVisibility = 'shared', submitLabel = 'Carica' }) {
+  const [file, setFile] = useState(presetFile)
+  const [title, setTitle] = useState(presetFile ? presetFile.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ') : '')
   const [category, setCategory] = useState(defaultCategory)
   const [docDate, setDocDate] = useState('')
-  const [visibility, setVisibility] = useState('shared')
+  const [visibility, setVisibility] = useState(defaultVisibility)
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState(null)
   const tooBig = file && file.size > MAX_DOC_BYTES
@@ -224,6 +224,15 @@ function UploadForm({ defaultCategory, onCancel, onUpload }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {presetFile ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14, background: 'rgba(13,103,111,0.05)', border: '1.5px solid var(--teal)' }}>
+          <FileText size={22} strokeWidth={1.8} aria-hidden="true" style={{ color: 'var(--teal)', flexShrink: 0 }} />
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 14.5, fontWeight: 700, color: 'var(--teal-dk)', wordBreak: 'break-all' }}>{presetFile.name}</span>
+            <span style={{ fontSize: 12.5, color: tooBig ? '#B42318' : 'var(--text-4)' }}>{tooBig ? 'Il file supera 20 MB' : fmtSize(presetFile.size)}</span>
+          </span>
+        </div>
+      ) : (
       <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '20px 14px', borderRadius: 16, cursor: 'pointer', textAlign: 'center',
         border: `2px dashed ${file ? 'var(--teal)' : 'var(--border)'}`, background: file ? 'rgba(13,103,111,0.05)' : '#FAFBFB' }}>
         <input type="file" accept=".pdf,image/*,.doc,.docx,.xls,.xlsx" style={{ display: 'none' }} onChange={(e) => {
@@ -235,6 +244,7 @@ function UploadForm({ defaultCategory, onCancel, onUpload }) {
         <span style={{ fontSize: 15, fontWeight: 700, color: file ? 'var(--teal-dk)' : 'var(--text)', wordBreak: 'break-all' }}>{file ? file.name : 'Scegli un file'}</span>
         <span style={{ fontSize: 12.5, color: tooBig ? '#B42318' : 'var(--text-4)' }}>{file ? (tooBig ? 'Il file supera 20 MB' : `${fmtSize(file.size)} · tocca per cambiare`) : 'PDF · JPG · PNG · Word · Excel'}</span>
       </label>
+      )}
 
       <label><div style={lab}>Titolo</div>
         <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={160} placeholder="Es. Verbale assemblea ordinaria" style={fld} />
@@ -279,7 +289,7 @@ function UploadForm({ defaultCategory, onCancel, onUpload }) {
           const e = await onUpload(file, { title, category, docDate, visibility })
           setSaving(false)
           if (e) setErr(e)
-        }}>{saving ? 'Caricamento...' : 'Carica'}</button>
+        }}>{saving ? 'Salvataggio...' : submitLabel}</button>
       </div>
     </div>
   )

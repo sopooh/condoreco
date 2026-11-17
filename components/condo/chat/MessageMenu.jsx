@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Copy, Download, EyeOff, Pencil, Share, TextSelect, Trash2, X } from 'lucide-react'
+import { Copy, Download, EyeOff, FolderInput, Pencil, Share, TextSelect, Trash2, X } from 'lucide-react'
+import { canArchive } from '@/components/condo/chat/SaveToArchiveSheet'
 import { downloadChatFile } from '@/lib/chatFiles'
 
 // Menu del messaggio: tasto destro (desktop) o pressione lunga (mobile).
-// Scarica (allegati), Copia, Modifica (solo i propri messaggi di testo), Seleziona testo,
+// Scarica e Salva nell'archivio (allegati), Copia, Modifica (solo i propri messaggi di testo), Seleziona testo,
 // Condividi, Elimina per tutti (i propri, entro 2 minuti),
 // Nascondi (moderazione dell'amministratore).
 
@@ -72,7 +73,7 @@ export function messageText(m) {
   return [m.content, name && name !== m.content ? name : null].filter(Boolean).join('\n')
 }
 
-export default function MessageMenu({ menu, onClose, onEdit, onSelect, onHide, onDelete, toast }) {
+export default function MessageMenu({ menu, onClose, onEdit, onSelect, onHide, onDelete, onArchive, toast }) {
   const ref = useRef(null)
   const [pos, setPos] = useState(null)
   const { m, x, y, rect, mine, canEdit, canDelete, canHide } = menu
@@ -104,6 +105,7 @@ export default function MessageMenu({ menu, onClose, onEdit, onSelect, onHide, o
   const hasFile = !!m.attachment?.path && ['file', 'image', 'video', 'audio'].includes(m.kind)
   const items = [
     hasFile && { key: 'download', icon: Download, label: 'Scarica', run: async () => { if (!await downloadChatFile(m.attachment)) toast('File non disponibile') } },
+    onArchive && canArchive(m) && { key: 'archive', icon: FolderInput, label: 'Salva nell\'archivio', run: () => onArchive(m) },
     text && { key: 'copy', icon: Copy, label: 'Copia', run: async () => { toast(await copyText(text) ? 'Copiato' : 'Non riesco a copiare') } },
     canEdit && { key: 'edit', icon: Pencil, label: 'Modifica', run: () => onEdit(m) },
     text && { key: 'select', icon: TextSelect, label: 'Seleziona testo', run: () => onSelect(m) },

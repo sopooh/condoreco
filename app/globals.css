@@ -3255,3 +3255,38 @@ input, select, textarea { font-family: inherit; }
 .co-fields input, .co-qty input { width: 100%; min-width: 0; box-sizing: border-box; }
 .co-qty input { width: 90px; flex-shrink: 0; }
 .co-sum > div { gap: 10px; }
+
+/* Info della chat (ChatInfo) */
+.ci-wrap { position: fixed; inset: 0; z-index: 700; background: var(--bg); display: flex; flex-direction: column; }
+.ci-top { display: flex; align-items: center; justify-content: space-between; padding: calc(10px + env(safe-area-inset-top)) 12px 10px; background: var(--white); border-bottom: 1px solid var(--border); }
+.ci-top-title { font-size: 16px; font-weight: 800; color: var(--text); }
+.ci-round { width: 44px; height: 44px; min-height: 0; border-radius: 50%; border: none; background: var(--bg); color: var(--teal-dk); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0; }
+.ci-scroll { flex: 1; overflow-y: auto; padding: 18px 14px calc(28px + env(safe-area-inset-bottom)); max-width: 760px; width: 100%; margin: 0 auto; box-sizing: border-box; -webkit-overflow-scrolling: touch; }
+.ci-hero { text-align: center; margin-bottom: 16px; }
+.ci-hero-av { display: flex; justify-content: center; margin-bottom: 10px; }
+.ci-hero h2 { font-size: 22px; font-weight: 800; color: var(--text); margin: 0 0 4px; }
+.ci-hero p { font-size: 14px; color: var(--text-3); margin: 0; }
+.ci-card { background: var(--white); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; margin-bottom: 14px; }
+.ci-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; color: var(--text); text-decoration: none; border-top: 1px solid var(--border); }
+.ci-card > .ci-row:first-child, .ci-card > .ci-search + .ci-row { border-top: none; }
+a.ci-card.ci-row { border: 1px solid var(--border); }
+.ci-row b { display: block; font-size: 15px; font-weight: 700; }
+.ci-row small { display: block; font-size: 12.5px; color: var(--text-3); margin-top: 1px; }
+.ci-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ci-ico { width: 40px; height: 40px; border-radius: 12px; background: var(--teal-lt, #E6F1F1); color: var(--teal-dk); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; font-weight: 800; }
+.ci-ext { background: #FDECEA; color: #D93025; }
+.ci-av { width: 42px; height: 42px; border-radius: 50%; background: #EEF0F2; color: var(--text-2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; flex-shrink: 0; }
+.ci-tag { font-size: 12px; font-weight: 700; color: var(--teal-dk); background: var(--teal-lt, #E6F1F1); padding: 3px 9px; border-radius: 999px; }
+.ci-tabs { display: flex; gap: 6px; background: var(--white); border: 1px solid var(--border); border-radius: 999px; padding: 4px; margin-bottom: 14px; }
+.ci-tabs button { flex: 1; min-height: 0; padding: 9px 4px; border: none; border-radius: 999px; background: none; font: inherit; font-size: 14px; font-weight: 700; color: var(--text-3); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+.ci-tabs button.is-on { background: var(--teal); color: #fff; }
+.ci-tabs button span { font-size: 11.5px; opacity: .8; }
+.ci-search { display: flex; align-items: center; gap: 8px; margin: 10px 12px 4px; padding: 0 12px; border: 1px solid var(--border); border-radius: 12px; color: var(--text-3); }
+.ci-search input { flex: 1; border: none; outline: none; padding: 10px 0; font: inherit; font-size: 16px; background: none; }
+.ci-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; border-radius: 14px; overflow: hidden; margin-bottom: 14px; }
+.ci-thumb { aspect-ratio: 1; min-height: 0; padding: 0; border: none; background: #E9ECEF; cursor: pointer; overflow: hidden; }
+.ci-thumb img, .ci-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ci-doc { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 0; padding: 0; border: none; background: none; font: inherit; color: inherit; cursor: pointer; }
+.ci-dl { width: 38px; height: 38px; }
+.ci-empty { font-size: 14px; color: var(--text-3); text-align: center; padding: 22px 14px; margin: 0; }
+.chat-head-btn { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 0; padding: 0; border: none; background: none; font: inherit; color: inherit; cursor: pointer; text-align: left; }

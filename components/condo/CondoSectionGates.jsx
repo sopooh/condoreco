@@ -12,9 +12,10 @@ import PeoplePage from '@/components/condo/admin/PeoplePage'
 import BilancioPage from '@/components/condo/admin/BilancioPage'
 import BilancioPrint from '@/components/condo/admin/BilancioPrint'
 import JoinRequestsPage from '@/components/condo/admin/JoinRequestsPage'
+import CondoSupplierSearch from '@/components/suppliers/CondoSupplierSearch'
 
 // Sezioni dell'area condominio dietro il gate membri condiviso.
-const PAGES = { interventi: InterventionsPage, bacheca: BachecaPage, chat: ChatPage, archivio: ArchivePage, contabilita: AccountingPage, rendicontazione: RendicontazionePage, pratiche: PracticesPage, persone: PeoplePage, bilancio: BilancioPage, stampa: BilancioPrint, richieste: JoinRequestsPage }
+const PAGES = { interventi: InterventionsPage, bacheca: BachecaPage, chat: ChatPage, archivio: ArchivePage, contabilita: AccountingPage, rendicontazione: RendicontazionePage, pratiche: PracticesPage, persone: PeoplePage, bilancio: BilancioPage, stampa: BilancioPrint, richieste: JoinRequestsPage, fornitori: CondoSupplierSearch }
 
 export default function CondoSectionGate({ building, section }) {
   const Page = PAGES[section]

@@ -20,7 +20,7 @@ export function useDocuments(buildingId) {
     if (!buildingId || !userId) return
     const { data, error } = await createClient()
       .from('condo_documents')
-      .select('id, building_id, uploaded_by, category, title, doc_date, visibility, file_path, file_name, mime_type, size_bytes, created_at')
+      .select('id, building_id, uploaded_by, category, title, doc_date, visibility, file_path, file_name, mime_type, size_bytes, created_at, text_status')
       .eq('building_id', buildingId)
       .order('created_at', { ascending: false })
     if (error) { console.error('[useDocuments] load failed', error); setError(error.message) }
@@ -60,8 +60,19 @@ export function useDocuments(buildingId) {
     return data.signedUrl
   }
 
+  // Ricerca nel contenuto dei documenti (testo estratto + significato).
+  const searchContent = useCallback((query) => searchDocumentContent(buildingId, query), [buildingId])
+
+  async function reindex(doc) {
+    const { error } = await createClient().rpc('reindex_condo_document', { p_document: doc.id })
+    if (error) { console.error('[useDocuments] reindex failed', error); return { error: 'Non riesco a rileggere il documento.' } }
+    indexDocument(doc.id)
+    await load()
+    return { error: null }
+  }
+
   const canManage = (doc) => doc.uploaded_by === userId || isCondoAdmin
-  return { docs, loading, error, userId, isCondoAdmin, upload, remove, setVisibility, fileUrl, canManage, reload: load }
+  return { docs, loading, error, userId, isCondoAdmin, upload, remove, setVisibility, fileUrl, canManage, reload: load, searchContent, reindex }
 }
 
 // Caricamento nell'archivio, usato dalla pagina Archivio e da "Salva nell'archivio" in chat.
@@ -76,15 +87,31 @@ export async function uploadDocument({ buildingId, userId, file, title, category
     console.error('[useDocuments] upload failed', up.error)
     return { error: /mime|type/i.test(up.error.message) ? 'Formato non supportato: usa PDF, immagini, Word o Excel.' : 'Caricamento non riuscito. Riprova.' }
   }
-  const { error } = await supabase.from('condo_documents').insert({
+  const { data: row, error } = await supabase.from('condo_documents').insert({
     building_id: buildingId, uploaded_by: userId, category, title: title.trim(),
     doc_date: docDate || null, visibility, file_path: path, file_name: file.name,
     mime_type: file.type || null, size_bytes: file.size,
-  })
+  }).select('id').single()
   if (error) {
     await supabase.storage.from(BUCKET).remove([path])
     console.error('[useDocuments] insert failed', error)
     return { error: 'Non riesco a salvare il documento. Riprova.' }
   }
-  return { error: null }
+  indexDocument(row.id)
+  return { error: null, id: row.id }
+}
+
+// Avvia subito l'estrazione del testo; se non finisce, la completa il
+// passaggio periodico sul server (ogni 5 minuti). Non blocca il caricamento.
+export function indexDocument(documentId) {
+  createClient().functions.invoke('document-index', { body: { document_id: documentId } })
+    .then(({ error }) => { if (error) console.error('[useDocuments] index request failed', error) })
+}
+
+export async function searchDocumentContent(buildingId, query) {
+  const q = (query || '').trim()
+  if (q.length < 3) return { results: [], error: null }
+  const { data, error } = await createClient().functions.invoke('document-search', { body: { building_id: buildingId, query: q, limit: 8 } })
+  if (error) { console.error('[useDocuments] content search failed', error); return { results: [], error: 'Ricerca nei contenuti non disponibile.' } }
+  return { results: data?.results || [], error: null }
 }

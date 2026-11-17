@@ -1,9 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
-  Search, ChevronRight, ChevronLeft, Users, Lock, Eye, Download, Ellipsis, Plus, Upload, FileText, Image as ImageIcon, FileSpreadsheet,
+  Search, ChevronRight, ChevronLeft, Users, Lock, Eye, Download, Ellipsis, Plus, Upload, FileText, Image as ImageIcon, FileSpreadsheet, Sparkles, RefreshCw,
 } from 'lucide-react'
 import { useDocuments, MAX_DOC_BYTES } from '@/hooks/useDocuments'
 import { DOCUMENT_CATEGORIES, documentCategory } from '@/lib/documentCategories'
@@ -15,7 +15,7 @@ const fmtSize = (b) => (b == null ? '' : b > 1048576 ? `${(b / 1048576).toFixed(
 
 export default function ArchivePage({ building }) {
   const buildingId = building.id
-  const { docs, loading, error, upload, remove, setVisibility, fileUrl, canManage } = useDocuments(buildingId)
+  const { docs, loading, error, upload, remove, setVisibility, fileUrl, canManage, searchContent, reindex } = useDocuments(buildingId)
   const [q, setQ] = useState('')
   const [vis, setVis] = useState('all')       // all | shared | restricted
   const [category, setCategory] = useState(null)
@@ -23,6 +23,24 @@ export default function ArchivePage({ building }) {
   const [menuFor, setMenuFor] = useState(null)
   const [actionErr, setActionErr] = useState(null)
   const [showAll, setShowAll] = useState(false)
+  const [content, setContent] = useState({ q: '', results: [], error: null })
+
+  // ricerca nel contenuto dei documenti (testo estratto), con una piccola attesa mentre si scrive
+  const term = q.trim()
+  useEffect(() => {
+    if (term.length < 3) return
+    let alive = true
+    const t = setTimeout(async () => {
+      const { results, error } = await searchContent(term)
+      if (alive) setContent({ q: term, results, error })
+    }, 450)
+    return () => { alive = false; clearTimeout(t) }
+  }, [term, searchContent])
+  const contentLoading = term.length >= 3 && content.q !== term
+  const docById = useMemo(() => new Map(docs.map((d) => [d.id, d])), [docs])
+  const contentHits = (content.q === term ? content.results : []).filter((r) => docById.has(r.document_id)
+    && (vis === 'all' || docById.get(r.document_id).visibility === vis)
+    && (!category || r.category === category))
 
   const counts = useMemo(() => {
     const c = {}
@@ -49,9 +67,9 @@ export default function ArchivePage({ building }) {
     const w = download ? null : window.open('', '_blank')
     const url = await fileUrl(doc, download)
     if (!url) { w?.close(); setActionErr('Non riesco ad aprire il documento.'); return }
-    if (download) window.location.href = url
-    else if (w) w.location.href = url
-    else window.location.href = url
+    if (download) window.location.assign(url)
+    else if (w) w.location.assign(url)
+    else window.location.assign(url)
   }
 
   return (
@@ -139,11 +157,12 @@ export default function ArchivePage({ building }) {
                       <div style={{ fontSize: 12.5, color: 'var(--text-3)', marginTop: 2 }}>
                         {documentCategory(d.category).label} · {fmtDate(d.doc_date || d.created_at)}{d.size_bytes ? ` · ${fmtSize(d.size_bytes)}` : ''}
                       </div>
-                      <div style={{ marginTop: 6 }}>
+                      <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
                         <span className={`docs-pill ${d.visibility}`}>
                           {d.visibility === 'restricted' && <Lock size={12} strokeWidth={2.2} aria-hidden="true" />}
                           {d.visibility === 'restricted' ? 'Riservato' : 'Condiviso'}
                         </span>
+                        {TEXT_STATUS[d.text_status] && <span style={{ fontSize: 12, color: 'var(--text-4)' }}>{TEXT_STATUS[d.text_status]}</span>}
                       </div>
                     </div>
                     {canManage(d) && (
@@ -168,6 +187,40 @@ export default function ArchivePage({ building }) {
         )}
       </section>
 
+      {query.length >= 3 && (
+        <section style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 18, padding: '16px 18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Sparkles size={18} strokeWidth={2} aria-hidden="true" style={{ color: 'var(--teal)' }} />
+            <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, flex: 1 }}>Dentro i documenti</h2>
+            {!contentLoading && <span style={{ fontSize: 13, color: 'var(--text-3)' }}>{contentHits.length}</span>}
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '4px 0 0' }}>Passaggi che parlano di quello che cerchi, anche con parole diverse.</p>
+          {contentLoading ? (
+            <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '12px 0 0' }}>Sto cercando nei testi...</p>
+          ) : content.q === term && content.error ? (
+            <p style={{ fontSize: 14, color: '#B42318', margin: '12px 0 0' }}>{content.error}</p>
+          ) : contentHits.length === 0 ? (
+            <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '12px 0 0' }}>Nessun passaggio trovato. I documenti appena caricati sono leggibili dopo qualche minuto.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+              {contentHits.map((r) => {
+                const d = docById.get(r.document_id)
+                return (
+                  <button key={r.chunk_id} type="button" onClick={() => open(d, false)} className="docs-hit"
+                    style={{ display: 'block', width: '100%', textAlign: 'left', minHeight: 0, padding: '12px 14px', borderRadius: 14, border: '1px solid var(--border)', background: '#FAFBFB', cursor: 'pointer', color: 'var(--text)' }}>
+                    <span style={{ display: 'block', fontSize: 14, fontWeight: 800 }}>{r.title}</span>
+                    <span style={{ display: 'block', fontSize: 12.5, color: 'var(--text-3)', margin: '2px 0 6px' }}>
+                      {documentCategory(r.category).label}{r.page ? ` · pagina ${r.page}` : ''}
+                    </span>
+                    <span style={{ display: 'block', fontSize: 13.5, lineHeight: 1.5, color: 'var(--text-2)' }}>{highlight(snippet(r.content, content.q), content.q)}</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </section>
+      )}
+
       <p style={{ fontSize: 12.5, color: 'var(--text-4)', margin: 0, lineHeight: 1.5 }}>
         I documenti <strong>condivisi</strong> li vedono tutti i residenti verificati. I <strong>riservati</strong>{' '}solo chi li ha caricati e l&apos;amministratore del condominio.
       </p>
@@ -191,6 +244,12 @@ export default function ArchivePage({ building }) {
             }}>
               {menuFor.visibility === 'shared' ? <><Lock size={16} strokeWidth={2} aria-hidden="true" /> Rendi riservato</> : <><Users size={16} strokeWidth={2} aria-hidden="true" /> Condividi con i residenti</>}
             </button>
+            {['error', 'no_text'].includes(menuFor.text_status) && (
+              <button type="button" className="docs-btn" style={{ height: 48 }} onClick={async () => {
+                const { error } = await reindex(menuFor)
+                setActionErr(error); setMenuFor(null)
+              }}><RefreshCw size={16} strokeWidth={2} aria-hidden="true" /> Rileggi il testo</button>
+            )}
             <button type="button" className="docs-btn" style={{ height: 48, color: '#B42318', borderColor: '#F5C2C0' }} onClick={async () => {
               if (!window.confirm(`Eliminare "${menuFor.title}"? Non si può annullare.`)) return
               const { error } = await remove(menuFor)
@@ -201,6 +260,33 @@ export default function ArchivePage({ building }) {
       )}
     </div>
   )
+}
+
+const TEXT_STATUS = {
+  pending: 'Lettura del testo in corso',
+  processing: 'Lettura del testo in corso',
+  no_text: 'Scansione: testo non ancora leggibile',
+  error: 'Testo non letto',
+}
+
+// Pezzo di testo attorno alla prima parola cercata trovata.
+function snippet(text, q, size = 220) {
+  const t = text.replace(/\s+/g, ' ')
+  const words = q.toLowerCase().split(/\s+/).filter((w) => w.length >= 3)
+  const low = t.toLowerCase()
+  let at = -1
+  for (const w of words) { at = low.indexOf(w.slice(0, Math.max(4, w.length - 2))); if (at >= 0) break }
+  if (at < 0 || t.length <= size) return t.length > size ? t.slice(0, size) + '…' : t
+  const start = Math.max(0, at - 60)
+  return (start > 0 ? '…' : '') + t.slice(start, start + size) + (start + size < t.length ? '…' : '')
+}
+
+function highlight(text, q) {
+  const stems = q.toLowerCase().split(/\s+/).filter((w) => w.length >= 3).map((w) => w.slice(0, Math.max(4, w.length - 2)))
+  if (!stems.length) return text
+  const esc = (x) => x.replace(/[.*+?^$()|[\]\\{}]/g, '\\$&')
+  const re = new RegExp('(' + stems.map(esc).join('|') + ')', 'gi')
+  return text.split(re).map((part, i) => (i % 2 === 1 ? <mark key={i} style={{ background: 'var(--teal-lt)', color: 'var(--teal-dk)', borderRadius: 3, padding: '0 1px' }}>{part}</mark> : part))
 }
 
 function FileBadge({ doc }) {

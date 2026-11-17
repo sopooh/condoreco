@@ -6,6 +6,7 @@ import Composer from '@/components/condo/chat/Composer'
 import MessageBody from '@/components/condo/chat/MessageBody'
 import MessageMenu, { EditMessageSheet, SelectTextSheet, useMessagePress } from '@/components/condo/chat/MessageMenu'
 import SaveToArchiveSheet from '@/components/condo/chat/SaveToArchiveSheet'
+import { hideMessageForMe, loadHiddenMessageIds } from '@/lib/chatHides'
 
 const time = (iso) => new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
 function dayLabel(iso) {
@@ -25,6 +26,13 @@ export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, he
   const [editing, setEditing] = useState(null)
   const [selecting, setSelecting] = useState(null)
   const [archiving, setArchiving] = useState(null)
+  const [hiddenIds, setHiddenIds] = useState(null) // "Elimina per me"
+  useEffect(() => { let off = false; loadHiddenMessageIds().then((ids) => { if (!off) setHiddenIds(ids) }); return () => { off = true } }, [])
+  async function deleteForMe(id) {
+    const r = await hideMessageForMe(id)
+    if (r.error) toast(r.error)
+    else setHiddenIds((prev) => new Set(prev || []).add(id))
+  }
   const [toastMsg, setToastMsg] = useState(null)
   const toastTimer = useRef(null)
   const toast = useCallback((t) => {
@@ -34,6 +42,7 @@ export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, he
   }, [])
   const closeMenu = useCallback(() => setMenu(null), [])
 
+  const shown = hiddenIds?.size ? messages.filter((m) => !hiddenIds.has(m.id)) : messages
   useEffect(() => { endRef.current?.scrollIntoView({ block: 'end' }) }, [messages.length])
 
   return (
@@ -66,12 +75,12 @@ export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, he
       {banner}
 
       <div style={{ flex: 1, padding: '14px 12px 8px', display: 'flex', flexDirection: 'column', gap: 4, maxWidth: 760, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
-        {messages.length === 0 && (
+        {shown.length === 0 && (
           <p style={{ fontSize: 14, color: 'var(--text-3)', textAlign: 'center', margin: '28px 16px' }}>{emptyText || 'Ancora nessun messaggio. Scrivi il primo.'}</p>
         )}
-        {messages.map((m, idx) => {
+        {shown.map((m, idx) => {
           const mine = m.created_by === userId
-          const prev = messages[idx - 1]
+          const prev = shown[idx - 1]
           const showDay = !prev || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString()
           const showName = !mine && (!prev || prev.created_by !== m.created_by || showDay)
           const who = names[m.created_by]?.display_name || 'Residente'
@@ -84,14 +93,14 @@ export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, he
               )}
               <Bubble m={m} mine={mine} showName={showName} who={who} ctx={{ ...ctx, userId }}
                 active={menu?.m.id === m.id}
-                onOpen={m.deleted_at ? null : (x, y, rect) => setMenu({ m, x, y, rect, mine, canEdit: mine && !!onEdit && (m.kind || 'text') === 'text', canDelete: mine && !!onDelete && canStillDelete(m), canHide: !!onHide && !mine })} />
+                onOpen={(x, y, rect) => setMenu(m.deleted_at ? { m, x, y, rect, mine, onlyForMe: true } : { m, x, y, rect, mine, canEdit: mine && !!onEdit && (m.kind || 'text') === 'text', canDelete: mine && !!onDelete && canStillDelete(m), canHide: !!onHide && !mine })} />
             </div>
           )
         })}
         <div ref={endRef} />
       </div>
 
-      {menu && <MessageMenu menu={menu} onClose={closeMenu} onEdit={setEditing} onSelect={setSelecting} onHide={(id) => onHide?.(id)} onDelete={async (id) => { const r = await onDelete?.(id); if (r?.error) toast(r.error) }} onArchive={ctx?.buildingId ? setArchiving : null} toast={toast} />}
+      {menu && <MessageMenu menu={menu} onClose={closeMenu} onEdit={setEditing} onSelect={setSelecting} onHide={(id) => onHide?.(id)} onDelete={async (id) => { const r = await onDelete?.(id); if (r?.error) toast(r.error) }} onArchive={ctx?.buildingId ? setArchiving : null} onDeleteForMe={deleteForMe} toast={toast} />}
       {editing && <EditMessageSheet m={editing} onClose={() => setEditing(null)} onSave={onEdit} />}
       {archiving && <SaveToArchiveSheet m={archiving} buildingId={ctx.buildingId} userId={userId} onClose={() => setArchiving(null)}
         onDone={() => { setArchiving(null); toast('Salvato nell\'archivio') }} />}
@@ -114,7 +123,7 @@ function Bubble({ m, mine, showName, who, ctx, active, onOpen }) {
   if (m.deleted_at) {
     return (
       <div style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginTop: showName ? 6 : 0 }}>
-        <div style={{ maxWidth: '80%', padding: '8px 12px 6px', borderRadius: 16, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4,
+        <div {...press} className={`chat-bubble${active ? ' is-pressed' : ''}`} style={{ maxWidth: '80%', padding: '8px 12px 6px', borderRadius: 16, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4,
           background: 'var(--white)', color: 'var(--text-3)', border: '1px solid var(--border)' }}>
           {showName && <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--teal-dk)', margin: '0 0 2px' }}>{who}</div>}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14.5, fontStyle: 'italic' }}>

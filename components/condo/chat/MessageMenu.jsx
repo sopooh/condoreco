@@ -7,7 +7,7 @@ import { downloadChatFile } from '@/lib/chatFiles'
 
 // Menu del messaggio: tasto destro (desktop) o pressione lunga (mobile).
 // Scarica e Salva nell'archivio (allegati), Copia, Modifica (solo i propri messaggi di testo), Seleziona testo,
-// Condividi, Elimina per tutti (i propri, entro 2 minuti),
+// Condividi, Elimina per tutti (i propri, entro 2 minuti), Elimina per me (sempre),
 // Nascondi (moderazione dell'amministratore).
 
 const LONG_PRESS_MS = 450
@@ -73,10 +73,10 @@ export function messageText(m) {
   return [m.content, name && name !== m.content ? name : null].filter(Boolean).join('\n')
 }
 
-export default function MessageMenu({ menu, onClose, onEdit, onSelect, onHide, onDelete, onArchive, toast }) {
+export default function MessageMenu({ menu, onClose, onEdit, onSelect, onHide, onDelete, onArchive, onDeleteForMe, toast }) {
   const ref = useRef(null)
   const [pos, setPos] = useState(null)
-  const { m, x, y, rect, mine, canEdit, canDelete, canHide } = menu
+  const { m, x, y, rect, mine, canEdit, canDelete, canHide, onlyForMe } = menu
   const text = messageText(m)
 
   // posizione: vicino al punto toccato, sempre dentro lo schermo
@@ -103,7 +103,9 @@ export default function MessageMenu({ menu, onClose, onEdit, onSelect, onHide, o
   }, [onClose])
 
   const hasFile = !!m.attachment?.path && ['file', 'image', 'video', 'audio'].includes(m.kind)
-  const items = [
+  const items = onlyForMe ? [
+    onDeleteForMe && { key: 'delete-me', icon: Trash2, label: 'Elimina per me', danger: true, run: () => onDeleteForMe(m.id) },
+  ] : [
     hasFile && { key: 'download', icon: Download, label: 'Scarica', run: async () => { if (!await downloadChatFile(m.attachment)) toast('File non disponibile') } },
     onArchive && canArchive(m) && { key: 'archive', icon: FolderInput, label: 'Salva nell\'archivio', run: () => onArchive(m) },
     text && { key: 'copy', icon: Copy, label: 'Copia', run: async () => { toast(await copyText(text) ? 'Copiato' : 'Non riesco a copiare') } },
@@ -117,6 +119,9 @@ export default function MessageMenu({ menu, onClose, onEdit, onSelect, onHide, o
       if (window.confirm('Eliminare questo messaggio per tutti?')) onDelete(m.id)
     } },
     canHide && { key: 'hide', icon: EyeOff, label: 'Nascondi a tutti', danger: true, run: () => onHide(m.id) },
+    onDeleteForMe && { key: 'delete-me', icon: Trash2, label: 'Elimina per me', danger: true, run: () => {
+      if (window.confirm('Eliminare questo messaggio solo per te? Gli altri continueranno a vederlo.')) onDeleteForMe(m.id)
+    } },
   ].filter(Boolean)
 
   return (

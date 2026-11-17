@@ -3344,3 +3344,58 @@ a.ci-card.ci-row { border: 1px solid var(--border); }
 .cs-sk { border-radius: 12px; background: linear-gradient(90deg, #E7EFEF 25%, #F3F7F7 50%, #E7EFEF 75%); background-size: 200% 100%; animation: cs-sk 1.2s ease infinite; }
 @keyframes cs-sk { to { background-position: -200% 0; } }
 @media (max-width: 380px) { .cs-stat-l { font-size: 11px; } .cs-stat { padding: 8px 6px; } }
+
+/* ---- Cerca fornitori dal condominio ---- */
+.sx-page { max-width: 760px; margin: 0 auto; padding: 14px 16px 60px; }
+.sx-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.sx-head h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: var(--text); }
+.sx-head p { font-size: 14px; color: var(--text-3); margin: 2px 0 0; }
+.sx-back { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--teal-dk); flex-shrink: 0; margin-left: -8px; }
+.sx-search { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 16px; border: 1.5px solid var(--border); border-radius: 999px; background: var(--white); color: var(--text-2); }
+.sx-search input { flex: 1; min-width: 0; border: none; outline: none; background: none; font: inherit; font-size: 16px; color: var(--text); }
+.sx-search button { min-height: 0; width: 28px; height: 28px; border: none; border-radius: 50%; background: var(--bg); color: var(--text-3); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.sx-chips { display: flex; gap: 8px; overflow-x: auto; padding: 14px 0 4px; scrollbar-width: none; }
+.sx-chips::-webkit-scrollbar { display: none; }
+.sx-chips button { flex: 0 0 auto; min-height: 0; padding: 9px 16px; border-radius: 999px; border: 1.5px solid var(--teal-lt); background: var(--white); color: var(--teal-dk); font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; }
+.sx-chips button.is-on { background: var(--teal); border-color: var(--teal); color: #fff; }
+.sx-count { font-size: 15px; color: var(--text-3); margin: 14px 2px 4px; }
+.sx-msg { margin: 12px 0 0; padding: 10px 14px; border-radius: 12px; background: var(--teal-lt); color: var(--teal-dk); font-size: 14px; font-weight: 600; }
+.sx-sec { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+.sx-sec h2 { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 800; margin: 0; color: var(--text); }
+.sx-sec h2 span { font-size: 12.5px; font-weight: 800; color: var(--teal-dk); background: var(--teal-lt); border-radius: 999px; padding: 1px 8px; }
+.sx-sec h2 span:empty { display: none; }
+.sx-sub { font-size: 13.5px; color: var(--text-3); margin: -6px 0 0; line-height: 1.45; }
+.sx-empty { font-size: 14px; color: var(--text-3); margin: 0; padding: 14px 16px; border: 1px dashed var(--border); border-radius: 16px; }
+.sx-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 16px; box-shadow: 0 1px 3px rgba(16,24,40,.04); display: flex; flex-direction: column; gap: 12px; }
+.sx-card.is-proposal { border-color: #FEDF89; background: #FFFCF5; }
+.sx-top { display: flex; align-items: flex-start; gap: 14px; }
+.sx-logo { width: 56px; height: 56px; border-radius: 16px; background: var(--teal); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sx-logo.is-ext { background: var(--teal-lt); color: var(--teal-dk); }
+.sx-main { flex: 1; min-width: 0; }
+.sx-name { display: flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 800; letter-spacing: -0.3px; color: var(--text); line-height: 1.2; }
+.sx-ok { color: var(--teal); flex-shrink: 0; }
+.sx-cats { font-size: 14px; color: var(--text-3); margin-top: 3px; }
+.sx-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--text-2); margin-top: 6px; }
+.sx-meta span { display: inline-flex; align-items: center; gap: 4px; }
+.sx-tag { flex-shrink: 0; font-size: 11.5px; font-weight: 800; color: var(--teal-dk); background: var(--teal-lt); border-radius: 999px; padding: 4px 9px; }
+.sx-desc, .sx-note { font-size: 14px; color: var(--text-2); line-height: 1.5; margin: 0; }
+.sx-note { font-style: italic; }
+.sx-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.sx-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 0; height: 42px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--teal-lt); background: #F2F8F8; color: var(--teal-dk); font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.sx-btn.is-main { background: var(--teal); border-color: var(--teal); color: #fff; }
+.sx-btn.is-done { background: var(--white); border-style: dashed; cursor: default; }
+.sx-btn.is-wide { width: 100%; height: 50px; }
+.sx-btn:disabled { opacity: .6; cursor: wait; }
+.sx-link { min-height: 0; border: none; background: none; color: var(--text-3); font: inherit; font-size: 13.5px; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 4px; }
+.sx-hint { font-size: 12.5px; color: var(--text-3); }
+.sx-info { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--text-3); margin: 2px 2px 0; line-height: 1.45; }
+.sx-info svg { flex-shrink: 0; margin-top: 1px; }
+.sx-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(16,24,40,.45); display: flex; align-items: flex-end; justify-content: center; }
+.sx-sheet { width: 100%; max-width: 520px; background: var(--white); border-radius: 22px 22px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; }
+@media (min-width: 640px) { .sx-overlay { align-items: center; } .sx-sheet { border-radius: 22px; } }
+.sx-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sx-sheet-head h3 { font-size: 18px; font-weight: 800; margin: 0; }
+.sx-sheet-head button { min-height: 0; width: 36px; height: 36px; border: none; border-radius: 50%; background: var(--bg); color: var(--text-2); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.sx-sheet p { font-size: 14px; color: var(--text-2); line-height: 1.5; margin: 0; }
+.sx-sheet textarea { width: 100%; box-sizing: border-box; border: 1.5px solid var(--border); border-radius: 14px; padding: 12px; font: inherit; font-size: 16px; resize: vertical; }
+.sx-err { color: #B42318 !important; font-size: 13px !important; }

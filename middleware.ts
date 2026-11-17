@@ -80,5 +80,6 @@ export const config = {
     '/edificio/:id/condominio/richieste',
     '/edificio/:id/condominio/bilancio/:path*',
     '/edificio/:id/condominio/chat',
+    '/edificio/:id/condominio/fornitori',
   ],
 }

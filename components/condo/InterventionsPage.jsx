@@ -136,7 +136,7 @@ export default function InterventionsPage({ building }) {
               <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '2px 0 0' }}>Rubrica condivisa tra i residenti verificati.</p>
             </div>
             <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-              <button onClick={() => setFindingSupplier(true)} style={{ ...ghostBtn, height: 40, padding: '0 12px', color: '#6D28D9', borderColor: '#C4B5FD' }}>Cerca Recofixer</button>
+              <Link href={`/edificio/${buildingId}/condominio/fornitori`} style={{ ...ghostBtn, height: 40, padding: '0 12px', color: 'var(--teal-dk)', borderColor: 'var(--teal-lt)', display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>Cerca fornitori</Link>
               <button onClick={() => setAddingMaintainer(true)} style={{ ...ghostBtn, height: 40, padding: '0 12px' }}>+ Aggiungi</button>
             </div>
           </div>

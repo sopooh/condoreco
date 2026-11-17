@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
-import { CalendarDays, Check, CircleCheck, Copy, FileText, History, Info, MessageCircle, MoreHorizontal, RefreshCw, Sparkles, TriangleAlert, Users, X } from 'lucide-react'
+import { useState } from 'react'
+import { CalendarDays, Check, CircleCheck, Copy, FileText, History, Info, MessageCircle, RefreshCw, Sparkles, TriangleAlert, Users, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 // Riassunto della chat del condominio fatto da Condor (edge function
@@ -56,7 +56,10 @@ export function CondorSummaryPanel({ state, onClose, onRefresh }) {
       <section className="cs-card" aria-live="polite" aria-label="Riassunto di Condor">
         <div className="cs-top">
           <span className="cs-brand"><Sparkles size={18} aria-hidden="true" />Condor AI <span className="cs-beta">Beta</span></span>
-          <CardMenu d={d} onClose={onClose} />
+          <span style={{ display: 'flex', gap: 4 }}>
+            {d && <CopyButton d={d} />}
+            <button type="button" className="cs-more" aria-label="Chiudi il riassunto" onClick={onClose}><X size={22} aria-hidden="true" /></button>
+          </span>
         </div>
         <h3 className="cs-title">Riassunto chat</h3>
         <p className="cs-sub">Analisi degli ultimi messaggi{d?.generated_at ? ` · ${when(d.generated_at)}` : ''}</p>
@@ -156,32 +159,17 @@ function Skeleton() {
   )
 }
 
-function CardMenu({ d, onClose }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-  useEffect(() => {
-    if (!open) return
-    const off = (e) => { if (!ref.current?.contains(e.target)) setOpen(false) }
-    document.addEventListener('pointerdown', off)
-    return () => document.removeEventListener('pointerdown', off)
-  }, [open])
+function CopyButton({ d }) {
+  const [done, setDone] = useState(false)
   async function copy() {
-    setOpen(false)
-    if (!d) return
     const text = [d.headline, ...(d.points || []).map((p) => `• ${p}`),
       ...(d.dates?.length ? ['', 'Date da ricordare:', ...d.dates.map((x) => `• ${x.date ? new Date(x.date).toLocaleDateString('it-IT') + ' ' : ''}${x.title}${x.detail ? ` (${x.detail})` : ''}`)] : [])].join('\n')
-    try { await navigator.clipboard.writeText(text) } catch { /* non supportato */ }
+    try { await navigator.clipboard.writeText(text); setDone(true); setTimeout(() => setDone(false), 1500) } catch { /* non supportato */ }
   }
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button type="button" className="cs-more" aria-label="Altre azioni" aria-expanded={open} onClick={() => setOpen(!open)}><MoreHorizontal size={22} aria-hidden="true" /></button>
-      {open && (
-        <div className="cs-menu" role="menu">
-          {d && <button type="button" role="menuitem" onClick={copy}><Copy size={17} aria-hidden="true" />Copia riassunto</button>}
-          <button type="button" role="menuitem" onClick={() => { setOpen(false); onClose() }}><X size={17} aria-hidden="true" />Chiudi</button>
-        </div>
-      )}
-    </div>
+    <button type="button" className="cs-more" aria-label={done ? 'Copiato' : 'Copia il riassunto'} onClick={copy}>
+      {done ? <Check size={20} aria-hidden="true" /> : <Copy size={19} aria-hidden="true" />}
+    </button>
   )
 }
 

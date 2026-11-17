@@ -12,7 +12,6 @@ import SortSelect from '@/components/directory/SortSelect'
 import { useParamNav } from '@/components/directory/useParamNav'
 import { useSaved } from '@/components/directory/useSaved'
 import SupplierFilterSidebar, { SUPPLIER_SORTS } from '@/components/suppliers/directory/SupplierFilterSidebar'
-import { DEMO_SUPPLIERS } from '@/lib/demoSuppliers'
 import SupplierRow from '@/components/suppliers/directory/SupplierRow'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
@@ -115,19 +114,11 @@ export default function SuppliersResultsView({ suppliers, cities, categoryCounts
           )}
           <div className="dir-list">
             {list.map((s) => <SupplierRow key={s.id} supplier={s} saved={saved.has(s.id)} onToggleSave={() => toggle(s.id)} />)}
-            {list.length === 0 && !(total === 0 && !onlySaved) && (
+            {list.length === 0 && (
               <div className="empty">
                 <div className="empty-title">{onlySaved ? 'Nessun fornitore salvato' : total === 0 ? 'Ancora nessun Recofixer' : 'Nessun fornitore trovato'}</div>
                 <p>{onlySaved ? 'Tocca il segnalibro su una card per ritrovarla qui.' : total === 0 ? 'I primi fornitori stanno arrivando. Lavori con i condomini? Iscriviti gratis.' : 'Prova a cambiare categoria o città.'}</p>
               </div>
-            )}
-            {list.length === 0 && total === 0 && !onlySaved && (
-              <>
-                <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: '.5px', textTransform: 'uppercase', color: 'var(--text-3)', margin: '4px 2px 0' }}>
-                  Anteprima: ecco come appariranno
-                </div>
-                {DEMO_SUPPLIERS.map((s) => <SupplierRow key={s.id} supplier={s} />)}
-              </>
             )}
           </div>
 

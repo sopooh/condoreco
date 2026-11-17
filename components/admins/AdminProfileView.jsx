@@ -15,7 +15,7 @@ import { AboutCard, ProfileCard, RATING_ICONS, RatingsCard, ReviewMini, StatsRow
 // fornitore. Peculiarità: recensioni dei residenti con form, contatti dello
 // studio e palazzi amministrati in fondo (fuori dalle tab).
 export default function AdminProfileView({ admin: a, reviews, buildingsCount, suppliers = [], children }) {
-  const demo = Boolean(a.demo)
+  const demo = Boolean(a.is_sample)
   const [tab, setTab] = useState('panoramica')
   const [reviewOpen, setReviewOpen] = useState(false)
 
@@ -39,7 +39,7 @@ export default function AdminProfileView({ admin: a, reviews, buildingsCount, su
   return (
     <div className="sp-page">
       {demo && (
-        <div className="sp-demo"><Info size={16} aria-hidden="true" />Amministratore di esempio: mostra come apparirà il profilo. Voti, recensioni, palazzi e dati sono inventati; non si può recensire né contattare.</div>
+        <div className="sp-demo"><Info size={16} aria-hidden="true" />Profilo di prova con dati segnaposto: serve a vedere come appare la pagina di un amministratore. Non si può recensire né contattare.</div>
       )}
       <header className="sp-head">
         <span className="sp-logo"><Briefcase size={38} aria-hidden="true" /></span>
@@ -121,7 +121,7 @@ export default function AdminProfileView({ admin: a, reviews, buildingsCount, su
 
       {tab === 'recensioni' && demo && (
         <ProfileCard title={`Recensioni (${reviewCount})`}>
-          {reviews.map((r) => <ReviewMini key={r.id} {...mini(r)} />)}
+          {reviews.length ? reviews.map((r) => <ReviewMini key={r.id} {...mini(r)} />) : <p className="pf-text">Ancora nessuna recensione.</p>}
         </ProfileCard>
       )}
 
@@ -147,7 +147,7 @@ export default function AdminProfileView({ admin: a, reviews, buildingsCount, su
       <div className="sp-bar">
         <div className="sp-price"><small>{reviewCount} {reviewCount === 1 ? 'recensione' : 'recensioni'}</small><b style={{ color: scoreColor(a.score) }}>★ {a.score != null ? a.score.toFixed(1) : 'N/D'}</b></div>
         <button type="button" className="sp-btn is-main is-wide" disabled={demo} onClick={() => setReviewOpen(true)}>
-          <MessageSquarePlus size={18} aria-hidden="true" />{demo ? 'Amministratore di esempio' : 'Scrivi una recensione'}
+          <MessageSquarePlus size={18} aria-hidden="true" />{demo ? 'Profilo di prova' : 'Scrivi una recensione'}
         </button>
       </div>
 

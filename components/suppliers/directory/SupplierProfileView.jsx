@@ -42,7 +42,7 @@ export default function SupplierProfileView({ supplier: s }) {
   ]
 
   async function openContact() {
-    if (s.demo) return
+    if (s.is_sample) return
     if (!session) {
       window.dispatchEvent(new CustomEvent('condoreco:open-auth', { detail: { next: `/fornitori/${s.id}` } }))
       return
@@ -60,8 +60,8 @@ export default function SupplierProfileView({ supplier: s }) {
 
   return (
     <div className="sp-page">
-      {s.demo && (
-        <div className="sp-demo"><Info size={16} aria-hidden="true" />Fornitore di esempio: mostra come apparirà la pagina di un Recofixer. Voti, recensioni e lavori sono inventati e non si può contattare.</div>
+      {s.is_sample && (
+        <div className="sp-demo"><Info size={16} aria-hidden="true" />Profilo di prova con dati segnaposto: serve a vedere come appare la pagina di un Recofixer. Non si può contattare.</div>
       )}
 
       <header className="sp-head">
@@ -78,9 +78,9 @@ export default function SupplierProfileView({ supplier: s }) {
       </header>
 
       <div className="sp-actions">
-        <button type="button" className="sp-btn is-main" onClick={openContact} disabled={s.demo || busy}><MessageCircle size={18} aria-hidden="true" />{busy ? 'Carico…' : 'Scrivi'}</button>
-        <button type="button" className="sp-btn" onClick={openContact} disabled={s.demo || busy}><Phone size={18} aria-hidden="true" />Chiama</button>
-        <button type="button" className="sp-btn" onClick={openContact} disabled={s.demo || busy}><FileText size={18} aria-hidden="true" />Preventivo</button>
+        <button type="button" className="sp-btn is-main" onClick={openContact} disabled={s.is_sample || busy}><MessageCircle size={18} aria-hidden="true" />{busy ? 'Carico…' : 'Scrivi'}</button>
+        <button type="button" className="sp-btn" onClick={openContact} disabled={s.is_sample || busy}><Phone size={18} aria-hidden="true" />Chiama</button>
+        <button type="button" className="sp-btn" onClick={openContact} disabled={s.is_sample || busy}><FileText size={18} aria-hidden="true" />Preventivo</button>
       </div>
 
       <nav className="sp-tabs" role="tablist">
@@ -156,12 +156,12 @@ export default function SupplierProfileView({ supplier: s }) {
 
       <div className="sp-bar">
         {s.priceFrom && <div className="sp-price"><small>A partire da</small><b>{s.priceFrom}</b></div>}
-        <button type="button" className="sp-btn is-main is-wide" onClick={openContact} disabled={s.demo || busy}>
-          <Building2 size={18} aria-hidden="true" />{s.demo ? 'Fornitore di esempio' : 'Richiedi intervento'}
+        <button type="button" className="sp-btn is-main is-wide" onClick={openContact} disabled={s.is_sample || busy}>
+          <Building2 size={18} aria-hidden="true" />{s.is_sample ? 'Profilo di prova' : 'Richiedi intervento'}
         </button>
       </div>
 
-      {!s.demo && (
+      {!s.is_sample && (
         <ContactSheet open={open} onClose={() => setOpen(false)} name={s.company_name}
           phone={contact?.phone} email={contact?.email}
           note={noContact ? 'Nessun contatto pubblico. Aggiungilo ai fornitori del tuo condominio (Interventi, Cerca fornitori) e scrivigli nella chat dell’intervento.' : 'Per affidargli un lavoro aggiungilo ai fornitori del tuo condominio: così potete usare la chat dell’intervento.'} />

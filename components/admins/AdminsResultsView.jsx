@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { Building2, Map as MapIcon, List, SlidersHorizontal, X } from 'lucide-react'
 import AdminRow from '@/components/admins/AdminRow'
-import { DEMO_ADMINS } from '@/lib/demoAdmins'
 import AdminFilterSidebar from '@/components/admins/AdminFilterSidebar'
 import ResultsMap from '@/components/map/ResultsMap'
 import MapLegend from '@/components/map/MapLegend'
@@ -126,14 +125,6 @@ export default function AdminsResultsView({ admins, buildingsByAdmin, cities, fe
                 <div className="empty-title">{onlySaved ? 'Nessun amministratore salvato' : 'Nessun amministratore trovato'}</div>
                 <p>{onlySaved ? 'Tocca il segnalibro su una card per ritrovarla qui.' : 'Prova a cambiare città o filtri.'}</p>
               </div>
-            )}
-            {!onlySaved && (
-              <>
-                <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: '.5px', textTransform: 'uppercase', color: 'var(--text-3)', margin: '10px 2px 0' }}>
-                  Esempi di profilo
-                </div>
-                {DEMO_ADMINS.map((a) => <AdminRow key={a.id} admin={a} />)}
-              </>
             )}
           </div>
         </div>

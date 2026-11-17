@@ -30,29 +30,10 @@ export function useDocuments(buildingId) {
 
   useEffect(() => { load() }, [load])
 
-  async function upload(file, { title, category, docDate, visibility }) {
-    if (!file) return { error: 'Scegli un file.' }
-    if (file.size > MAX_DOC_BYTES) return { error: 'Il file supera 20 MB.' }
-    const supabase = createClient()
-    const safe = file.name.normalize('NFD').replace(/[^\w.\-]+/g, '_').slice(-80)
-    const path = `${buildingId}/${crypto.randomUUID()}-${safe}`
-    const up = await supabase.storage.from(BUCKET).upload(path, file, { contentType: file.type || undefined, upsert: false })
-    if (up.error) {
-      console.error('[useDocuments] upload failed', up.error)
-      return { error: /mime|type/i.test(up.error.message) ? 'Formato non supportato: usa PDF, immagini, Word o Excel.' : 'Caricamento non riuscito. Riprova.' }
-    }
-    const { error } = await supabase.from('condo_documents').insert({
-      building_id: buildingId, uploaded_by: userId, category, title: title.trim(),
-      doc_date: docDate || null, visibility, file_path: path, file_name: file.name,
-      mime_type: file.type || null, size_bytes: file.size,
-    })
-    if (error) {
-      await supabase.storage.from(BUCKET).remove([path])
-      console.error('[useDocuments] insert failed', error)
-      return { error: 'Non riesco a salvare il documento. Riprova.' }
-    }
-    await load()
-    return { error: null }
+  async function upload(file, meta) {
+    const r = await uploadDocument({ buildingId, userId, file, ...meta })
+    if (!r.error) await load()
+    return r
   }
 
   async function remove(doc) {
@@ -81,4 +62,29 @@ export function useDocuments(buildingId) {
 
   const canManage = (doc) => doc.uploaded_by === userId || isCondoAdmin
   return { docs, loading, error, userId, isCondoAdmin, upload, remove, setVisibility, fileUrl, canManage, reload: load }
+}
+
+// Caricamento nell'archivio, usato dalla pagina Archivio e da "Salva nell'archivio" in chat.
+export async function uploadDocument({ buildingId, userId, file, title, category, docDate, visibility }) {
+  if (!file) return { error: 'Scegli un file.' }
+  if (file.size > MAX_DOC_BYTES) return { error: 'Il file supera 20 MB.' }
+  const supabase = createClient()
+  const safe = file.name.normalize('NFD').replace(/[^\w.\-]+/g, '_').slice(-80)
+  const path = `${buildingId}/${crypto.randomUUID()}-${safe}`
+  const up = await supabase.storage.from(BUCKET).upload(path, file, { contentType: file.type || undefined, upsert: false })
+  if (up.error) {
+    console.error('[useDocuments] upload failed', up.error)
+    return { error: /mime|type/i.test(up.error.message) ? 'Formato non supportato: usa PDF, immagini, Word o Excel.' : 'Caricamento non riuscito. Riprova.' }
+  }
+  const { error } = await supabase.from('condo_documents').insert({
+    building_id: buildingId, uploaded_by: userId, category, title: title.trim(),
+    doc_date: docDate || null, visibility, file_path: path, file_name: file.name,
+    mime_type: file.type || null, size_bytes: file.size,
+  })
+  if (error) {
+    await supabase.storage.from(BUCKET).remove([path])
+    console.error('[useDocuments] insert failed', error)
+    return { error: 'Non riesco a salvare il documento. Riprova.' }
+  }
+  return { error: null }
 }

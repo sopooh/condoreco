@@ -42,7 +42,8 @@ export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, he
   }, [])
   const closeMenu = useCallback(() => setMenu(null), [])
 
-  const shown = hiddenIds?.size ? messages.filter((m) => !hiddenIds.has(m.id)) : messages
+  // "Elimina per me": il messaggio resta nella cronologia come segnaposto
+  const shown = hiddenIds?.size ? messages.map((m) => (hiddenIds.has(m.id) ? { ...m, hiddenForMe: true } : m)) : messages
   useEffect(() => { endRef.current?.scrollIntoView({ block: 'end' }) }, [messages.length])
 
   return (
@@ -93,7 +94,7 @@ export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, he
               )}
               <Bubble m={m} mine={mine} showName={showName} who={who} ctx={{ ...ctx, userId }}
                 active={menu?.m.id === m.id}
-                onOpen={(x, y, rect) => setMenu(m.deleted_at ? { m, x, y, rect, mine, onlyForMe: true } : { m, x, y, rect, mine, canEdit: mine && !!onEdit && (m.kind || 'text') === 'text', canDelete: mine && !!onDelete && canStillDelete(m), canHide: !!onHide && !mine })} />
+                onOpen={m.hiddenForMe ? null : (x, y, rect) => setMenu(m.deleted_at ? { m, x, y, rect, mine, onlyForMe: true } : { m, x, y, rect, mine, canEdit: mine && !!onEdit && (m.kind || 'text') === 'text', canDelete: mine && !!onDelete && canStillDelete(m), canHide: !!onHide && !mine })} />
             </div>
           )
         })}
@@ -120,14 +121,14 @@ function canStillDelete(m) {
 
 function Bubble({ m, mine, showName, who, ctx, active, onOpen }) {
   const press = useMessagePress(onOpen || (() => {}))
-  if (m.deleted_at) {
+  if (m.deleted_at || m.hiddenForMe) {
     return (
       <div style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginTop: showName ? 6 : 0 }}>
         <div {...press} className={`chat-bubble${active ? ' is-pressed' : ''}`} style={{ maxWidth: '80%', padding: '8px 12px 6px', borderRadius: 16, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4,
           background: 'var(--white)', color: 'var(--text-3)', border: '1px solid var(--border)' }}>
           {showName && <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--teal-dk)', margin: '0 0 2px' }}>{who}</div>}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14.5, fontStyle: 'italic' }}>
-            <Ban size={15} aria-hidden="true" />{mine ? 'Hai eliminato questo messaggio' : 'Messaggio eliminato'}
+            <Ban size={15} aria-hidden="true" />{m.deleted_at ? 'Cancellato per tutti' : 'Cancellato per me'}
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
             <span style={{ fontSize: 11, opacity: 0.7 }}>{time(m.created_at)}</span>

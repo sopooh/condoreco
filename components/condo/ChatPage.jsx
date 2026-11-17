@@ -38,7 +38,7 @@ export const GROUPS = {
 
 function ChatInner({ building }) {
   const buildingId = building.id
-  const base = `/edificio/${buildingId}/condominio/chat`
+  const base = typeof window !== 'undefined' && window.location.pathname.startsWith('/zz-') ? window.location.pathname : `/edificio/${buildingId}/condominio/chat`
   const router = useRouter()
   const sp = useSearchParams()
   const threadsApi = useCondoThreads(buildingId)

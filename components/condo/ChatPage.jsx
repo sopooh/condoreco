@@ -297,8 +297,8 @@ function GroupChat({ building, onBack, onOpenContact }) {
         title="Chat del condominio"
         subtitle="Tutti i residenti verificati"
         avatar={<ThreadAvatar t={{ kind: 'group' }} size={38} />}
-        headerRight={<CondorSummaryButton loading={!!condor.state?.loading} onClick={condor.run} />}
-        banner={<CondorSummaryPanel state={condor.state} onClose={condor.close} />}
+        headerRight={<CondorSummaryButton loading={!!condor.state?.loading} onClick={condor.state ? condor.close : condor.run} />}
+        banner={<CondorSummaryPanel state={condor.state} onClose={condor.close} onRefresh={condor.refresh} />}
         onOpenInfo={() => { setInfo({ members: null }); loadDirectory(building.id).then((members) => setInfo((i) => (i ? { members } : i))) }}
         messages={messages.filter((m) => !m.hidden)}
         names={names}

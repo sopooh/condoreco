@@ -108,6 +108,7 @@ export default function PrivacyPolicy() {
               <BulletList items={[
                 'appartenenza al condominio e ruolo (residente o amministratore), piano, millesimi, proprietario o inquilino;',
                 'documento caricato per la verifica di residenza: lo vede solo chi decide la richiesta (l\'amministratore del condominio o, se il condominio non ha amministratore, lo staff Condoreco) e viene cancellato appena la richiesta è decisa o ritirata;',
+                'controllo automatico del documento di residenza (o dell\'autocertificazione con la copia del documento d\'identità) fatto da Condor, l\'assistente AI di Condoreco, tramite il servizio Claude di Anthropic come responsabile del trattamento: serve a dirti subito se il documento non è quello giusto. Dopo la decisione il file viene cancellato e resta solo l\'esito del controllo (tipo di documento, intestatario, indirizzo, esito), visibile a chi decide le richieste;',
                 'messaggi e allegati della chat, avvisi, eventi, ticket e interventi;',
                 'domande dei possibili nuovi vicini e risposte dei residenti (sezione 4);',
                 'sondaggi e voti: nei sondaggi non anonimi gli altri membri del condominio vedono come hai votato;',

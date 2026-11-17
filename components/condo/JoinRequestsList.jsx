@@ -2,14 +2,15 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { Check, FileText, Sparkles, X } from 'lucide-react'
-import { DOCUMENT_LABELS, checkDocumentWithCondor, getDocumentUrl, listPendingJoinRequests, reviewJoinRequest } from '@/lib/residenceVerification'
+import { DOCUMENT_LABELS, checkDocumentWithCondor, getDocumentUrl, listDecidedJoinRequests, listPendingJoinRequests, reviewJoinRequest } from '@/lib/residenceVerification'
 
 const VERDICTS = {
   coerente: { label: 'Coerente', color: '#067647', bg: '#ECFDF3' },
   da_verificare: { label: 'Da verificare', color: '#B54708', bg: '#FFF4EC' },
   non_coerente: { label: 'Non coerente', color: '#B42318', bg: '#FEF3F2' },
 }
-const DETECTED = { ...DOCUMENT_LABELS, altro: 'Altro documento', illeggibile: 'Illeggibile' }
+const DETECTED = { ...DOCUMENT_LABELS, documento_identita: 'Documento d\'identità', altro: 'Altro documento', illeggibile: 'Illeggibile' }
+const YESNO = { si: 'sì', no: 'no', incerto: 'non chiaro' }
 const ADDRESS_MATCH = { si: 'corrisponde', no: 'non corrisponde', incerto: 'non chiaro' }
 
 function CondorReport({ check }) {
@@ -18,11 +19,14 @@ function CondorReport({ check }) {
   const r = check.report
   const v = VERDICTS[r.verdict] || VERDICTS.da_verificare
   const rows = [
+    ['Caricato', r.what_is_it],
     ['Tipo rilevato', `${DETECTED[r.detected_type] || r.detected_type}${r.matches_declared_type ? '' : ' (diverso da quello dichiarato)'}`],
     ['Intestatario', r.holder_name],
     ['Indirizzo', r.address_on_document ? `${r.address_on_document} (${ADDRESS_MATCH[r.address_matches] || 'non chiaro'})` : null],
     ['Data', r.document_date ? new Date(r.document_date).toLocaleDateString('it-IT') : null],
     ['Millesimi', r.millesimi_on_document != null ? `${Number(r.millesimi_on_document).toLocaleString('it-IT')}‰` : null],
+    ['Firma', r.signed == null ? null : r.signed ? 'presente' : 'manca'],
+    ['Doc. identità', r.id_document_present == null ? null : r.id_document_present ? `presente${r.id_name_matches ? `, nome corrisponde: ${YESNO[r.id_name_matches] || r.id_name_matches}` : ''}` : 'manca'],
   ].filter(([, val]) => val)
   return (
     <div style={{ marginTop: 10, padding: 12, borderRadius: 10, background: v.bg }} aria-live="polite">
@@ -93,7 +97,7 @@ export default function JoinRequestsList({ buildingId = null, showBuilding = fal
     <section className="acc-card" style={{ padding: 16, marginBottom: 16 }} aria-labelledby="join-req-title">
       <h2 id="join-req-title" style={{ fontSize: 17, fontWeight: 800, margin: '0 0 4px' }}>Richieste di accesso</h2>
       <p className="rc-muted" style={{ margin: '0 0 12px', fontSize: 13 }}>
-        Controlla che il documento corrisponda a questo edificio. Il documento viene cancellato appena approvi o respingi.
+        Controlla che il documento corrisponda a questo edificio. Il documento viene cancellato appena approvi o respingi; resta solo l&apos;esito del controllo di Condor nello storico.
       </p>
       {error && <p role="alert" style={{ color: '#B42318', fontSize: 14 }}>{error}</p>}
       {rows.length === 0 ? (
@@ -121,7 +125,7 @@ export default function JoinRequestsList({ buildingId = null, showBuilding = fal
                   )}
                   {r.document_path && (
                     <button type="button" className="acc-btn" disabled={checks[r.id]?.loading} onClick={() => checkDoc(r.id)}>
-                      <Sparkles size={16} aria-hidden="true" />Controlla con Condor
+                      <Sparkles size={16} aria-hidden="true" />{r.ai_check ? 'Ricontrolla con Condor' : 'Controlla con Condor'}
                     </button>
                   )}
                   <button type="button" className="acc-btn is-primary" disabled={busy === r.id} onClick={() => decide(r.id, true)}>
@@ -132,7 +136,9 @@ export default function JoinRequestsList({ buildingId = null, showBuilding = fal
                   </button>
                 </div>
               </div>
-              {checks[r.id] && <CondorReport check={checks[r.id]} />}
+              {checks[r.id]
+                ? <CondorReport check={checks[r.id]} />
+                : r.ai_check && <CondorReport check={{ report: r.ai_check, disclaimer: 'Controllo fatto da Condor quando il documento è stato caricato. La decisione finale spetta a te.' }} />}
               {rejecting === r.id && (
                 <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <input id={`reason-${r.id}`} aria-label="Motivo del rifiuto" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300}
@@ -145,6 +151,64 @@ export default function JoinRequestsList({ buildingId = null, showBuilding = fal
           ))}
         </ul>
       )}
+      {!hideWhenEmpty && <JoinHistory buildingId={buildingId} showBuilding={showBuilding} tick={tick} />}
     </section>
+  )
+}
+
+const STATUS = { approved: { label: 'Approvata', color: '#067647' }, rejected: { label: 'Respinta', color: '#B42318' } }
+
+// Archivio delle verifiche decise: niente file (cancellati), solo dati ed esito di Condor
+function JoinHistory({ buildingId, showBuilding, tick }) {
+  const [open, setOpen] = useState(false)
+  const [rows, setRows] = useState(null)
+  const [openId, setOpenId] = useState(null)
+
+  useEffect(() => {
+    if (!open) return
+    let off = false
+    listDecidedJoinRequests(buildingId).then((res) => { if (!off) setRows(res.rows) })
+    return () => { off = true }
+  }, [open, buildingId, tick])
+
+  return (
+    <div style={{ marginTop: 16, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open}
+        style={{ minHeight: 0, padding: 0, border: 'none', background: 'none', font: 'inherit', fontWeight: 800, fontSize: 15, color: 'var(--teal-dk)', cursor: 'pointer' }}>
+        {open ? '▾' : '▸'} Storico verifiche
+      </button>
+      {open && (
+        rows === null ? <p className="rc-muted" style={{ fontSize: 14 }}>Caricamento…</p>
+          : rows.length === 0 ? <p className="rc-muted" style={{ fontSize: 14 }}>Ancora nessuna verifica decisa.</p>
+            : (
+              <ul style={{ listStyle: 'none', padding: 0, margin: '10px 0 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {rows.map((h) => {
+                  const st = STATUS[h.status] || { label: h.status, color: 'var(--text-3)' }
+                  const v = h.ai_check ? (VERDICTS[h.ai_check.verdict] || VERDICTS.da_verificare) : null
+                  return (
+                    <li key={h.id} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px' }}>
+                      <button type="button" onClick={() => setOpenId(openId === h.id ? null : h.id)}
+                        style={{ minHeight: 0, width: '100%', padding: 0, border: 'none', background: 'none', font: 'inherit', textAlign: 'left', cursor: h.ai_check ? 'pointer' : 'default', color: 'inherit' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                          <strong>{h.display_name || 'Utente'}</strong>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: st.color }}>{st.label}</span>
+                        </div>
+                        <div className="rc-muted" style={{ fontSize: 12.5 }}>
+                          {[showBuilding ? h.building_address : null, DOCUMENT_LABELS[h.document_type] || h.document_type,
+                            h.ai_check?.holder_name ? `intestato a ${h.ai_check.holder_name}` : null,
+                            v ? `Condor: ${v.label.toLowerCase()}` : 'senza controllo AI',
+                            h.reviewed_at ? `${new Date(h.reviewed_at).toLocaleDateString('it-IT')}${h.reviewer_name ? ` da ${h.reviewer_name}` : ''}` : null,
+                          ].filter(Boolean).join(' · ')}
+                        </div>
+                        {h.reason && <div style={{ fontSize: 13, marginTop: 2 }}>Motivo: {h.reason}</div>}
+                      </button>
+                      {openId === h.id && h.ai_check && <CondorReport check={{ report: h.ai_check, disclaimer: 'Esito salvato del controllo di Condor. Il documento è stato cancellato dopo la decisione.' }} />}
+                    </li>
+                  )
+                })}
+              </ul>
+            )
+      )}
+    </div>
   )
 }

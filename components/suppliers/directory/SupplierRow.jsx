@@ -53,11 +53,12 @@ export default function SupplierRow({ supplier: s, saved = false, onToggleSave }
             )}
           </h2>
           <span style={{ display: 'inline-block', marginTop: 6, fontSize: 12, fontWeight: 700, color: '#6D28D9', background: '#F3EEFF', padding: '3px 10px', borderRadius: 999 }}>Recofixer</span>
+          {s.demo && <span style={{ display: 'inline-block', marginTop: 6, marginLeft: 6, fontSize: 12, fontWeight: 800, color: '#B54708', background: '#FEF0C7', padding: '3px 10px', borderRadius: 999 }}>Esempio</span>}
         </div>
-        <button type="button" className={`dir-bookmark${saved ? ' is-on' : ''}`} onClick={onToggleSave}
+        {!s.demo && <button type="button" className={`dir-bookmark${saved ? ' is-on' : ''}`} onClick={onToggleSave}
           aria-pressed={saved} aria-label={saved ? 'Rimuovi dai salvati' : 'Salva fornitore'}>
           <Bookmark size={24} strokeWidth={2} fill={saved ? 'currentColor' : 'none'} aria-hidden="true" />
-        </button>
+        </button>}
       </div>
 
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
@@ -88,9 +89,15 @@ export default function SupplierRow({ supplier: s, saved = false, onToggleSave }
         <button type="button" className="dir-btn dir-btn-ghost" onClick={() => setExpanded((v) => !v)} aria-expanded={expanded}>
           {expanded ? 'Meno dettagli' : 'Dettagli'}<ChevronDown size={18} strokeWidth={2} aria-hidden="true" style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
         </button>
-        <button type="button" className="dir-btn dir-btn-primary" onClick={openContact} disabled={busy}>
-          <MessageCircle size={20} strokeWidth={2} aria-hidden="true" />{busy ? 'Carico…' : 'Contatta'}
-        </button>
+        {s.demo ? (
+          <button type="button" className="dir-btn dir-btn-primary" disabled title="Fornitore di esempio" style={{ opacity: 0.55, cursor: 'default' }}>
+            <MessageCircle size={20} strokeWidth={2} aria-hidden="true" />Contatta
+          </button>
+        ) : (
+          <button type="button" className="dir-btn dir-btn-primary" onClick={openContact} disabled={busy}>
+            <MessageCircle size={20} strokeWidth={2} aria-hidden="true" />{busy ? 'Carico…' : 'Contatta'}
+          </button>
+        )}
       </div>
 
       <ContactSheet open={open} onClose={() => setOpen(false)} name={s.company_name}

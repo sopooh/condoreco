@@ -114,7 +114,7 @@ export function useThreadMessages(threadId) {
     }
     if (path) supabase.storage.from(CHAT_BUCKET).remove([path]).then(({ error: e }) => e && console.error('[useThreadMessages] file delete', e.message))
     setMessages((prev) => prev.map((m) => (m.id === messageId
-      ? { ...m, content: 'Messaggio eliminato', kind: 'text', attachment: null, ref_id: null, meta: null, edited_at: null, deleted_at: new Date().toISOString() }
+      ? { ...m, content: 'Cancellato per tutti', kind: 'text', attachment: null, ref_id: null, meta: null, edited_at: null, deleted_at: new Date().toISOString() }
       : m)))
     return { error: null }
   }

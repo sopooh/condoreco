@@ -85,7 +85,10 @@ export function useCondoChat(buildingId) {
         meta: extra.meta || null,
       }).select('id, content, created_at, created_by, hidden, kind, attachment, ref_id, meta, edited_at').single()
 
-      if (error) return { error: 'Messaggio non inviato. Riprova.' }
+      if (error) {
+        console.error('[useCondoChat] send failed', error.message)
+        return { error: 'Messaggio non inviato. Riprova.' }
+      }
       // subito visibile anche se Realtime arriva in ritardo
       setMessages((prev) => (prev.some((m) => m.id === data.id) ? prev : [...prev, { ...data, profiles: null }]))
       return { error: null }

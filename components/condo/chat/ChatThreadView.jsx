@@ -19,7 +19,7 @@ function dayLabel(iso) {
 
 // Vista di una conversazione: intestazione, bolle dei messaggi, campo di scrittura.
 // composer: { buildingId, threadId, isGroup, onAction }; ctx: dati per sondaggi, eventi, contatti
-export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, headerRight, messages, names, userId, onSend, onEdit, onDelete, onBack, onHide, banner, emptyText, composer = {}, ctx }) {
+export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, headerRight, pinned, messages, names, userId, onSend, onEdit, onDelete, onBack, onHide, banner, emptyText, composer = {}, ctx }) {
   const endRef = useRef(null)
   const [menu, setMenu] = useState(null) // { m, x, y, mine, canEdit, canHide }
   const [editing, setEditing] = useState(null)
@@ -38,7 +38,9 @@ export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, he
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100dvh - 58px)', background: 'var(--bg)' }}>
-      <header style={{ position: 'sticky', top: 58, zIndex: 20, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--white)', borderBottom: '1px solid var(--border)' }}>
+      {/* intestazione e contenuto fissato (es. riassunto di Condor) restano sempre visibili in alto */}
+      <div style={{ position: 'sticky', top: 58, zIndex: 20 }}>
+      <header style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--white)', borderBottom: '1px solid var(--border)' }}>
         <button type="button" onClick={onBack} aria-label="Torna alle chat" style={{ minHeight: 0, width: 36, height: 36, borderRadius: '50%', border: 'none', background: 'none', color: 'var(--teal-dk)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}>
           <ChevronLeft size={24} strokeWidth={2.2} aria-hidden="true" />
         </button>
@@ -58,6 +60,8 @@ export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, he
         })()}
         {headerRight}
       </header>
+      {pinned}
+      </div>
 
       {banner}
 

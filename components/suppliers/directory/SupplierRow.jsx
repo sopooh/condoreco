@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { BadgeCheck, Bookmark, Building2, ChevronDown, MapPin, MessageCircle, Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
@@ -19,7 +20,7 @@ export default function SupplierRow({ supplier: s, saved = false, onToggleSave }
   const [open, setOpen] = useState(false)
   const [contact, setContact] = useState(null)
   const [busy, setBusy] = useState(false)
-  const [expanded, setExpanded] = useState(false)
+  const expanded = false // dettagli ora nella pagina profilo
 
   async function openContact() {
     if (!session) {
@@ -47,7 +48,7 @@ export default function SupplierRow({ supplier: s, saved = false, onToggleSave }
         }}>{initials(s.company_name) || <Wrench size={24} />}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 className="dir-card-name" style={{ margin: 0, overflowWrap: 'anywhere' }}>
-            {s.company_name}
+            <Link href={`/fornitori/${s.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>{s.company_name}</Link>
             {s.verified && (
               <span className="dir-badge" title="Verificato"><BadgeCheck size={22} strokeWidth={2} fill="var(--teal)" color="#fff" aria-label="Verificato" /></span>
             )}
@@ -86,9 +87,9 @@ export default function SupplierRow({ supplier: s, saved = false, onToggleSave }
       )}
 
       <div className="dir-actions">
-        <button type="button" className="dir-btn dir-btn-ghost" onClick={() => setExpanded((v) => !v)} aria-expanded={expanded}>
-          {expanded ? 'Meno dettagli' : 'Dettagli'}<ChevronDown size={18} strokeWidth={2} aria-hidden="true" style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
-        </button>
+        <Link href={`/fornitori/${s.id}`} className="dir-btn dir-btn-ghost" style={{ textDecoration: 'none' }}>
+          Vedi profilo<ChevronDown size={18} strokeWidth={2} aria-hidden="true" style={{ transform: 'rotate(-90deg)' }} />
+        </Link>
         {s.demo ? (
           <button type="button" className="dir-btn dir-btn-primary" disabled title="Fornitore di esempio" style={{ opacity: 0.55, cursor: 'default' }}>
             <MessageCircle size={20} strokeWidth={2} aria-hidden="true" />Contatta

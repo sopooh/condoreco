@@ -66,21 +66,75 @@ function AssemblyList({ building }) {
   )
 }
 
+// "YYYY-MM-DDTHH:mm" in ora locale <-> Date
+const pad = (n) => String(n).padStart(2, '0')
+const toLocalInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+const DAY = 86400000
+
 function CreateSheet({ L, onClose, onCreated }) {
-  const [v, setV] = useState({ title: 'Assemblea ordinaria', kind: 'ordinary', mode: 'in_person' })
+  const [v, setV] = useState({ title: 'Assemblea ordinaria', kind: 'ordinary', mode: 'in_person', first: '', second: '', location: '', video_link: '' })
   const [err, setErr] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [minDate] = useState(() => toLocalInput(new Date(Date.now() + DAY)).slice(0, 10) + 'T00:00')
+  const field = (label, input, hint) => (
+    <label className="ep-field">
+      <span className="ep-label">{label}</span>
+      <span className="ep-input">{input}</span>
+      {hint && <small className="rc-muted" style={{ display: 'block', marginTop: 4 }}>{hint}</small>}
+    </label>
+  )
+
+  // Seconda convocazione proposta: il giorno dopo alla stessa ora (modificabile).
+  function setFirst(val) {
+    const next = { ...v, first: val }
+    if (val && (!v.second || (v.first && v.second === toLocalInput(new Date(new Date(v.first).getTime() + DAY))))) {
+      next.second = toLocalInput(new Date(new Date(val).getTime() + DAY))
+    }
+    setV(next)
+  }
+
+  const firstMs = v.first ? new Date(v.first).getTime() : null
+  const secondMs = v.second ? new Date(v.second).getTime() : null
+  const daysToFirst = firstMs ? Math.floor((firstMs - new Date(minDate).getTime() + DAY) / DAY) : null
+
+  async function create() {
+    setErr(null)
+    if (v.title.trim().length < 3) { setErr('Scrivi un titolo.'); return }
+    if (!v.first || !v.second) { setErr('Indica giorno e ora di prima e seconda convocazione.'); return }
+    if (secondMs <= firstMs) { setErr('La seconda convocazione deve essere dopo la prima.'); return }
+    if (secondMs - firstMs > 10 * DAY) { setErr('La seconda convocazione va fissata entro 10 giorni dalla prima (art. 1136 c. 3 c.c.).'); return }
+    setBusy(true)
+    const r = await L.create({
+      ...v,
+      first_call_at: new Date(v.first).toISOString(),
+      second_call_at: new Date(v.second).toISOString(),
+      location: v.mode !== 'video' ? v.location : '',
+      video_link: v.mode !== 'in_person' ? v.video_link : '',
+    })
+    setBusy(false)
+    if (r.error) setErr(r.error); else { onClose(); onCreated(r.id) }
+  }
+
   return (
     <Sheet title="Nuova assemblea" kicker="Assemblee" onClose={onClose}>
-      <label className="ep-field"><span className="ep-label">Titolo</span><span className="ep-input"><input value={v.title} onChange={(e) => setV({ ...v, title: e.target.value })} maxLength={160} /></span></label>
-      <label className="ep-field"><span className="ep-label">Tipo</span><span className="ep-input"><select value={v.kind} onChange={(e) => setV({ ...v, kind: e.target.value, title: v.title === 'Assemblea ordinaria' || v.title === 'Assemblea straordinaria' ? (e.target.value === 'ordinary' ? 'Assemblea ordinaria' : 'Assemblea straordinaria') : v.title })}><option value="ordinary">Ordinaria</option><option value="extraordinary">Straordinaria</option></select></span></label>
-      <label className="ep-field"><span className="ep-label">Modalità</span><span className="ep-input"><select value={v.mode} onChange={(e) => setV({ ...v, mode: e.target.value })}>{Object.entries(MODE_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></span></label>
-      <p className="rc-muted">Date, luogo e ordine del giorno li completi nel passo successivo.</p>
+      {field('Titolo', <input value={v.title} onChange={(e) => setV({ ...v, title: e.target.value })} maxLength={160} />)}
+      {field('Tipo', <select value={v.kind} onChange={(e) => setV({ ...v, kind: e.target.value, title: v.title === 'Assemblea ordinaria' || v.title === 'Assemblea straordinaria' ? (e.target.value === 'ordinary' ? 'Assemblea ordinaria' : 'Assemblea straordinaria') : v.title })}><option value="ordinary">Ordinaria</option><option value="extraordinary">Straordinaria</option></select>)}
+      {field('Prima convocazione: giorno e ora', <input type="datetime-local" value={v.first} min={minDate} onChange={(e) => setFirst(e.target.value)} />,
+        'Di solito va deserta: è la seconda quella in cui ci si riunisce davvero.')}
+      {field('Seconda convocazione: giorno e ora', <input type="datetime-local" value={v.second} min={v.first || minDate} onChange={(e) => setV({ ...v, second: e.target.value })} />,
+        'Dopo la prima ed entro 10 giorni (art. 1136 c. 3 c.c.).')}
+      {daysToFirst !== null && daysToFirst < 7 && (
+        <p style={{ color: '#B54708', fontSize: 13.5, margin: '0 0 8px' }}>
+          Mancano {Math.max(daysToFirst, 0)} giorni alla prima convocazione: la convocazione deve arrivare almeno 5 giorni prima e una raccomandata impiega 4-7 giorni. Meglio scegliere una data più lontana.
+        </p>
+      )}
+      {field('Modalità', <select value={v.mode} onChange={(e) => setV({ ...v, mode: e.target.value })}>{Object.entries(MODE_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>)}
+      {v.mode !== 'video' && field('Luogo', <input value={v.location} onChange={(e) => setV({ ...v, location: e.target.value })} maxLength={300} placeholder="Es. androne scala A, Via Roma 1" />)}
+      {v.mode !== 'in_person' && field('Link del collegamento video (anche dopo)', <input value={v.video_link} onChange={(e) => setV({ ...v, video_link: e.target.value })} maxLength={500} placeholder="https://meet.google.com/..." />)}
+      <p className="rc-muted">L&apos;ordine del giorno lo prepari nel passo successivo, anche con Condor.</p>
       {err && <p className="acc-msg" style={{ color: '#B42318' }}>{err}</p>}
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button type="button" className="acc-btn is-primary" onClick={async () => {
-          if (v.title.trim().length < 3) { setErr('Scrivi un titolo.'); return }
-          const r = await L.create(v); if (r.error) setErr(r.error); else { onClose(); onCreated(r.id) }
-        }}>Crea</button>
+        <button type="button" className="acc-btn is-primary" disabled={busy} onClick={create}>{busy ? 'Creo…' : 'Crea'}</button>
       </div>
     </Sheet>
   )

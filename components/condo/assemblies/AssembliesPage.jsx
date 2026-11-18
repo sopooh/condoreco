@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { CalendarDays, CheckCircle2, ChevronRight, FileText, Plus, Trash2, Video } from 'lucide-react'
 import Sheet from '@/components/condo/admin/Sheet'
 import AssemblyAdmin, { ProxySheet } from '@/components/condo/assemblies/AssemblyAdmin'
+import ResidentPecCard from '@/components/condo/ResidentPecCard'
 import { useAssemblyList, useAssembly, STATUS_LABEL, MODE_LABEL, majorityLabel } from '@/hooks/useAssemblies'
 
 // Assemblee del condominio. Una sola pagina: elenco, oppure dettaglio con ?a=<id>.
@@ -131,6 +132,8 @@ function ResidentView({ A }) {
         {a.video_link && a.mode !== 'in_person' && ['convened', 'in_session'].includes(a.status) && <p style={{ margin: '4px 0 0' }}><b>Collegamento:</b> <a href={a.video_link} target="_blank" rel="noopener noreferrer">{a.video_link}</a></p>}
         <p className="rc-muted" style={{ margin: '8px 0 0' }}>La convocazione ufficiale arriva per PEC, raccomandata o a mano: questa pagina è una copia per comodità.</p>
       </div>
+
+      {myUnits.length > 0 && <ResidentPecCard buildingId={a.building_id} />}
 
       {a.status === 'consent' && (
         <div className="acc-card">

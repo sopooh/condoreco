@@ -8,6 +8,7 @@ import { usePublicInterventions } from '@/hooks/usePublicInterventions'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { googleCalendarUrl, downloadIcs } from '@/lib/calendarLinks'
 import { toLocalISODate, monthGridRange } from '@/lib/localDate'
+import { createClient } from '@/lib/supabase/client'
 
 // Bacheca condominiale a calendario mensile, stile Google Calendar:
 // griglia lun-dom a 6 settimane, eventi come etichette piene colorate per
@@ -88,15 +89,34 @@ export default function BoardPage({ buildingId }) {
   // per tutti, in sola lettura, come appuntamenti di manutenzione.
   const range = monthGridRange(year, month)
   const { items: interventions } = usePublicInterventions(buildingId, toLocalISODate(range.start), toLocalISODate(range.end))
+  // Scadenze di legge non ancora approvate: fermaposto tratteggiati, solo per l'amministratore
+  const rangeFrom = toLocalISODate(range.start)
+  const rangeTo = toLocalISODate(range.end)
+  const [placeholders, setPlaceholders] = useState([])
+  useEffect(() => {
+    if (!isCondoAdmin) return
+    let off = false
+    createClient().rpc('maintenance_placeholders', { p_building: buildingId, p_from: rangeFrom, p_to: rangeTo }).then(({ data, error: e }) => {
+      if (e) console.error('[BoardPage] placeholders failed', e.message)
+      if (!off) setPlaceholders(data || [])
+    })
+    return () => { off = true }
+  }, [isCondoAdmin, buildingId, rangeFrom, rangeTo])
+
   const allEvents = useMemo(() => [
     ...events,
+    ...(isCondoAdmin ? placeholders : []).map((p) => ({
+      id: `mnt-${p.id}`, maintenanceId: p.id, isPlaceholder: true, approved: false, overdue: p.overdue,
+      title: p.title, description: p.legal_basis ? `Obbligo di legge: ${p.legal_basis}.` : null, location: null,
+      event_date: p.due, time_start: null, time_end: null, event_type: 'maintenance', profiles: null,
+    })),
     ...interventions.filter((i) => i.status === 'scheduled').map((i) => ({
       id: `int-${i.id}`, isIntervention: true, approved: true,
       title: i.title, description: null, location: i.location,
       event_date: i.scheduled_date, time_start: i.time_start, time_end: i.time_end,
       event_type: 'maintenance', profiles: null,
     })),
-  ], [events, interventions])
+  ], [events, interventions, placeholders, isCondoAdmin])
 
   const q = query.trim().toLowerCase()
   const eventsByDay = useMemo(() => {
@@ -412,7 +432,7 @@ export default function BoardPage({ buildingId }) {
                   <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                     <span style={{ display: 'block', fontSize: 15, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.title}</span>
                     <span style={{ display: 'block', fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
-                      {timeRange(ev)}{ev.location ? ` · ${ev.location}` : ''}{!ev.approved ? ' · In attesa' : ''}
+                      {timeRange(ev)}{ev.location ? ` · ${ev.location}` : ''}{ev.isPlaceholder ? ' · Fermaposto da approvare' : !ev.approved ? ' · In attesa' : ''}
                     </span>
                   </span>
                   <ChevronRight />
@@ -447,12 +467,21 @@ export default function BoardPage({ buildingId }) {
             <p style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--text-2)', margin: '12px 0 0', whiteSpace: 'pre-wrap' }}>{selected.description}</p>
           )}
           <p style={{ fontSize: 12, color: 'var(--text-4)', margin: '12px 0 0' }}>
-            {selected.isIntervention
+            {selected.isPlaceholder
+              ? `Fermaposto visibile solo a te${selected.overdue ? ': la scadenza è già passata' : ''}`
+              : selected.isIntervention
               ? 'Intervento programmato da un residente con il proprio manutentore'
               : `Proposto da ${selected.profiles?.display_name ?? 'un residente'}`}
           </p>
 
-          {!selected.approved && (
+          {selected.isPlaceholder && (
+            <Link href={`/edificio/${buildingId}/condominio/manutenzioni?item=${selected.maintenanceId}`}
+              style={{ ...primaryBtn, marginTop: 14, display: 'flex', justifyContent: 'center', textDecoration: 'none' }}>
+              Approva e programma per tutti
+            </Link>
+          )}
+
+          {!selected.approved && !selected.isPlaceholder && (
             <div style={{ marginTop: 14, padding: '10px 12px', borderRadius: 10, background: '#FFF7E6', color: '#8A5A00', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
               In attesa di approvazione
               {isCondoAdmin && (
@@ -466,14 +495,14 @@ export default function BoardPage({ buildingId }) {
             </div>
           )}
 
-          <div style={{ marginTop: 18, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {!selected.isPlaceholder && <div style={{ marginTop: 18, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <a href={googleCalendarUrl(selected)} target="_blank" rel="noopener noreferrer" style={secondaryBtn}>
               Google Calendar
             </a>
             <button onClick={() => downloadIcs(selected)} style={secondaryBtn}>Apple / Outlook</button>
-          </div>
+          </div>}
 
-          {isCondoAdmin && !selected.isIntervention && (
+          {isCondoAdmin && !selected.isIntervention && !selected.isPlaceholder && (
             <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <button onClick={() => setCreating(selected)} style={secondaryBtn}>Modifica</button>
               <button
@@ -555,7 +584,7 @@ function AgendaRow({ ev, onClick }) {
       <span style={{ flex: 1, minWidth: 0 }}>
         <span style={{ display: 'block', fontSize: 14.5, fontWeight: 700, lineHeight: 1.3 }}>{ev.title}</span>
         <span style={{ display: 'block', fontSize: 12.5, color: 'var(--text-3)', marginTop: 2 }}>
-          {timeRange(ev)}{ev.location ? ` · ${ev.location}` : ''} · {meta.label}{!ev.approved ? ' · In attesa' : ''}
+          {timeRange(ev)}{ev.location ? ` · ${ev.location}` : ''} · {meta.label}{ev.isPlaceholder ? ' · Fermaposto da approvare' : !ev.approved ? ' · In attesa' : ''}
         </span>
       </span>
     </button>

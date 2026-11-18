@@ -3530,3 +3530,11 @@ a.ci-card.ci-row { border: 1px solid var(--border); }
 .asm-row-acts { display: inline-flex; gap: 6px; flex-shrink: 0; }
 .asm-row-acts button { min-height: 0; width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: var(--white); color: var(--teal-dk); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
 .asm-row-acts button.is-danger { color: #B42318; }
+
+/* ── Manutenzioni ed emergenze ── */
+.acc-label { font-size: 13px; font-weight: 700; color: var(--text-2); }
+.acc-input { width: 100%; min-width: 0; height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--white); font: inherit; font-size: 16px; box-sizing: border-box; color: var(--text); }
+.ppl-list li.is-link { position: relative; }
+.ppl-list li.is-link:hover { background: var(--bg, #F8FAFA); }
+.ppl-row-link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; cursor: pointer; }
+.ppl-row-link:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }

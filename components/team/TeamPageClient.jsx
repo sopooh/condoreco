@@ -1,5 +1,6 @@
 'use client'
 
+import LoginGate from '@/components/auth/LoginGate'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Briefcase, Users, Wrench } from 'lucide-react'
@@ -34,13 +35,7 @@ export default function TeamPageClient() {
   if (!ready) return <div className="tm-page"><p className="rfx-muted">Caricamento…</p></div>
   if (!userId) {
     return (
-      <div className="tm-page">
-        <section className="rfx-card">
-          <h1 className="rfx-h1">Team e attività</h1>
-          <p className="rfx-sub">Accedi per vedere i team di cui fai parte.</p>
-          <button type="button" className="rfx-btn is-primary" onClick={() => window.dispatchEvent(new CustomEvent('condoreco:open-auth', { detail: { next: '/team' } }))}>Accedi</button>
-        </section>
-      </div>
+      <LoginGate title="Team e attività" text="Registrati o accedi per vedere i team di cui fai parte." next="/team" />
     )
   }
   if (teams === null) return <div className="tm-page"><p className="rfx-muted">Caricamento…</p></div>

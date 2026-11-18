@@ -36,7 +36,7 @@ function AssemblyList({ building }) {
     <div className="acc-wrap" style={{ maxWidth: 900 }}>
       <Link href={base} className="acc-back">‹ Torna al condominio</Link>
       <header className="acc-toolbar" style={{ marginBottom: 14 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: '1 1 260px', minWidth: 0 }}>
           <h1 className="acc-h1">Assemblee</h1>
           <p className="rc-muted" style={{ margin: 0 }}>Convocazioni, deleghe, voti e verbali</p>
         </div>

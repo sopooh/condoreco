@@ -2739,6 +2739,15 @@ input, select, textarea { font-family: inherit; }
 .ppl-state small { display: block; font-size: 11.5px; color: var(--text-3); }
 .ppl-state b { font-size: 15px; }
 .ppl-state .is-danger { color: #C4320A; }
+.ppl-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.ppl-head .acc-h1 { margin-bottom: 2px; }
+.ppl-invite { flex-shrink: 0; }
+.ppl-list li.is-link { position: relative; }
+.ppl-list li.is-link:hover { background: var(--bg, #F8FAFA); }
+.ppl-row-link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+.ppl-row-link:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+.ppl-chev { flex-shrink: 0; color: var(--text-3); }
+@media (max-width: 380px) { .ppl-head { flex-wrap: wrap; } }
 
 /* ── Team con livelli e attività ── */
 .tm-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg); }
@@ -2925,6 +2934,8 @@ input, select, textarea { font-family: inherit; }
 .acc-tabs { gap: 4px; padding: 0 0 10px; border: none; border-bottom: 1px solid var(--border); border-radius: 0; background: none; }
 .acc-tabs button { font-size: 15px; white-space: nowrap; }
 .acc-tabs button.is-on { background: var(--teal); color: #fff; }
+.acc-tabs a { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; height: 42px; padding: 0 14px; border-radius: 12px; color: var(--text-2); font-weight: 700; font-size: 15px; white-space: nowrap; text-decoration: none; }
+.acc-tabs a.is-on { background: var(--teal); color: #fff; }
 
 /* ── Chiedi ai residenti / Possibili nuovi vicini ── */
 .nq-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 20px; scroll-margin-top: 90px; }

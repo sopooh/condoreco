@@ -72,7 +72,7 @@ export default function SupplierRegistryPage({ building }) {
     <div className="acc-wrap" style={{ maxWidth: 960 }}>
       <Link href={base} className="acc-back">‹ Torna al condominio</Link>
       <header className="acc-toolbar" style={{ marginBottom: 14 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: '1 1 260px', minWidth: 0 }}>
           <h1 className="acc-h1">Fornitori del condominio</h1>
           <p className="rc-muted" style={{ margin: 0 }}>{r.loading ? 'Caricamento…' : `${r.suppliers.length} fornitori · ${r.contracts.filter((c) => c.status === 'active').length} contratti attivi`}</p>
         </div>

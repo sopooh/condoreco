@@ -481,7 +481,7 @@ export default function TermsConditions() {
               <strong>Sophie Perazzolo</strong> (CondoReco)<br />
               Email: <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a><br />
               Email privacy: <a href="mailto:hello@condoreco.com" className="legal-link">hello@condoreco.com</a><br />
-              Sede: Viale del Lavoro 54/56
+              Indirizzo: Via San Dionigi 11, 20139 Milano (MI)
             </p>
           </section>
 

@@ -3,8 +3,7 @@ export const metadata = {
   description: 'Come Condoreco tratta i dati personali di utenti, residenti, amministratori di condominio e fornitori, nel rispetto del GDPR.',
 }
 
-// Indirizzo completo del titolare: da completare con CAP e città.
-const TITOLARE_INDIRIZZO = 'Viale del Lavoro 54/56'
+const TITOLARE_INDIRIZZO = 'Via San Dionigi 11, 20139 Milano (MI)'
 const EMAIL = 'hello@condoreco.com'
 
 function BulletList({ items }) {

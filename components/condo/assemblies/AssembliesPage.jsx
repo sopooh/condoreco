@@ -3,7 +3,7 @@
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { CalendarDays, CheckCircle2, ChevronRight, FileText, Plus, Trash2, Video } from 'lucide-react'
+import { CalendarDays, CheckCircle2, ChevronRight, FileText, Pencil, Plus, Trash2, Video } from 'lucide-react'
 import Sheet from '@/components/condo/admin/Sheet'
 import AssemblyAdmin, { ProxySheet } from '@/components/condo/assemblies/AssemblyAdmin'
 import ResidentPecCard from '@/components/condo/ResidentPecCard'
@@ -55,7 +55,15 @@ function AssemblyList({ building }) {
                   <strong>{x.title}<em className="ppl-tag">{STATUS_LABEL[x.status]}</em></strong>
                   <small>{x.kind === 'extraordinary' ? 'Straordinaria' : 'Ordinaria'} · {MODE_LABEL[x.mode]} · {fmt(x.first_call_at)}</small>
                 </span>
-                <ChevronRight size={18} aria-hidden="true" />
+                {L.isCondoAdmin && x.status === 'draft' ? (
+                  <span className="asm-row-acts" onClick={(e) => e.stopPropagation()}>
+                    <button type="button" aria-label={`Modifica ${x.title}`} title="Modifica" onClick={() => router.push(`?a=${x.id}&tab=convocation`)}><Pencil size={17} aria-hidden="true" /></button>
+                    <button type="button" className="is-danger" aria-label={`Elimina ${x.title}`} title="Elimina" onClick={async () => {
+                      if (!window.confirm(`Eliminare la bozza "${x.title}"? Si cancella anche l'ordine del giorno.`)) return
+                      const r = await L.remove(x.id); if (r.error) window.alert(r.error)
+                    }}><Trash2 size={17} aria-hidden="true" /></button>
+                  </span>
+                ) : <ChevronRight size={18} aria-hidden="true" />}
               </li>
             ))}
           </ul>
@@ -88,6 +96,7 @@ function CreateSheet({ L, onClose, onCreated }) {
 
 function AssemblyDetail({ building, assemblyId }) {
   const router = useRouter()
+  const tabParam = useSearchParams().get('tab')
   const A = useAssembly(building.id, assemblyId)
   const a = A.assembly
   return (
@@ -101,11 +110,11 @@ function AssemblyDetail({ building, assemblyId }) {
               <p className="rc-muted" style={{ margin: 0 }}>{STATUS_LABEL[a.status]} · {a.kind === 'extraordinary' ? 'Straordinaria' : 'Ordinaria'} · {MODE_LABEL[a.mode]}</p>
             </div>
             {A.isCondoAdmin && a.status === 'draft' && (
-              <button type="button" className="acc-btn" style={{ color: '#B42318' }} onClick={async () => { if (window.confirm('Eliminare questa bozza?')) { const r = await A.remove(); if (!r.error) router.push('?') } }}><Trash2 size={15} aria-hidden="true" />Elimina</button>
+              <button type="button" className="acc-btn" style={{ color: '#B42318' }} onClick={async () => { if (window.confirm('Eliminare questa bozza? Si cancella anche l\'ordine del giorno.')) { const r = await A.remove(); if (!r.error) router.push('?') } }}><Trash2 size={15} aria-hidden="true" />Elimina bozza</button>
             )}
           </header>
           {A.error && <p className="acc-msg" style={{ color: '#B42318' }}>{A.error}</p>}
-          {A.isCondoAdmin ? <AssemblyAdmin A={A} /> : <ResidentView A={A} />}
+          {A.isCondoAdmin ? <AssemblyAdmin A={A} initialTab={tabParam} /> : a.status === 'draft' ? <p className="rc-muted">Questa assemblea è ancora una bozza: la vede solo l&apos;amministratore.</p> : <ResidentView A={A} />}
         </>
       )}
     </div>

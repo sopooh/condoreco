@@ -36,9 +36,9 @@ const TABS = [
   ['minutes', 'Verbale', FileText],
 ]
 
-export default function AssemblyAdmin({ A }) {
+export default function AssemblyAdmin({ A, initialTab }) {
   const a = A.assembly
-  const [tab, setTab] = useState(() => (['in_session'].includes(a.status) ? 'session' : ['closed', 'minutes_final'].includes(a.status) ? 'minutes' : 'agenda'))
+  const [tab, setTab] = useState(() => (TABS.some(([k]) => k === initialTab) ? initialTab : ['in_session'].includes(a.status) ? 'session' : ['closed', 'minutes_final'].includes(a.status) ? 'minutes' : 'agenda'))
   return (
     <>
       <div className="acc-tabs" role="tablist">

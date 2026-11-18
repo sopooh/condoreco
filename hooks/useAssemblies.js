@@ -37,7 +37,16 @@ export function useAssemblyList(buildingId) {
     await load()
     return { error: null, id: data.id }
   }
-  return { ...state, isCondoAdmin, roleLoading, reload: load, create }
+  // elimina una bozza (solo amministratore; RLS)
+  async function remove(id) {
+    const { error } = await s().from('condo_assemblies').delete().eq('id', id).eq('status', 'draft')
+    if (logErr('remove', error)) return { error: 'Non riesco a eliminare la bozza.' }
+    await load()
+    return { error: null }
+  }
+  // chi non gestisce il condominio non vede le bozze (anche in "Vedi come")
+  const list = isCondoAdmin ? state.list : state.list.filter((x) => x.status !== 'draft')
+  return { ...state, list, isCondoAdmin, roleLoading, reload: load, create, remove }
 }
 
 export function useAssembly(buildingId, assemblyId) {

@@ -4,7 +4,7 @@
 // e manda l'email a consiglieri e amministratore. Nei numeri non ci sono nomi di morosi.
 // Chiamata da pg_cron: { token, month }. Dall'app (amministratore): { building_id, month, send }.
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
-import { CORS, json } from '../_shared/assembly.ts'
+import { CORS, json } from '../_shared/cors.ts'
 import { render, sendMails, userEmails, euro, emailConfigured, type Mail } from '../_shared/email.ts'
 
 const MODEL = 'claude-haiku-5-5'
@@ -75,7 +75,7 @@ async function processReport(svc: SupabaseClient, reportId: string, send: boolea
     footer: 'Ricevi questa email perché sei consigliere o amministratore di questo condominio.',
   })
   const mails: Mail[] = [...to.values()].map((email) => ({ to: email, subject: `Rendiconto di ${month} · ${condo}`, ...body }))
-  const sent = await sendMails(mails, `monthly-report-${rep.id}`)
+  const sent = await sendMails(mails, `monthly-report-${rep.id}-${Date.now()}`)
   if (sent > 0) await svc.from('condo_monthly_reports').update({ emailed_at: new Date().toISOString() }).eq('id', rep.id)
   return { id: rep.id, comment: !!comment, emailed: sent }
 }

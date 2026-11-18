@@ -76,9 +76,11 @@ begin
   if not exists (select 1 from condo_units u where u.id = new.unit_id and u.building_id = new.building_id) then
     raise exception 'unit does not belong to this building' using errcode = '23514';
   end if;
-  if tg_table_name = 'condo_unit_millesimi'
-     and not exists (select 1 from condo_millesimi_tables t where t.id = new.table_id and t.building_id = new.building_id) then
-    raise exception 'table does not belong to this building' using errcode = '23514';
+  -- if annidato: PL/pgSQL non accorcia AND e new.table_id non esiste su condo_unit_people
+  if tg_table_name = 'condo_unit_millesimi' then
+    if not exists (select 1 from condo_millesimi_tables t where t.id = new.table_id and t.building_id = new.building_id) then
+      raise exception 'table does not belong to this building' using errcode = '23514';
+    end if;
   end if;
   return new;
 end $$;

@@ -471,7 +471,7 @@ begin
   if a.id is null or not public.is_condo_admin(a.building_id) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
-  select count(distinct head_key) into heads_total from assembly_units(a.building_id, null);
+  select count(distinct u0.head_key) into heads_total from assembly_units(a.building_id, null) u0;
   return query
   select p.delegate_name, count(*)::int, count(distinct u.head_key)::int, round(coalesce(sum(u.value), 0), 3),
          case

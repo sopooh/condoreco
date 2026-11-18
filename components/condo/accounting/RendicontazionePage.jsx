@@ -7,6 +7,7 @@ import { useBilancio } from '@/hooks/useAdminArea'
 import { KIND_LABEL, euro } from '@/lib/accounting'
 import Rendicontazione from '@/components/condo/accounting/Rendicontazione'
 import { MemberBalances, yearFigures } from '@/components/condo/admin/BilancioPage'
+import { MonthlyReports, CouncillorsPicker, CertificatesAdmin, TenantSplit } from '@/components/condo/accounting/ReportsAndCertificates'
 
 // Pagina Rendicontazione (privata): stessa testata dell'Archivio documenti.
 // Il condomino vede la sua situazione; l'amministratore quella di tutti.
@@ -52,6 +53,11 @@ function AdminRendicontazione({ building, base }) {
           <li><span style={{ flex: 1 }}><strong>Totale speso</strong></span><b>{euro(kinds.reduce((n, k) => n + k.spent, 0))}</b></li>
         </ul>
       </div>
+
+      <MonthlyReports buildingId={building.id} isAdmin />
+      <CouncillorsPicker buildingId={building.id} />
+      <CertificatesAdmin buildingId={building.id} members={bil.balances} />
+      <TenantSplit buildingId={building.id} members={bil.balances} />
 
       <div className="rco-tiles rc-admin-tiles">
         <AdminTile href={`${base}/contabilita`} icon={BadgeCheck} title="Valida pagamenti" sub="Contabili, bonifici da confermare, rate, estratto conto" />

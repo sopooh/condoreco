@@ -7,6 +7,7 @@ import { SPESA_CATEGORIES, categoryOf, euro, fmtDay, isOverdue, todayISO } from 
 import PayNowSheet from '@/components/condo/accounting/PayNowSheet'
 import { ReceiptSheet, ReceiptsBox } from '@/components/condo/accounting/Receipts'
 import { CHARGE_STATUS, statusKey } from '@/lib/accounting'
+import { ResidentReportsSection } from '@/components/condo/accounting/ReportsAndCertificates'
 
 // Prima sezione privata della Bacheca: situazione economica del condomino.
 export default function Rendicontazione({ building }) {
@@ -209,6 +210,7 @@ export default function Rendicontazione({ building }) {
         <ReceiptSheet charges={[...view.open, ...view.pending].sort((a, b) => a.due_date.localeCompare(b.due_date))} preselected={receiptFor}
           onClose={() => setReceiptFor(null)} onSubmit={acc.submitReceipt} />
       )}
+      {acc.userId && <ResidentReportsSection buildingId={building.id} userId={acc.userId} />}
     </section>
   )
 }

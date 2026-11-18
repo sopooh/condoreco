@@ -18,7 +18,7 @@ const CHARGE_COLS = 'id, building_id, user_id, budget_id, code, title, amount, d
 // Preventivo più recente "emesso" dell'anno (o dell'ultimo anno disponibile), con le voci
 async function loadLatestBudget(supabase, buildingId) {
   const { data } = await supabase.from('condo_budgets')
-    .select('id, year, title, installments, first_due, status, issued_at, condo_budget_items(id, category, label, amount, position)')
+    .select('id, year, title, installments, first_due, status, issued_at, condo_budget_items(id, category, label, amount, position, tenant_share)')
     .eq('building_id', buildingId).eq('status', 'issued')
     .order('year', { ascending: false }).order('issued_at', { ascending: false }).limit(1)
   return data?.[0] || null
@@ -87,7 +87,7 @@ export function useAccountingAdmin(buildingId) {
     const supabase = createClient()
     const [{ data: charges, error }, { data: budgets }, { data: members }, { data: settings }, { data: receipts }] = await Promise.all([
       supabase.from('condo_charges').select(CHARGE_COLS).eq('building_id', buildingId).order('due_date', { ascending: true }).limit(5000),
-      supabase.from('condo_budgets').select('id, year, title, installments, first_due, status, issued_at, condo_budget_items(id, category, label, amount, position)').eq('building_id', buildingId).order('year', { ascending: false }).order('created_at', { ascending: false }),
+      supabase.from('condo_budgets').select('id, year, title, installments, first_due, status, issued_at, condo_budget_items(id, category, label, amount, position, tenant_share)').eq('building_id', buildingId).order('year', { ascending: false }).order('created_at', { ascending: false }),
       supabase.rpc('accounting_members', { p_building: buildingId }),
       supabase.from('condo_accounting_settings').select('*').eq('building_id', buildingId).maybeSingle(),
       supabase.from('condo_payment_receipts').select(RECEIPT_COLS).eq('building_id', buildingId).order('created_at', { ascending: false }).limit(200),
@@ -112,8 +112,8 @@ export function useAccountingAdmin(buildingId) {
     updateBudget: (id, v) => call((s) => s.from('condo_budgets').update(v).eq('id', id), 'Preventivo non salvato.'),
     deleteBudget: (id) => call((s) => s.from('condo_budgets').delete().eq('id', id), 'Non riesco a eliminare il preventivo.'),
     saveItem: (budgetId, item) => call((s) => (item.id
-      ? s.from('condo_budget_items').update({ category: item.category, label: item.label, amount: item.amount }).eq('id', item.id)
-      : s.from('condo_budget_items').insert({ budget_id: budgetId, category: item.category, label: item.label, amount: item.amount, position: item.position ?? 0 })), 'Voce non salvata.'),
+      ? s.from('condo_budget_items').update({ category: item.category, label: item.label, amount: item.amount, tenant_share: item.tenant_share ?? null }).eq('id', item.id)
+      : s.from('condo_budget_items').insert({ budget_id: budgetId, category: item.category, label: item.label, amount: item.amount, position: item.position ?? 0, tenant_share: item.tenant_share ?? null })), 'Voce non salvata.'),
     deleteItem: (id) => call((s) => s.from('condo_budget_items').delete().eq('id', id), 'Voce non eliminata.'),
     split: async (budgetId) => {
       const { data, error } = await createClient().rpc('budget_split', { p_budget: budgetId })

@@ -8,7 +8,7 @@ import { RECEIPT_STATUS, openReceipt } from '@/components/condo/accounting/Recei
 import { useAccountingAdmin } from '@/hooks/useAccounting'
 import { useCondoRole } from '@/hooks/useCondoRole'
 import { createClient } from '@/lib/supabase/client'
-import { CHARGE_STATUS, METHOD_LABEL, SPESA_CATEGORIES, categoryOf, euro, fmtDay, formatIban, isOverdue, matchMovements, normalizeIban, readBankFile, statusKey, todayISO } from '@/lib/accounting'
+import { CHARGE_STATUS, DEFAULT_TENANT_SHARE, METHOD_LABEL, SPESA_CATEGORIES, categoryOf, tenantShareOf, euro, fmtDay, formatIban, isOverdue, matchMovements, normalizeIban, readBankFile, statusKey, todayISO } from '@/lib/accounting'
 
 const TABS = [
   { id: 'panoramica', label: 'Panoramica', icon: Wallet },
@@ -529,7 +529,7 @@ function BudgetCard({ b, acc, open, onToggle }) {
           <ul className="acc-items">
             {items.map((i) => draft ? <ItemRow key={i.id} item={i} onSave={(v) => acc.saveItem(b.id, v)} onDelete={() => acc.deleteItem(i.id)} />
               : (
-                <li key={i.id}><span className="rc-dot" style={{ background: categoryOf(i.category).color }} /><span style={{ flex: 1 }}>{i.label} <small className="rc-muted">· {categoryOf(i.category).label}</small></span><b>{euro(i.amount)}</b></li>
+                <li key={i.id}><span className="rc-dot" style={{ background: categoryOf(i.category).color }} /><span style={{ flex: 1 }}>{i.label} <small className="rc-muted">· {categoryOf(i.category).label} · inquilino {tenantShareOf(i)}%</small></span><b>{euro(i.amount)}</b></li>
               ))}
           </ul>
           {draft && <ItemRow key={`new-${items.length}`} item={{ category: 'maintenance', label: '', amount: '' }} isNew onSave={(v) => acc.saveItem(b.id, { ...v, position: items.length })} />}
@@ -574,25 +574,31 @@ function BudgetCard({ b, acc, open, onToggle }) {
 }
 
 function ItemRow({ item, isNew, onSave, onDelete }) {
-  const [v, setV] = useState({ category: item.category, label: item.label, amount: item.amount === '' ? '' : String(item.amount).replace('.', ',') })
+  const initShare = isNew ? '' : String(tenantShareOf(item))
+  const [v, setV] = useState({ category: item.category, label: item.label, amount: item.amount === '' ? '' : String(item.amount).replace('.', ','), share: initShare })
   const [busy, setBusy] = useState(false)
   const amount = Number(String(v.amount).replace(/\./g, '').replace(',', '.'))
-  const dirty = isNew ? v.label.trim().length >= 2 && amount >= 0 && v.amount !== '' : (v.category !== item.category || v.label !== item.label || amount !== Number(item.amount))
+  const shareShown = v.share === '' ? String(DEFAULT_TENANT_SHARE[v.category] ?? 0) : v.share
+  const share = Math.min(100, Math.max(0, Number(String(shareShown).replace(',', '.')) || 0))
+  const dirty = isNew ? v.label.trim().length >= 2 && amount >= 0 && v.amount !== ''
+    : (v.category !== item.category || v.label !== item.label || amount !== Number(item.amount) || share !== tenantShareOf(item))
   async function save() {
     if (!dirty || busy) return
     setBusy(true)
-    const r = await onSave({ id: item.id, category: v.category, label: v.label.trim(), amount })
+    const r = await onSave({ id: item.id, category: v.category, label: v.label.trim(), amount, tenant_share: share })
     setBusy(false)
-    if (!r?.error && isNew) setV({ category: v.category, label: '', amount: '' })
+    if (!r?.error && isNew) setV({ category: v.category, label: '', amount: '', share: '' })
   }
   return (
     <div className={`acc-item-edit${isNew ? ' is-new' : ''}`}>
-      <select value={v.category} onChange={(e) => setV({ ...v, category: e.target.value })} aria-label="Voce">
+      <select value={v.category} onChange={(e) => setV({ ...v, category: e.target.value, share: isNew || v.share === String(DEFAULT_TENANT_SHARE[v.category] ?? 0) ? '' : v.share })} aria-label="Voce">
         {SPESA_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
       </select>
       <input value={v.label} onChange={(e) => setV({ ...v, label: e.target.value })} placeholder={isNew ? 'Nuova voce, es. Pulizia scale' : ''} aria-label="Descrizione" maxLength={120} />
       <span className="acc-amount"><span>€</span><input inputMode="decimal" value={v.amount} onChange={(e) => setV({ ...v, amount: e.target.value })} placeholder="0,00" aria-label="Importo"
         onKeyDown={(e) => { if (e.key === 'Enter') save() }} /></span>
+      <span className="acc-amount" title="Quota a carico dell'inquilino"><input inputMode="decimal" value={shareShown} onChange={(e) => setV({ ...v, share: e.target.value.replace(/[^0-9,]/g, '').slice(0, 5) })} aria-label="Percentuale a carico dell'inquilino" style={{ width: 44, textAlign: 'right' }}
+        onKeyDown={(e) => { if (e.key === 'Enter') save() }} /><span>% inq.</span></span>
       {dirty && <button type="button" className="acc-btn is-primary" onClick={save} disabled={busy}>{isNew ? <Plus size={16} aria-label="Aggiungi" /> : <Check size={16} aria-label="Salva" />}</button>}
       {!isNew && !dirty && <button type="button" className="acc-btn is-danger" onClick={onDelete} aria-label="Elimina voce"><Trash2 size={15} /></button>}
     </div>

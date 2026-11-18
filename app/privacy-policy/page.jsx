@@ -58,6 +58,9 @@ const PROCESSORS = [
   ['MapTiler AG', 'mappe interattive (riceve il tuo IP)', 'Svizzera, Paese con decisione di adeguatezza'],
   ['OpenStreetMap Foundation', 'anteprime delle mappe (riceve il tuo IP)', 'Regno Unito, Paese con decisione di adeguatezza'],
   ['komoot GmbH (Photon)', 'suggerimenti di indirizzo nella ricerca (riceve il tuo IP e il testo digitato)', 'Germania (UE)'],
+  ['Anthropic', 'Condor, l\'assistente AI: controllo dei documenti di residenza, ricerca nei documenti del condominio, riassunti delle chat', 'USA, con clausole contrattuali standard previste dal suo accordo sul trattamento dei dati; i dati inviati non vengono usati per addestrare i modelli'],
+  ['OpenAI Ireland Ltd (OpenAI)', 'trascrizione dell\'audio delle assemblee condominiali per preparare la bozza del verbale', 'contratto con la società irlandese (UE); il servizio può trattare i dati anche negli USA, con clausole contrattuali standard; i dati inviati non vengono usati per addestrare i modelli'],
+  ['Openapi S.p.A.', 'invio delle convocazioni di assemblea via PEC e ricevute di accettazione e consegna', 'Italia (UE)'],
 ]
 
 export default function PrivacyPolicy() {
@@ -67,7 +70,7 @@ export default function PrivacyPolicy() {
         <div className="legal-hero">
           <div className="legal-eyebrow">Documento legale</div>
           <h1 className="legal-title">Privacy Policy</h1>
-          <p className="legal-intro">Ultimo aggiornamento: 14 novembre 2026</p>
+          <p className="legal-intro">Ultimo aggiornamento: 18 novembre 2026</p>
           <p className="legal-intro">
             Questa informativa spiega quali dati personali tratta Condoreco (www.condoreco.com), perché, per quanto tempo e quali diritti hai. Vale per chi visita il sito, per chi si iscrive, per i residenti che usano l&apos;area condominio e per gli amministratori di condominio e i fornitori presenti nel sito (artt. 13 e 14 del Regolamento UE 2016/679, &quot;GDPR&quot;).
           </p>
@@ -112,7 +115,8 @@ export default function PrivacyPolicy() {
                 'messaggi e allegati della chat, avvisi, eventi, ticket e interventi;',
                 'domande dei possibili nuovi vicini e risposte dei residenti (sezione 4);',
                 'sondaggi e voti: nei sondaggi non anonimi gli altri membri del condominio vedono come hai votato;',
-                'rate, pagamenti, contabili caricate, estratti conto con i nomi dei paganti, IBAN del condominio, bilanci e preventivi.',
+                'rate, pagamenti, contabili caricate, estratti conto con i nomi dei paganti, IBAN del condominio, bilanci e preventivi;',
+                'assemblee: convocazioni inviate via PEC (nome, indirizzo PEC, unità, testo della convocazione, ricevute di accettazione e consegna), presenze e deleghe, registrazione audio dell\'assemblea e sua trascrizione, bozza del verbale (vedi 3.4).',
               ]} />
             </SubSection>
 
@@ -135,6 +139,18 @@ export default function PrivacyPolicy() {
               <p className="legal-paragraph">
                 I sondaggi di Condoreco servono a raccogliere pareri prima dell&apos;assemblea e non sostituiscono le delibere dell&apos;assemblea condominiale.
               </p>
+            </SubSection>
+
+            <SubSection title="3.4 Convocazioni via PEC e trascrizione delle assemblee" id="assemblee">
+              <p className="legal-paragraph">
+                Sono strumenti della gestione condominiale: li attiva l&apos;amministratore e i dati sono trattati per conto del condominio (sezione 3.3). Condoreco si avvale di due fornitori, che agiscono come sub-responsabili del trattamento (art. 28 GDPR).
+              </p>
+              <BulletList items={[
+                'PEC: per inviare la convocazione con valore legale, Openapi S.p.A. (Roma) riceve nome, indirizzo PEC e testo della convocazione di ciascun destinatario e restituisce le ricevute di accettazione e di consegna. Le ricevute sono la prova della convocazione e restano tra i documenti del condominio, per il tempo deciso dal condominio.',
+                'Trascrizione: se l\'assemblea viene registrata, l\'audio viene inviato a OpenAI per trascriverlo e preparare la bozza del verbale. Nell\'audio ci sono le voci e gli interventi di chi partecipa, che possono contenere nomi e informazioni personali. L\'amministratore deve informare i presenti all\'inizio dell\'assemblea che è in corso la registrazione e per quale scopo.',
+                'Conservazione: l\'audio viene cancellato da Condoreco appena la trascrizione è pronta; la trascrizione resta finché il verbale non viene approvato e poi viene cancellata. Il verbale approvato è un documento del condominio. OpenAI può conservare i dati ricevuti fino a 30 giorni per prevenire abusi, poi li cancella, e non li usa per addestrare i modelli.',
+                'Trasferimento fuori dall\'UE: il contratto è con OpenAI Ireland Ltd, ma il servizio può essere eseguito su server negli USA. Il trasferimento avviene con le clausole contrattuali standard approvate dalla Commissione europea (art. 46 GDPR), previste dall\'accordo sul trattamento dei dati di OpenAI.',
+              ]} />
             </SubSection>
           </section>
 

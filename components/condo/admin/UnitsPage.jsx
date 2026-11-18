@@ -222,7 +222,7 @@ function UnitSheet({ unit, u, people, onClose }) {
                 <li key={p.id} onClick={() => setPerson(p)} style={{ cursor: 'pointer' }}>
                   <span className="ppl-avatar"><UserRound size={16} aria-hidden="true" /></span>
                   <span className="ppl-main">
-                    <strong>{p.full_name}{p.user_id && <em className="ppl-tag">Su Condoreco</em>}</strong>
+                    <strong>{p.full_name}{p.user_id && <em className="ppl-tag">Su Condoreco</em>}{p.pec && <em className="ppl-tag" style={{ background: 'var(--teal-lt)', color: 'var(--teal-dk)' }}>PEC</em>}</strong>
                     <small>{[labelOf(PERSON_ROLES, p.role), Number(p.share) < 100 ? `quota ${fmtMill(p.share)}%` : null, p.until ? `fino al ${new Date(p.until).toLocaleDateString('it-IT')}` : null].filter(Boolean).join(' · ')}</small>
                   </span>
                 </li>

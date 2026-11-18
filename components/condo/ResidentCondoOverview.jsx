@@ -21,6 +21,7 @@ import { telLink } from '@/lib/contact'
 import { maintenanceCategoryLabel } from '@/lib/maintenanceCategories'
 import { NewActivity } from '@/components/condo/admin/AdminCondoOverview'
 import ConversationsCard from '@/components/condo/ConversationsCard'
+import ResidentPecCard from '@/components/condo/ResidentPecCard'
 import UnitForm from '@/components/condo/UnitForm'
 import { Sheet } from '@/components/condo/InterventionsPage'
 
@@ -248,6 +249,8 @@ export default function ResidentCondoOverview({ building }) {
           )}
         </section>
       </div>
+
+      <div style={{ margin: '0 0 14px' }}><ResidentPecCard buildingId={building.id} /></div>
 
       <div className="rco-tiles">
         <Tile href={`${base}/bacheca`} icon={Megaphone} title="Bacheca" sub={openTickets.length ? `${openTickets.length} ${openTickets.length === 1 ? 'segnalazione aperta' : 'segnalazioni aperte'}` : 'Avvisi e segnalazioni'} />

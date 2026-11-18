@@ -412,10 +412,11 @@ begin
   if not public.is_condo_admin(p_building) then raise exception 'not allowed' using errcode = '42501'; end if;
   return query
   select t.id, t.title, t.description, t.category, t.created_at,
-         p.display_name::text,
+         coalesce(nullif(concat_ws(' ', cm.first_name, cm.last_name), ''), p.display_name)::text,
          t.urgency, t.urgency_reason, t.trade, t.triaged_by,
          t.suggested_maintainer_id, coalesce(m.company, m.name), m.phone
     from condo_tickets t
+    left join condo_members cm on cm.building_id = t.building_id and cm.user_id = t.created_by
     left join profiles p on p.id = t.created_by
     left join condo_maintainers m on m.id = t.suggested_maintainer_id
    where t.building_id = p_building and t.status = 'open'

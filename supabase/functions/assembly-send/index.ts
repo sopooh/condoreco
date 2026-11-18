@@ -8,11 +8,101 @@
 // dry_run: crea solo il PDF, senza spedire (anteprima).
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import {
-  CORS, json, fmtDateTime, MAJORITY_LABEL, textPdf, openapiConfigured, sendPec, sendRaccomandata, type Sender,
+  CORS, json, fmtDateTime, MAJORITY_LABEL, textPdf, openapiConfigured, sendPec, sendRaccomandata, toBase64, type Sender,
 } from '../_shared/assembly.ts'
 
 const BUCKET = 'condo-documents'
 const MIN_NOTICE_MS = 5 * 24 * 3600 * 1000
+
+const esc = (t: string) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
+const CHANNEL_TEXT: Record<string, string> = {
+  pec: 'via PEC al tuo indirizzo PEC',
+  raccomandata: 'per raccomandata con ricevuta di ritorno',
+  hand: 'con consegna a mano',
+}
+
+// Email a tutti gli iscritti del condominio e ai titolari dell'anagrafe con un'email,
+// con il PDF allegato. Dice chiaramente che è una copia di cortesia: la comunicazione
+// valida per legge è quella inviata per PEC, raccomandata o a mano.
+// Senza RESEND_API_KEY non fa nulla (restano le notifiche sul sito).
+// deno-lint-ignore no-explicit-any
+async function courtesyEmails(svc: any, o: {
+  buildingId: string; adminId: string; purpose: string; title: string; condoName: string
+  firstCall: string | null; link: string; pdf: Uint8Array; assemblyId: string
+}) {
+  const key = Deno.env.get('RESEND_API_KEY')
+  if (!key) return { sent: 0, skipped: 'email not configured' }
+  const from = Deno.env.get('NOTICE_EMAIL_FROM') || 'Condoreco <hello@condoreco.com>'
+  const siteUrl = Deno.env.get('SITE_URL') || 'https://www.condoreco.com'
+
+  // canale ufficiale per persona (per dire come arriva la copia valida)
+  const { data: recs } = await svc.from('condo_assembly_recipients').select('user_id, channel, person_id')
+    .eq('assembly_id', o.assemblyId).eq('purpose', o.purpose)
+  const channelByUser = new Map<string, string>()
+  for (const r of recs ?? []) if (r.user_id) channelByUser.set(r.user_id, r.channel)
+
+  const to = new Map<string, string | null>() // email -> canale ufficiale
+  const { data: members } = await svc.from('condo_members').select('user_id').eq('building_id', o.buildingId)
+  for (const m of members ?? []) {
+    if (m.user_id === o.adminId) continue
+    const { data } = await svc.auth.admin.getUserById(m.user_id)
+    const email = data?.user?.email?.toLowerCase()
+    if (email) to.set(email, channelByUser.get(m.user_id) ?? null)
+  }
+  // titolari senza account ma con email nell'anagrafe
+  const { data: people } = await svc.from('condo_unit_people').select('id, email, user_id, role, until')
+    .eq('building_id', o.buildingId).not('email', 'is', null)
+  const channelByPerson = new Map<string, string>()
+  for (const r of recs ?? []) if (r.person_id) channelByPerson.set(r.person_id, r.channel)
+  const today = new Date().toISOString().slice(0, 10)
+  for (const p of people ?? []) {
+    if (p.until && p.until < today) continue
+    const email = String(p.email).trim().toLowerCase()
+    if (email && !to.has(email)) to.set(email, channelByPerson.get(p.id) ?? null)
+  }
+  if (!to.size) return { sent: 0 }
+
+  const isConv = o.purpose === 'convocation'
+  const subject = isConv ? `Convocazione assemblea: ${o.title}` : `Verbale dell'assemblea: ${o.title}`
+  const pdfB64 = toBase64(o.pdf)
+  const filename = isConv ? 'convocazione-assemblea.pdf' : 'verbale-assemblea.pdf'
+  const batch = [...to.entries()].map(([email, channel]) => {
+    const official = channel && CHANNEL_TEXT[channel]
+      ? `La comunicazione ufficiale, valida per legge, ti è stata inviata anche ${CHANNEL_TEXT[channel]}.`
+      : 'La comunicazione ufficiale, valida per legge, arriva separatamente per PEC, raccomandata o consegna a mano.'
+    const lead = isConv
+      ? `È stata convocata l'assemblea "${o.title}" del ${o.condoName}. Prima convocazione: ${fmtDateTime(o.firstCall)}.`
+      : `È disponibile il verbale dell'assemblea "${o.title}" del ${o.condoName}, con il riassunto per chi non c'era.`
+    return {
+      from, to: [email], subject,
+      text: `${lead}\n\nTrovi il documento in allegato e su Condoreco: ${siteUrl}${o.link}\n\n${official} Questa email è una copia di cortesia.\n\nRicevi questa email perché sei un condomino di questo edificio.`,
+      html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#1F2937">
+        <div style="background:#0D676F;color:#fff;padding:18px 22px;border-radius:14px 14px 0 0;font-weight:700;font-size:18px">${esc(subject)}</div>
+        <div style="border:1px solid #E5E7EB;border-top:none;padding:20px 22px;border-radius:0 0 14px 14px">
+          <p style="font-size:16px;line-height:1.5;margin:0 0 14px">${esc(lead)}</p>
+          <p style="font-size:15px;line-height:1.5;margin:0 0 18px">Trovi il documento in allegato.${isConv ? ' Su Condoreco puoi anche delegare qualcuno se non puoi partecipare.' : ''}</p>
+          <a href="${siteUrl}${o.link}" style="display:inline-block;background:#0D676F;color:#fff;text-decoration:none;padding:11px 18px;border-radius:10px;font-weight:700">Apri su Condoreco</a>
+          <p style="font-size:13px;line-height:1.5;color:#374151;background:#F3F7F7;border-radius:10px;padding:10px 12px;margin:18px 0 0">${esc(official)} Questa email è una copia di cortesia.</p>
+          <p style="font-size:12px;color:#9CA3AF;margin:16px 0 0">Ricevi questa email perché sei un condomino di questo edificio.</p>
+        </div></div>`,
+      attachments: [{ filename, content: pdfB64 }],
+    }
+  })
+
+  // Il batch di Resend non supporta allegati: un invio per destinatario, con una pausa breve.
+  let sent = 0
+  for (const mail of batch) {
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(mail),
+    })
+    if (r.ok) sent++
+    else console.error('[assembly-send] resend', r.status, (await r.text()).slice(0, 160))
+    await new Promise((res) => setTimeout(res, 550)) // limite Resend: 2 richieste al secondo
+  }
+  return { sent, total: batch.length }
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
@@ -157,7 +247,13 @@ Deno.serve(async (req) => {
       if (nErr) console.error('[assembly-send] notifications', nErr.message)
     }
 
-    return json({ ok: true, document_id: doc.id, ...results })
+    // ---- email di cortesia (Resend): finché non c'è l'app, le notifiche arrivano solo sul sito ----
+    const emailed = await courtesyEmails(svc, {
+      buildingId: a.building_id, adminId: user.id, purpose, title: a.title, condoName,
+      firstCall: a.first_call_at, link, pdf, assemblyId: a.id,
+    })
+
+    return json({ ok: true, document_id: doc.id, ...results, emailed })
   } catch (e) {
     console.error('[assembly-send]', e instanceof Error ? e.message : String(e))
     return json({ error: 'Errore inatteso' }, 500)

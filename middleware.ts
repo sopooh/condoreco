@@ -82,6 +82,7 @@ export const config = {
     '/edificio/:id/condominio/chat',
     '/edificio/:id/condominio/fornitori',
     '/edificio/:id/condominio/unita',
+    '/edificio/:id/condominio/assemblee',
     '/edificio/:id/condominio/fornitori-condominio',
   ],
 }

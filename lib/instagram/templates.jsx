@@ -68,7 +68,7 @@ let MASCOTS = {}
 let COVERS = {}
 export function setCovers(c) { COVERS = c }
 // Illustrazioni a tutta pagina disponibili per la copertina
-export const COVER_IMAGES = { 'condor-flight': 'Condor in volo (arancio)', 'condor-desk': 'Condor al computer (teal)', 'condor-wings': 'Condor ali aperte (turchese)', 'condor-canyon': 'Condor nel canyon', 'condor-expert': 'Condor esperto alla scrivania' }
+export const COVER_IMAGES = { 'condor-flight': 'Condor in volo (arancio)', 'condor-desk': 'Condor al computer (teal)', 'condor-wings': 'Condor ali aperte (turchese)', 'condor-canyon': 'Condor nel canyon', 'condor-expert': 'Condor esperto alla scrivania', 'condor-knight': 'Condor cavaliere' }
 export function setAvatars(a) { AVATARS = a }
 export function setMascots(m) { MASCOTS = m }
 
@@ -388,7 +388,7 @@ function Speak({ p }) {
 // Mascotte Condor: apertura (pose "happy", guarda a destra) e risposta
 // finale (pose "determined"). Condor a sinistra in basso, nuvoletta sopra
 // con la punta verso di lui, link o firma a destra.
-const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433], wave: [326, 421], cool: [326, 421], shy: [385, 385], sigh: [374, 385], smile: [307, 385], scream: [286, 385], eyeroll: [276, 385] }
+const MASCOT_SIZE = { happy: [345, 398], determined: [343, 413], jump: [336, 421], sleep: [367, 433], wave: [326, 421], cool: [326, 421], shy: [385, 385], sigh: [374, 385], smile: [307, 385], scream: [286, 385], eyeroll: [276, 385], money: [426, 385] }
 
 function Mascot({ p }) {
   const t = theme(p.theme || 'light')
@@ -696,6 +696,44 @@ function MapSlide({ p }) {
   )
 }
 
+// Fascia di prezzo: mappa con zone numerate + elenco con prezzo e battuta + fonte
+function ZoneMap({ p }) {
+  const t = theme('light')
+  const rows = p.rows || []
+  const color = LEGEND_COLORS[p.color] || p.color || C.teal
+  const mh = rows.length >= 6 ? 415 : rows.length === 5 ? 480 : rows.length === 4 ? 565 : 640
+  const mw = Math.round(mh / 0.899)
+  return (
+    <Frame t={t} footer="none">
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', background: color, color: C.white, fontSize: 24, fontWeight: 800, padding: '10px 22px', borderRadius: 999, letterSpacing: 1.5, textTransform: 'uppercase' }}>{p.kicker || ''}</div>
+          <div style={{ display: 'flex', fontSize: 26, fontWeight: 700, color: C.ink2 }}>{p.range || ''}</div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 18 }}>
+          {COVERS[p.image] ? <img src={COVERS[p.image]} width={mw} height={mh} style={{ borderRadius: 24 }} alt="" /> : null}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 18 }}>
+          {rows.map((r, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+              <div style={{ display: 'flex', flexShrink: 0, width: 40, height: 40, borderRadius: 20, background: color, color: C.white, fontSize: 21, fontWeight: 800, alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>{String(i + 1)}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                  <div style={{ display: 'flex', fontSize: 28, fontWeight: 800, color: C.ink }}>{r.name}</div>
+                  <div style={{ display: 'flex', fontSize: 28, fontWeight: 800, color: C.ink, flexShrink: 0 }}>{r.price}</div>
+                </div>
+                <div style={{ display: 'flex', fontSize: 24, color: C.ink2, lineHeight: 1.25 }}>{r.joke}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', flex: 1 }} />
+        <div style={{ display: 'flex', fontSize: 19, color: C.ink3, lineHeight: 1.3 }}>{p.source || ''}</div>
+      </div>
+    </Frame>
+  )
+}
+
 // Elenco quartieri con pallino colorato e valore
 function NilList({ p }) {
   const t = theme(p.theme || 'light')
@@ -775,6 +813,7 @@ export const TEMPLATES = {
   imageCover: { label: 'Copertina illustrata', render: ImageCover },
   map: { label: 'Mappa con legenda', render: MapSlide },
   nilList: { label: 'Elenco quartieri', render: NilList },
+  zoneMap: { label: 'Fascia di prezzo con mappa', render: ZoneMap },
   whiteMascot: { label: 'Condor su bianco (salta / dorme)', render: ({ p }) => Mascot({ p: { ...p, theme: 'white' } }) },
   speak: { label: 'Personaggio che parla', render: Speak },
   chat: { label: 'Dialogo tra personaggi', render: Chat },

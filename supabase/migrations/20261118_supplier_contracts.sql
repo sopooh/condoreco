@@ -103,7 +103,7 @@ begin
     raise exception 'not allowed' using errcode = '42501';
   end if;
   return query
-  select * from (
+  select x.k, x.iid, x.mid, x.sup, x.ttl, x.dd, x.dl from (
     select 'contract_notice'::text, c.id, c.maintainer_id, coalesce(m.company, m.name), c.title,
            (c.end_date - coalesce(c.notice_days, 0))::date, ((c.end_date - coalesce(c.notice_days, 0)) - current_date)::int
       from condo_supplier_contracts c join condo_maintainers m on m.id = c.maintainer_id
@@ -122,9 +122,9 @@ begin
        and not exists (select 1 from condo_supplier_documents n
                         where n.maintainer_id = d.maintainer_id and n.kind = d.kind
                           and n.expires_on > d.expires_on)
-  ) x(kind, item_id, maintainer_id, supplier, title, due_date, days_left)
-  where x.days_left <= p_days
-  order by x.due_date;
+  ) x(k, iid, mid, sup, ttl, dd, dl)
+  where x.dl <= p_days
+  order by x.dd;
 end $$;
 revoke all on function public.supplier_deadlines(uuid, int) from public, anon;
 grant execute on function public.supplier_deadlines(uuid, int) to authenticated;

@@ -155,32 +155,32 @@ begin
   end if;
   return query
   with own_table as (
-    select id from condo_millesimi_tables where building_id = p_building and kind = 'ownership'
+    select t.id from condo_millesimi_tables t where t.building_id = p_building and t.kind = 'ownership'
   ),
   reg as (
-    select p.user_id,
-           sum(um.value * p.share / 100) as registry,
-           string_agg(distinct u.code, ', ' order by u.code) as units
+    select p.user_id as uid,
+           sum(um.value * p.share / 100) as reg_value,
+           string_agg(distinct u.code, ', ' order by u.code) as reg_units
     from condo_unit_people p
     join condo_units u on u.id = p.unit_id
-    left join condo_unit_millesimi um on um.unit_id = p.unit_id and um.table_id = (select id from own_table)
+    left join condo_unit_millesimi um on um.unit_id = p.unit_id and um.table_id = (select o.id from own_table o)
     where p.building_id = p_building and p.user_id is not null
       and p.role in ('owner', 'bare_owner')
       and (p.until is null or p.until >= current_date)
     group by p.user_id
   )
-  select m.user_id, pr.display_name, m.millesimi, round(r.registry, 3), r.units,
+  select m.user_id, pr.display_name, m.millesimi, round(r.reg_value, 3), r.reg_units,
          case
            when m.tenure = 'tenant' then 'tenant'
-           when r.user_id is null then 'not_linked'
+           when r.uid is null then 'not_linked'
            when m.millesimi is null then 'not_declared'
-           when r.registry is null then 'registry_missing'
-           when abs(m.millesimi - r.registry) <= 0.01 then 'ok'
+           when r.reg_value is null then 'registry_missing'
+           when abs(m.millesimi - r.reg_value) <= 0.01 then 'ok'
            else 'mismatch'
          end
   from condo_members m
   left join profiles pr on pr.id = m.user_id
-  left join reg r on r.user_id = m.user_id
+  left join reg r on r.uid = m.user_id
   where m.building_id = p_building
   order by pr.display_name nulls last;
 end $$;
@@ -209,7 +209,7 @@ create or replace function public.check_unit_person_member()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
   if new.user_id is not null
-     and not exists (select 1 from condo_members where building_id = new.building_id and user_id = new.user_id) then
+     and not exists (select 1 from condo_members cm where cm.building_id = new.building_id and cm.user_id = new.user_id) then
     raise exception 'user is not a member of this building' using errcode = '23514';
   end if;
   return new;

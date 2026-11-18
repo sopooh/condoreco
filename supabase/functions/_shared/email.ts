@@ -1,12 +1,12 @@
 // Email di servizio via Resend, condivise dalle edge function.
 // Senza RESEND_API_KEY non parte nulla: restano le notifiche in app.
-// Mittente: NOTICE_EMAIL_FROM (dominio verificato mail.condoreco.com);
+// Mittente: NOTICE_EMAIL_FROM (hello@condoreco.com, dominio verificato su Resend);
 // le risposte vanno all'unico indirizzo di contatto, hello@condoreco.com.
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2'
 
 const KEY = () => Deno.env.get('RESEND_API_KEY') ?? ''
 export const emailConfigured = () => !!KEY()
-export const FROM = () => Deno.env.get('NOTICE_EMAIL_FROM') || 'Condoreco <notifiche@mail.condoreco.com>'
+export const FROM = () => Deno.env.get('NOTICE_EMAIL_FROM') || 'Condoreco <hello@condoreco.com>'
 export const REPLY_TO = 'hello@condoreco.com'
 export const SITE = () => Deno.env.get('SITE_URL') || 'https://www.condoreco.com'
 

@@ -32,7 +32,7 @@ async function courtesyEmails(svc: any, o: {
 }) {
   const key = Deno.env.get('RESEND_API_KEY')
   if (!key) return { sent: 0, skipped: 'email not configured' }
-  const from = Deno.env.get('NOTICE_EMAIL_FROM') || 'Condoreco <notifiche@mail.condoreco.com>'
+  const from = Deno.env.get('NOTICE_EMAIL_FROM') || 'Condoreco <hello@condoreco.com>'
   const siteUrl = Deno.env.get('SITE_URL') || 'https://www.condoreco.com'
 
   // una sola volta per convocazione e per verbale: un nuovo invio ai destinatari

@@ -266,8 +266,10 @@ const FILTERS = [
 
 function Charges({ acc, names }) {
   const today = todayISO()
-  const [filter, setFilter] = useState('todo')
-  const [q, setQ] = useState('')
+  // ?q=<nome>&filter=all arriva dalla pagina Persone
+  const params = useSearchParams()
+  const [filter, setFilter] = useState(() => (FILTERS.some((f) => f.id === params.get('filter')) ? params.get('filter') : 'todo'))
+  const [q, setQ] = useState(() => params.get('q') || '')
   const [sel, setSel] = useState(() => new Set())
   const [payFor, setPayFor] = useState(null) // ids
   const [adding, setAdding] = useState(false)

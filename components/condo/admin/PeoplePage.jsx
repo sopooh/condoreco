@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle2, Search, Share2, UserRound, Users } from 'lucide-react'
+import { CheckCircle2, ChevronRight, Search, Share2, UserRound, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useCondoRole } from '@/hooks/useCondoRole'
 import { euro } from '@/lib/accounting'
@@ -47,15 +47,15 @@ export default function PeoplePage({ building }) {
     <div className="acc-wrap" style={{ maxWidth: 900 }}>
       <Link href={base} className="acc-back">‹ Torna al condominio</Link>
       <PeopleUnitsTabs base={base} active="persone" unitsLabel={isCondoAdmin ? 'Unità e millesimi' : 'La mia unità'} />
-      <header className="acc-toolbar" style={{ marginBottom: 14 }}>
-        <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+      <header className="ppl-head">
+        <div style={{ minWidth: 0 }}>
           <h1 className="acc-h1">Persone</h1>
           <p className="rc-muted" style={{ margin: 0 }}>
             {rows ? `${rows.length} ${rows.length === 1 ? 'condomino iscritto' : 'condomini iscritti'}${units ? ` su ${units} unità` : ''}` : 'Caricamento…'}
             {isCondoAdmin && totMill > 0 ? ` · ${totMill.toLocaleString('it-IT')}‰ assegnati` : ''}
           </p>
         </div>
-        <button type="button" className="acc-btn is-primary" onClick={invite}><Share2 size={16} aria-hidden="true" />{copied ? 'Link copiato' : 'Invita condomini'}</button>
+        <button type="button" className="acc-btn is-primary ppl-invite" onClick={invite}><Share2 size={16} aria-hidden="true" />{copied ? 'Link copiato' : 'Invita condomini'}</button>
       </header>
 
       {isCondoAdmin && <JoinRequestsList buildingId={building.id} hideWhenEmpty />}
@@ -69,7 +69,7 @@ export default function PeoplePage({ building }) {
               ))}
             </div>
           )}
-          <label className="acc-search" style={{ maxWidth: 280 }}><Search size={16} aria-hidden="true" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cerca nome o piano" aria-label="Cerca" /></label>
+          <label className="acc-search" style={{ maxWidth: 280 }}><Search size={16} aria-hidden="true" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cerca per nome o piano" aria-label="Cerca" /></label>
         </div>
         {rows === null ? <p className="rc-muted" style={{ padding: 16, margin: 0 }}>Caricamento…</p> : list.length === 0 ? (
           <div className="acc-empty"><Users size={28} aria-hidden="true" /><strong>Nessuno qui</strong><p>Invita i condomini con il link: dopo l&apos;accesso chiedono di entrare e tu approvi.</p></div>
@@ -78,7 +78,8 @@ export default function PeoplePage({ building }) {
             {list.map((r) => {
               const late = Number(r.overdue) > 0
               return (
-                <li key={r.user_id}>
+                <li key={r.user_id} className={isCondoAdmin ? 'is-link' : undefined}>
+                  {isCondoAdmin && <Link href={`${base}/contabilita?tab=rate&filter=all&q=${encodeURIComponent(r.display_name || '')}`} className="ppl-row-link" aria-label={`Pagamenti di ${r.display_name || 'condomino'}`} />}
                   <span className="ppl-avatar">{r.avatar_url ? <img src={r.avatar_url} alt="" /> : (r.display_name || '?').slice(0, 1).toUpperCase()}</span>
                   <span className="ppl-main">
                     <strong>{r.display_name || 'Condomino'}{r.role === 'admin' && <em className="ppl-tag">Amministratore</em>}</strong>
@@ -91,6 +92,7 @@ export default function PeoplePage({ building }) {
                         : <span className="bil-ok"><CheckCircle2 size={15} aria-hidden="true" />In regola</span>}
                     </span>
                   )}
+                  {isCondoAdmin && <ChevronRight size={18} aria-hidden="true" className="ppl-chev" />}
                 </li>
               )
             })}

@@ -63,6 +63,7 @@ const PROCESSORS = [
   ['OpenAI Ireland Ltd (OpenAI)', 'trascrizione dell\'audio delle assemblee condominiali per preparare la bozza del verbale', 'contratto con la società irlandese (UE); il servizio può trattare i dati anche negli USA, con clausole contrattuali standard; i dati inviati non vengono usati per addestrare i modelli'],
   ['Resend (Plus Five Five, Inc.)', 'invio delle email di servizio e delle notifiche (riceve il tuo indirizzo email e il testo della notifica); nessun tracciamento di aperture o clic', 'invio da server in Irlanda (UE), ma la società tratta i dati principalmente negli USA: aderente al Data Privacy Framework UE-USA, con clausole contrattuali standard nel suo accordo sul trattamento dei dati'],
   ['Openapi S.p.A.', 'invio delle convocazioni di assemblea via PEC e ricevute di accettazione e consegna', 'Italia (UE)'],
+  ['Plus Five Five, Inc. (Resend)', 'invio delle email di servizio: avvisi dei vicini, copie di cortesia di convocazioni e verbali, promemoria e ricevute delle rate (riceve indirizzo email, nome del condominio e testo dell\'avviso)', 'invio dai server UE (Irlanda); società statunitense aderente al Data Privacy Framework UE-USA'],
 ]
 
 export default function PrivacyPolicy() {

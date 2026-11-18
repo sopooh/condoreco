@@ -3,10 +3,12 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { AlertTriangle, CalendarCheck, CalendarClock, CheckCircle2, ClipboardList, Phone, RotateCcw, Siren, Sparkles, Wrench } from 'lucide-react'
+import { AlertTriangle, ArrowRight, ArrowUpDown, CalendarCheck, CalendarClock, CalendarDays, CalendarPlus, ChartColumn, CheckCircle2, ChevronRight, ClipboardList, FireExtinguisher, Flame, Phone, Plus, RotateCcw, ShieldCheck, Sparkles, TriangleAlert, Users, Wrench, Zap } from 'lucide-react'
 import { useCondoRole } from '@/hooks/useCondoRole'
 import { useMaintenance, URGENCY } from '@/hooks/useMaintenance'
 import Sheet from '@/components/condo/admin/Sheet'
+import BoardPage from '@/components/condo/BoardPage'
+import { maintenanceCategoryLabel } from '@/lib/maintenanceCategories'
 
 // Manutenzione programmata ed emergenze: scadenze di legge (fermaposto che
 // l'amministratore approva per programmarle per tutti) e segnalazioni
@@ -17,6 +19,13 @@ const todayIso = () => new Date().toISOString().slice(0, 10)
 const daysTo = (d) => Math.round((new Date(d + 'T00:00:00') - new Date(todayIso() + 'T00:00:00')) / 86400000)
 const every = (m) => (m % 12 === 0 ? (m === 12 ? 'ogni anno' : `ogni ${m / 12} anni`) : `ogni ${m} mesi`)
 
+const TABS = [
+  ['calendario', 'Calendario', CalendarDays],
+  ['segnalazioni', 'Segnalazioni', TriangleAlert],
+  ['fornitori', 'Fornitori', Users],
+  ['panoramica', 'Panoramica', ChartColumn],
+]
+
 export default function MaintenancePage({ building }) {
   const base = `/edificio/${building.id}/condominio`
   const { isCondoAdmin, loading: roleLoading } = useCondoRole(building.id)
@@ -24,9 +33,14 @@ export default function MaintenancePage({ building }) {
   const sp = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
-  const tab = sp.get('tab') === 'segnalazioni' ? 'segnalazioni' : 'scadenze'
-  const setTab = (t) => router.replace(`${pathname}${t === 'segnalazioni' ? '?tab=segnalazioni' : ''}`, { scroll: false })
+  const tab = TABS.some(([k]) => k === sp.get('tab')) ? sp.get('tab') : 'calendario'
+  const setTab = (t) => router.replace(`${pathname}${t === 'calendario' ? '' : `?tab=${t}`}`, { scroll: false })
   const [open, setOpen] = useState(() => sp.get('item'))
+  const [plan, setPlan] = useState(0)
+  // ?item= anche quando arriva dal calendario della stessa pagina
+  const itemParam = sp.get('item')
+  const [lastItem, setLastItem] = useState(itemParam)
+  if (itemParam !== lastItem) { setLastItem(itemParam); if (itemParam) setOpen(itemParam) }
 
   if (!roleLoading && !isCondoAdmin) {
     return (
@@ -38,32 +52,175 @@ export default function MaintenancePage({ building }) {
   }
 
   const openTickets = m.tickets.length
-  const emergencies = m.tickets.filter((t) => t.urgency === 'emergency').length
   const item = open ? m.items.find((x) => x.id === open) : null
 
   return (
-    <div className="acc-wrap" style={{ maxWidth: 900 }}>
+    <div className="acc-wrap mnt-wrap" style={{ maxWidth: 1180 }}>
       <Link href={base} className="acc-back">‹ Torna al condominio</Link>
       <header style={{ marginBottom: 14 }}>
-        <h1 className="acc-h1">Manutenzioni ed emergenze</h1>
-        <p className="rc-muted" style={{ margin: 0 }}>Scadenze di legge da programmare e segnalazioni dei condomini in ordine di urgenza.</p>
+        <h1 className="acc-h1">Manutenzione</h1>
+        <p className="rc-muted" style={{ margin: 0 }}>Programmate, emergenze e scadenze di legge.</p>
       </header>
 
-      <div className="acc-tabs" role="tablist">
-        <button type="button" role="tab" aria-selected={tab === 'scadenze'} className={tab === 'scadenze' ? 'is-on' : ''} onClick={() => setTab('scadenze')}>
-          <CalendarClock size={16} aria-hidden="true" />Scadenze di legge
-        </button>
-        <button type="button" role="tab" aria-selected={tab === 'segnalazioni'} className={tab === 'segnalazioni' ? 'is-on' : ''} onClick={() => setTab('segnalazioni')}>
-          <Siren size={16} aria-hidden="true" />Segnalazioni{openTickets ? ` (${openTickets})` : ''}{emergencies ? ' ·  ⚠' : ''}
-        </button>
+      <div className="mnt-tabs" role="tablist">
+        {TABS.map(([k, l, Icon]) => (
+          <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? 'is-on' : ''} onClick={() => setTab(k)}>
+            <Icon size={18} aria-hidden="true" />{l}
+            {k === 'segnalazioni' && openTickets > 0 && <span className="mnt-badge">{openTickets}</span>}
+          </button>
+        ))}
       </div>
 
       {m.error && <p className="acc-msg" style={{ color: '#B42318' }}>{m.error}</p>}
-      {m.loading ? <p className="rc-muted">Caricamento…</p> : tab === 'scadenze'
-        ? <Deadlines m={m} onOpen={setOpen} />
-        : <Tickets m={m} />}
+
+      {tab === 'calendario' && (
+        <>
+          <CondorBanner m={m} onTickets={() => setTab('segnalazioni')} />
+          <div className="acc-card mnt-cal">
+            <BoardPage buildingId={building.id} embedded createSignal={plan} createType="maintenance" />
+          </div>
+          <NextDeadlines m={m} onOpen={setOpen} onAll={() => setTab('panoramica')} />
+          <div className="mnt-actions">
+            <Link href={`${base}/bacheca`} className="acc-btn is-primary"><Plus size={18} aria-hidden="true" />Nuova segnalazione</Link>
+            <button type="button" className="acc-btn" onClick={() => setPlan((n) => n + 1)}><CalendarPlus size={18} aria-hidden="true" />Pianifica manutenzione</button>
+          </div>
+        </>
+      )}
+      {tab === 'segnalazioni' && (m.loading ? <p className="rc-muted">Caricamento…</p> : <Tickets m={m} />)}
+      {tab === 'fornitori' && (m.loading ? <p className="rc-muted">Caricamento…</p> : <Suppliers m={m} base={base} />)}
+      {tab === 'panoramica' && (m.loading ? <p className="rc-muted">Caricamento…</p> : <><Overview m={m} /><Deadlines m={m} onOpen={setOpen} /></>)}
 
       {item && <ScheduleSheet item={item} m={m} onClose={() => setOpen(null)} />}
+    </div>
+  )
+}
+
+// Icona e colore per tipo di scadenza
+const KIND_STYLE = {
+  lift: { Icon: ArrowUpDown, color: 'var(--teal-dk)', bg: 'var(--teal-lt)' },
+  heating: { Icon: Flame, color: '#C4320A', bg: '#FEF0C7' },
+  extinguishers: { Icon: FireExtinguisher, color: '#B42318', bg: '#FEE4E2' },
+  fire: { Icon: ShieldCheck, color: '#067647', bg: '#ECFDF3' },
+  earthing: { Icon: Zap, color: '#6941C6', bg: '#F4F3FF' },
+}
+const kindStyle = (kind) => KIND_STYLE[
+  kind.startsWith('lift') ? 'lift' : kind.startsWith('heating') ? 'heating' : kind === 'extinguishers' ? 'extinguishers' : kind.startsWith('fire') ? 'fire' : 'earthing']
+const SHORT = {
+  lift_maintenance: ['Ascensore', 'Manutenzione semestrale'], lift_inspection: ['Ascensore', 'Verifica periodica'],
+  heating_maintenance: ['Caldaia', 'Manutenzione annuale'], heating_efficiency: ['Caldaia', 'Controllo di efficienza'],
+  extinguishers: ['Estintori', 'Controllo semestrale'], fire_hydrants: ['Antincendio', 'Idranti e naspi'],
+  fire_doors: ['Antincendio', 'Porte tagliafuoco'], fire_cpi: ['Antincendio', 'Rinnovo CPI'], earthing: ['Impianto elettrico', 'Messa a terra'],
+}
+
+function dueChip(x) {
+  if (x.status === 'scheduled') return { text: `Il ${new Date(x.scheduled_date + 'T00:00:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}`, cls: 'is-ok' }
+  const d = daysTo(x.next_due)
+  if (d < 0) return { text: `Scaduta da ${-d} ${d === -1 ? 'giorno' : 'giorni'}`, cls: 'is-late' }
+  if (d === 0) return { text: 'Oggi', cls: 'is-late' }
+  return { text: `Tra ${d} ${d === 1 ? 'giorno' : 'giorni'}`, cls: d <= 30 ? 'is-soon' : 'is-later' }
+}
+
+function CondorBanner({ m, onTickets }) {
+  const toTriage = m.tickets.filter((t) => t.triaged_by !== 'ai' && t.triaged_by !== 'admin').length
+  return (
+    <div className="mnt-condor">
+      <span className="mnt-condor-icon"><Sparkles size={24} aria-hidden="true" /></span>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <strong>Condor AI</strong>
+        <p>Smista le segnalazioni, propone il fornitore più adatto e ti ricorda le scadenze di legge.</p>
+      </div>
+      {toTriage > 0 && <button type="button" className="acc-btn" onClick={onTickets}>Smista {toTriage}</button>}
+    </div>
+  )
+}
+
+function NextDeadlines({ m, onOpen, onAll }) {
+  const list = m.items
+    .filter((x) => x.status === 'placeholder' || x.status === 'scheduled')
+    .sort((a, b) => (a.scheduled_date || a.next_due).localeCompare(b.scheduled_date || b.next_due))
+    .slice(0, 4)
+  return (
+    <section style={{ marginTop: 22 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
+        <h2 style={{ fontSize: 19, fontWeight: 800, margin: 0 }}>Prossime scadenze obbligatorie</h2>
+        <button type="button" onClick={onAll} className="mnt-link">Vedi tutte <ArrowRight size={16} aria-hidden="true" /></button>
+      </div>
+      <div className="acc-card" style={{ padding: 0 }}>
+        {m.loading ? <p className="rc-muted" style={{ padding: 16, margin: 0 }}>Caricamento…</p> : list.length === 0 ? (
+          <div className="acc-empty"><CheckCircle2 size={28} aria-hidden="true" /><strong>Nessuna scadenza aperta</strong></div>
+        ) : (
+          <ul className="ppl-list mnt-due">
+            {list.map((x) => {
+              const st = kindStyle(x.kind)
+              const [name, what] = SHORT[x.kind] || [x.title, '']
+              const chip = dueChip(x)
+              return (
+                <li key={x.id} className="is-link">
+                  <button type="button" className="ppl-row-link" onClick={() => onOpen(x.id)} aria-label={`Apri ${x.title}`} style={{ background: 'none', border: 'none', padding: 0 }} />
+                  <span className="mnt-kind" style={{ background: st.bg, color: st.color, border: x.status === 'placeholder' ? `1.5px dashed ${st.color}` : 'none' }}><st.Icon size={22} aria-hidden="true" /></span>
+                  <span className="ppl-main">
+                    <strong>{name}</strong>
+                    <small>{what}{x.legal_basis ? ` (${x.legal_basis.split(',')[0].split(' e ')[0]})` : ''}</small>
+                  </span>
+                  <span className={`mnt-chip ${chip.cls}`}>{chip.text}</span>
+                  <ChevronRight size={18} aria-hidden="true" className="ppl-chev" style={{ flexShrink: 0, color: 'var(--text-3)' }} />
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function Suppliers({ m, base }) {
+  return (
+    <>
+      <div className="acc-card" style={{ padding: 0 }}>
+        {m.suppliers.length === 0 ? (
+          <div className="acc-empty"><Users size={28} aria-hidden="true" /><strong>Nessun fornitore in rubrica</strong><p>Aggiungili per ricevere da Condor la ditta giusta per ogni segnalazione e scadenza.</p></div>
+        ) : (
+          <ul className="ppl-list">
+            {m.suppliers.map((s) => (
+              <li key={s.id}>
+                <span className="ppl-avatar"><Wrench size={18} aria-hidden="true" /></span>
+                <span className="ppl-main">
+                  <strong>{s.company || s.name}</strong>
+                  <small>{[maintenanceCategoryLabel(s.category), s.company && s.name !== s.company ? s.name : null].filter(Boolean).join(' · ')}</small>
+                </span>
+                {s.phone && <a className="acc-btn" href={`tel:${s.phone.replace(/\s/g, '')}`} aria-label={`Chiama ${s.company || s.name}`}><Phone size={15} aria-hidden="true" />Chiama</a>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <Link href={`${base}/fornitori-condominio`} className="mnt-link" style={{ marginTop: 12, display: 'inline-flex' }}>Contratti, DURC e polizze <ArrowRight size={16} aria-hidden="true" /></Link>
+    </>
+  )
+}
+
+function Overview({ m }) {
+  const active = m.items.filter((x) => x.status === 'placeholder' || x.status === 'scheduled')
+  const overdue = active.filter((x) => x.status === 'placeholder' && x.next_due < todayIso()).length
+  const soon = active.filter((x) => x.status === 'placeholder' && x.next_due >= todayIso() && daysTo(x.next_due) <= 30).length
+  const scheduled = active.filter((x) => x.status === 'scheduled').length
+  const year = String(new Date().getFullYear())
+  const doneYear = m.items.filter((x) => x.status === 'done' && (x.done_at || '').startsWith(year)).length
+  const urgent = m.tickets.filter((t) => t.urgency === 'emergency' || t.urgency === 'high').length
+  const kpis = [
+    ['Scadenze superate', overdue, overdue ? '#B42318' : null],
+    ['In scadenza entro 30 giorni', soon, soon ? '#B54708' : null],
+    ['Programmate', scheduled, null],
+    [`Fatte nel ${year}`, doneYear, null],
+    ['Segnalazioni aperte', m.tickets.length, null],
+    ['Urgenti o emergenze', urgent, urgent ? '#B42318' : null],
+  ]
+  return (
+    <div className="mnt-kpis">
+      {kpis.map(([l, v, c]) => (
+        <div key={l} className="acc-card mnt-kpi"><b style={c ? { color: c } : undefined}>{v}</b><small>{l}</small></div>
+      ))}
     </div>
   )
 }

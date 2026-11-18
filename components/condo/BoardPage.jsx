@@ -47,7 +47,10 @@ const timeRange = (ev) => ev.time_start
   ? ev.time_start.slice(0, 5) + (ev.time_end ? ` - ${ev.time_end.slice(0, 5)}` : '')
   : 'Tutto il giorno'
 
-export default function BoardPage({ buildingId }) {
+// embedded: dentro un'altra pagina (es. Manutenzione), senza link di ritorno
+// e senza "+" flottante; createSignal (numero) apre il modulo di un nuovo
+// appuntamento di tipo createType.
+export default function BoardPage({ buildingId, embedded = false, createSignal = 0, createType = null }) {
   const isMobile = useIsMobile()
   const today = new Date()
   const todayIso = toLocalISODate(today)
@@ -58,6 +61,11 @@ export default function BoardPage({ buildingId }) {
   const [pickedIso, setPickedIso] = useState(null)   // ultima data scelta dal selettore
   const [creating, setCreating] = useState(false)    // false | { date } | evento da modificare
   const [justCreated, setJustCreated] = useState(null) // evento appena creato (conferma)
+  const [lastSignal, setLastSignal] = useState(createSignal)
+  if (createSignal !== lastSignal) {
+    setLastSignal(createSignal)
+    if (createSignal) setCreating({ date: toLocalISODate(new Date()), type: createType })
+  }
   const [query, setQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [view, setViewState] = useState('month')     // 'week' | 'month' | 'list'
@@ -169,10 +177,10 @@ export default function BoardPage({ buildingId }) {
   const grid = buildGrid(year, month)
 
   return (
-    <div style={{ maxWidth: 1180, margin: '0 auto', padding: isMobile ? '14px 6px 96px' : '24px 24px 96px' }}>
-      <Link href={`/edificio/${buildingId}/condominio`} style={{ display: 'inline-block', fontSize: 14, fontWeight: 600, color: 'var(--teal)', margin: isMobile ? '0 6px 12px' : '0 0 14px' }}>
+    <div style={embedded ? { padding: isMobile ? '0' : '0' } : { maxWidth: 1180, margin: '0 auto', padding: isMobile ? '14px 6px 96px' : '24px 24px 96px' }}>
+      {!embedded && <Link href={`/edificio/${buildingId}/condominio`} style={{ display: 'inline-block', fontSize: 14, fontWeight: 600, color: 'var(--teal)', margin: isMobile ? '0 6px 12px' : '0 0 14px' }}>
         ‹ Torna al condominio
-      </Link>
+      </Link>}
 
       {/* ---- Toolbar ---- */}
       <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 10, padding: isMobile ? '0 6px' : 0, marginBottom: 14 }}>
@@ -401,7 +409,7 @@ export default function BoardPage({ buildingId }) {
       )}
 
       {/* ---- "+" flottante ---- */}
-      {isMobile && (
+      {isMobile && !embedded && (
         <button
           onClick={() => setCreating({ date: todayIso })}
           aria-label="Nuovo appuntamento"
@@ -527,6 +535,7 @@ export default function BoardPage({ buildingId }) {
           isMobile={isMobile}
           initial={creating.id ? creating : null}
           defaultDate={creating.date}
+          defaultType={creating.type}
           onClose={() => setCreating(false)}
           onSubmit={async (values) => {
             const isNew = !creating.id
@@ -684,7 +693,7 @@ function IconButton({ onClick, label, active = false, children }) {
   )
 }
 
-function EventFormModal({ isMobile, initial, defaultDate, onClose, onSubmit }) {
+function EventFormModal({ isMobile, initial, defaultDate, defaultType, onClose, onSubmit }) {
   const [values, setValues] = useState({
     title: initial?.title ?? '',
     description: initial?.description ?? '',
@@ -692,7 +701,7 @@ function EventFormModal({ isMobile, initial, defaultDate, onClose, onSubmit }) {
     eventDate: initial?.event_date ?? defaultDate ?? '',
     timeStart: initial?.time_start?.slice(0, 5) ?? '',
     timeEnd: initial?.time_end?.slice(0, 5) ?? '',
-    eventType: initial?.event_type ?? 'general',
+    eventType: initial?.event_type ?? defaultType ?? 'general',
   })
   const [error, setError] = useState(null)
   const [saving, setSaving] = useState(false)

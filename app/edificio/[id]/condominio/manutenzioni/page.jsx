@@ -11,7 +11,7 @@ export async function generateStaticParams() {
 }
 
 export const metadata = {
-  title: 'Manutenzioni ed emergenze',
+  title: 'Manutenzione',
 }
 
 export default async function Page({ params }) {

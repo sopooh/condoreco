@@ -32,8 +32,16 @@ async function courtesyEmails(svc: any, o: {
 }) {
   const key = Deno.env.get('RESEND_API_KEY')
   if (!key) return { sent: 0, skipped: 'email not configured' }
-  const from = Deno.env.get('NOTICE_EMAIL_FROM') || 'Condoreco <hello@condoreco.com>'
+  const from = Deno.env.get('NOTICE_EMAIL_FROM') || 'Condoreco <notifiche@mail.condoreco.com>'
   const siteUrl = Deno.env.get('SITE_URL') || 'https://www.condoreco.com'
+
+  // una sola volta per convocazione e per verbale: un nuovo invio ai destinatari
+  // falliti non deve rimandare la copia di cortesia a tutti
+  const col = o.purpose === 'convocation' ? 'convocation_emailed_at' : 'minutes_emailed_at'
+  const { data: claimed, error: cErr } = await svc.from('condo_assemblies')
+    .update({ [col]: new Date().toISOString() }).eq('id', o.assemblyId).is(col, null).select('id')
+  if (cErr) console.error('[assembly-send] email claim', cErr.message)
+  if (!claimed?.length) return { sent: 0, already: true }
 
   // canale ufficiale per persona (per dire come arriva la copia valida)
   const { data: recs } = await svc.from('condo_assembly_recipients').select('user_id, channel, person_id')
@@ -74,7 +82,7 @@ async function courtesyEmails(svc: any, o: {
       ? `È stata convocata l'assemblea "${o.title}" del ${o.condoName}. Prima convocazione: ${fmtDateTime(o.firstCall)}.`
       : `È disponibile il verbale dell'assemblea "${o.title}" del ${o.condoName}, con il riassunto per chi non c'era.`
     return {
-      from, to: [email], subject,
+      from, reply_to: 'hello@condoreco.com', to: [email], subject,
       text: `${lead}\n\nTrovi il documento in allegato e su Condoreco: ${siteUrl}${o.link}\n\n${official} Questa email è una copia di cortesia.\n\nRicevi questa email perché sei un condomino di questo edificio.`,
       html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#1F2937">
         <div style="background:#0D676F;color:#fff;padding:18px 22px;border-radius:14px 14px 0 0;font-weight:700;font-size:18px">${esc(subject)}</div>
@@ -94,7 +102,7 @@ async function courtesyEmails(svc: any, o: {
   for (const mail of batch) {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'Idempotency-Key': `assembly-${o.assemblyId}-${o.purpose}-${mail.to[0]}`.slice(0, 256) },
       body: JSON.stringify(mail),
     })
     if (r.ok) sent++

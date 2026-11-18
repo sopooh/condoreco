@@ -62,6 +62,7 @@ const PROCESSORS = [
   ['Anthropic', 'Condor, l\'assistente AI: controllo dei documenti di residenza, ricerca nei documenti del condominio, riassunti delle chat', 'USA, con clausole contrattuali standard previste dal suo accordo sul trattamento dei dati; i dati inviati non vengono usati per addestrare i modelli'],
   ['OpenAI Ireland Ltd (OpenAI)', 'trascrizione dell\'audio delle assemblee condominiali per preparare la bozza del verbale', 'contratto con la società irlandese (UE); il servizio può trattare i dati anche negli USA, con clausole contrattuali standard; i dati inviati non vengono usati per addestrare i modelli'],
   ['Openapi S.p.A.', 'invio delle convocazioni di assemblea via PEC e ricevute di accettazione e consegna', 'Italia (UE)'],
+  ['Plus Five Five, Inc. (Resend)', 'invio delle email di servizio: avvisi dei vicini, copie di cortesia di convocazioni e verbali, promemoria e ricevute delle rate (riceve indirizzo email, nome del condominio e testo dell\'avviso)', 'invio dai server UE (Irlanda); società statunitense aderente al Data Privacy Framework UE-USA'],
 ]
 
 export default function PrivacyPolicy() {
@@ -230,7 +231,7 @@ export default function PrivacyPolicy() {
             </p>
             <Table head={['Fornitore', 'Servizio', 'Dove e con quali garanzie']} rows={PROCESSORS} />
             <p className="legal-paragraph">
-              Se in futuro attiveremo pagamenti online (Stripe) o un servizio di invio email (Resend), aggiorneremo questa tabella prima dell&apos;attivazione. I trasferimenti fuori dallo Spazio economico europeo avvengono solo verso Paesi con decisione di adeguatezza o con le garanzie del Capo V del GDPR (Data Privacy Framework, clausole contrattuali standard).
+              Se in futuro attiveremo pagamenti online (Stripe), aggiorneremo questa tabella prima dell&apos;attivazione. I trasferimenti fuori dallo Spazio economico europeo avvengono solo verso Paesi con decisione di adeguatezza o con le garanzie del Capo V del GDPR (Data Privacy Framework, clausole contrattuali standard).
             </p>
             <p className="legal-paragraph">
               I dati possono essere comunicati anche a consulenti del titolare vincolati alla riservatezza e alle autorità, quando lo impone la legge.

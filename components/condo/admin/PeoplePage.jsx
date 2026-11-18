@@ -53,6 +53,7 @@ export default function PeoplePage({ building }) {
             {isCondoAdmin && totMill > 0 ? ` · ${totMill.toLocaleString('it-IT')}‰ assegnati` : ''}
           </p>
         </div>
+        <Link href={`${base}/unita`} className="acc-btn">{isCondoAdmin ? 'Unità e millesimi' : 'La mia unità'}</Link>
         <button type="button" className="acc-btn is-primary" onClick={invite}><Share2 size={16} aria-hidden="true" />{copied ? 'Link copiato' : 'Invita condomini'}</button>
       </header>
 

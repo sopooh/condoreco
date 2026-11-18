@@ -3505,3 +3505,13 @@ a.ci-card.ci-row { border: 1px solid var(--border); }
 .pl-row-btn.is-main { background: var(--teal); border-color: var(--teal); color: #fff; }
 .pl-row-btn:disabled { opacity: .5; cursor: default; }
 @media (max-width: 480px) { .pl-row { padding: 16px 14px; } .pl-row-av { width: 56px; height: 56px; } .pl-row-name { font-size: 17.5px; } .pl-row-meta { font-size: 13px; } .pl-row-meta span { padding: 0 9px; } }
+
+/* Banner consenso cookie */
+.cookie-banner { position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 9200; width: min(440px, calc(100vw - 32px)); background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px rgba(15,23,42,.18); padding: 18px 18px 16px; }
+.cookie-banner-close { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--text-3); cursor: pointer; padding: 4px; border-radius: 6px; }
+.cookie-banner-close:hover { color: var(--text); background: var(--border-2); }
+.cookie-banner-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px; padding-right: 28px; }
+.cookie-banner-text { font-size: 13px; line-height: 1.5; color: var(--text-2); }
+.cookie-banner-link { color: var(--teal); font-weight: 600; text-decoration: underline; }
+.cookie-banner-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.cookie-banner-btn { cursor: pointer; }

@@ -11,6 +11,7 @@ import { uploadPhoto } from '@/lib/photos'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
 import { useMyReview } from '@/hooks/useMyReview'
+import { track } from '@/lib/analytics'
 
 function DotRating({ value, onChange, size = 28 }) {
   return (
@@ -135,6 +136,12 @@ export default function ReviewForm({
       if (extras.photos && photos.length > 0) {
         await Promise.all(photos.map((f) => uploadPhoto(f.blob, entityId, reviewId))).catch(console.warn)
       }
+      track('review_submitted', {
+        submission_type: existingReview ? 'update' : 'create',
+        subject_type: extras.issues ? 'building' : 'administrator',
+        score,
+        photo_count: photos.length,
+      })
       onClose()
       await fetchMyReview()
       router.refresh()

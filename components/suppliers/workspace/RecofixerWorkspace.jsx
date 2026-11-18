@@ -12,6 +12,7 @@ import { useInterventionFiles, FILE_KINDS, euro } from '@/hooks/useInterventionF
 import InterventionFiles from '@/components/suppliers/InterventionFiles'
 import TeamWorkspace from '@/components/team/TeamWorkspace'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { track } from '@/lib/analytics'
 
 // Area Recofixer: interventi, calendario, squadra e documenti del fornitore.
 // Su desktop lista e dettaglio affiancati; su mobile il dettaglio si apre a
@@ -299,6 +300,17 @@ function InterventionDetail({ i, team, onBack, onChat, onChanged, demo, mobile =
     const { error } = await createClient().rpc(fn, args)
     setBusy(false)
     if (error) { setErr(/past/.test(error.message) ? 'La data non può essere nel passato.' : 'Operazione non riuscita. Riprova.'); return false }
+    if (fn === 'supplier_propose_date') {
+      track('supplier_appointment_proposed', {
+        intervention_status: i.status,
+        has_time_range: Boolean(args.p_start || args.p_end),
+      })
+    }
+    if (fn === 'supplier_complete') {
+      track('supplier_intervention_completed', {
+        intervention_status: i.status,
+      })
+    }
     setMsg(ok)
     onChanged?.()
     return true

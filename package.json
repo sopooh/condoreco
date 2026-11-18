@@ -14,11 +14,8 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^1.71.0",
     "next": "16.2.10",
-<<<<<<< HEAD
     "pdf-lib": "^1.17.1",
-=======
     "posthog-js": "^1.449.2",
->>>>>>> 6cad09c (Analytics: PostHog (cloud UE) con banner consenso cookie)
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "read-excel-file": "^9.3.15",

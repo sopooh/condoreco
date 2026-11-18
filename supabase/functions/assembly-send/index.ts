@@ -1,0 +1,165 @@
+// Invio della convocazione o del verbale di un'assemblea.
+// 1. Controlla i requisiti di legge (5 giorni prima, consenso per la videoconferenza).
+// 2. Crea il PDF e lo salva nell'archivio documenti (categoria Assemblee, condiviso).
+// 3. Spedisce a ogni titolare con il canale legale: PEC se ha una PEC, altrimenti
+//    raccomandata online (Openapi.it). La consegna a mano la segna l'amministratore.
+// 4. Avvisa in app tutti i membri del condominio (copia di cortesia).
+// Body: { assembly_id, purpose: 'convocation' | 'minutes', dry_run?: boolean }
+// dry_run: crea solo il PDF, senza spedire (anteprima).
+import { createClient } from 'npm:@supabase/supabase-js@2'
+import {
+  CORS, json, fmtDateTime, MAJORITY_LABEL, textPdf, openapiConfigured, sendPec, sendRaccomandata, type Sender,
+} from '../_shared/assembly.ts'
+
+const BUCKET = 'condo-documents'
+const MIN_NOTICE_MS = 5 * 24 * 3600 * 1000
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
+  if (req.method !== 'POST') return json({ error: 'method not allowed' }, 405)
+  try {
+    const { assembly_id, purpose = 'convocation', dry_run = false } = await req.json().catch(() => ({}))
+    if (!assembly_id || !['convocation', 'minutes'].includes(purpose)) return json({ error: 'Richiesta non valida' }, 400)
+
+    const url = Deno.env.get('SUPABASE_URL')!
+    const userClient = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } },
+    })
+    const { data: { user } } = await userClient.auth.getUser()
+    if (!user) return json({ error: 'Non autenticato' }, 401)
+    const svc = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
+
+    const { data: a, error: aErr } = await svc.from('condo_assemblies').select('*').eq('id', assembly_id).maybeSingle()
+    if (aErr || !a) return json({ error: 'Assemblea non trovata' }, 404)
+    const { data: isAdmin } = await userClient.rpc('is_condo_admin', { p_building: a.building_id })
+    if (!isAdmin) return json({ error: 'Solo l\'amministratore può inviare' }, 403)
+
+    const { data: b } = await svc.from('buildings').select('address, street_number, city').eq('id', a.building_id).maybeSingle()
+    const condoName = `Condominio di ${[b?.address, b?.street_number].filter(Boolean).join(' ')}${b?.city ? `, ${b.city}` : ''}`
+    const { data: items } = await svc.from('condo_assembly_items').select('position, title, description, majority_rule').eq('assembly_id', a.id).order('position')
+
+    // ---- requisiti ----
+    if (purpose === 'convocation') {
+      if (!a.first_call_at || !a.second_call_at) return json({ error: 'Indica data e ora di prima e seconda convocazione.' }, 422)
+      if (!items?.length) return json({ error: 'Aggiungi almeno un punto all\'ordine del giorno.' }, 422)
+      if (!dry_run && new Date(a.first_call_at).getTime() - Date.now() < MIN_NOTICE_MS) {
+        return json({ error: 'La convocazione deve arrivare almeno 5 giorni prima della prima convocazione (art. 66 disp. att. c.c.). Sposta la data.' }, 422)
+      }
+      if (a.mode !== 'in_person' && !a.video_by_regulation) {
+        const { data: cs } = await userClient.rpc('assembly_video_consent_status', { p_assembly: a.id })
+        if (!dry_run && !cs?.reached) return json({ error: 'Per la videoconferenza serve prima il consenso della maggioranza dei condomini (art. 66 disp. att. c.c.).' }, 422)
+      }
+      if (a.mode !== 'in_person' && !a.video_link) return json({ error: 'Indica il link del collegamento video.' }, 422)
+    } else {
+      const { data: m } = await svc.from('condo_assembly_minutes').select('draft, finalized_at').eq('assembly_id', a.id).maybeSingle()
+      if (!m?.finalized_at || !m.draft) return json({ error: 'Approva prima il testo definitivo del verbale.' }, 422)
+    }
+
+    // ---- PDF ----
+    let title: string, body: string
+    if (purpose === 'convocation') {
+      title = `${condoName}: convocazione di assemblea ${a.kind === 'extraordinary' ? 'straordinaria' : 'ordinaria'}`
+      const where = a.mode === 'video' ? `in videoconferenza (${a.video_link})`
+        : a.mode === 'mixed' ? `presso ${a.location || 'luogo da indicare'} e in videoconferenza (${a.video_link})`
+        : `presso ${a.location || 'luogo da indicare'}`
+      body = [
+        'Gentili condomini,',
+        `è convocata l'assemblea ${a.kind === 'extraordinary' ? 'straordinaria' : 'ordinaria'} del condominio ${where}:`,
+        `**Prima convocazione: ${fmtDateTime(a.first_call_at)}**`,
+        `**Seconda convocazione: ${fmtDateTime(a.second_call_at)}**`,
+        '',
+        '## Ordine del giorno',
+        ...(items ?? []).flatMap((it) => [`**${it.position}. ${it.title}**`, ...(it.description ? [it.description] : []), `Maggioranza richiesta: ${MAJORITY_LABEL[it.majority_rule] || ''}`, '']),
+        '## Deleghe',
+        "Chi non può partecipare può delegare per iscritto un'altra persona (art. 67 disp. att. c.c.), anche direttamente da Condoreco. L'amministratore non può ricevere deleghe.",
+        ...(a.mode !== 'in_person' ? ['', '## Partecipazione in videoconferenza', 'Il collegamento sarà attivo 15 minuti prima dell\'orario. Tieni a portata di mano un documento per l\'identificazione.'] : []),
+        ...(a.notes ? ['', a.notes] : []),
+        '',
+        `${fmtDateTime(new Date().toISOString())}`,
+        'L\'amministratore',
+      ].join('\n')
+    } else {
+      const { data: m } = await svc.from('condo_assembly_minutes').select('draft').eq('assembly_id', a.id).maybeSingle()
+      title = `${condoName}: verbale dell'assemblea del ${new Date(a.opened_at || a.first_call_at).toLocaleDateString('it-IT', { timeZone: 'Europe/Rome' })}`
+      body = m!.draft!
+    }
+    const pdf = await textPdf(title, body, condoName)
+
+    const stamp = Date.now()
+    const path = `${a.building_id}/assemblies/${a.id}-${purpose}-${stamp}.pdf`
+    const { error: upErr } = await svc.storage.from(BUCKET).upload(path, pdf, { contentType: 'application/pdf' })
+    if (upErr) { console.error('[assembly-send] upload', upErr.message); return json({ error: 'Non riesco a salvare il PDF' }, 500) }
+    const docTitle = purpose === 'convocation' ? `Convocazione: ${a.title}` : `Verbale: ${a.title}`
+    const { data: doc, error: dErr } = await svc.from('condo_documents').insert({
+      building_id: a.building_id, uploaded_by: user.id, category: 'assemblies', title: docTitle.slice(0, 160),
+      doc_date: new Date().toISOString().slice(0, 10), visibility: dry_run ? 'restricted' : 'shared',
+      file_path: path, file_name: `${purpose === 'convocation' ? 'convocazione' : 'verbale'}-assemblea.pdf`,
+      mime_type: 'application/pdf', size_bytes: pdf.byteLength,
+    }).select('id').single()
+    if (dErr) { console.error('[assembly-send] doc', dErr.message); return json({ error: 'Non riesco a salvare il PDF' }, 500) }
+    if (dry_run) {
+      const { data: signed } = await svc.storage.from(BUCKET).createSignedUrl(path, 600)
+      return json({ preview_url: signed?.signedUrl, document_id: doc.id })
+    }
+    await svc.from('condo_assemblies').update(purpose === 'convocation'
+      ? { convocation_document_id: doc.id, status: 'convened', convened_at: new Date().toISOString() }
+      : { minutes_document_id: doc.id }).eq('id', a.id)
+
+    // ---- destinatari ----
+    await userClient.rpc('assembly_prepare_recipients', { p_assembly: a.id, p_purpose: purpose })
+    const { data: recipients } = await svc.from('condo_assembly_recipients').select('*')
+      .eq('assembly_id', a.id).eq('purpose', purpose).in('status', ['pending', 'failed'])
+
+    const results = { pec: 0, raccomandata: 0, manual: 0, failed: 0, not_configured: false }
+    const { data: sender } = await svc.from('admin_sending_settings').select('*').eq('user_id', user.id).maybeSingle()
+    const { data: password } = await svc.rpc('get_sending_secret', { p_user: user.id })
+    const canPec = openapiConfigured() && !!sender?.pec_address && !!password
+    const canPost = openapiConfigured() && !!sender?.sender_name && !!sender?.sender_address && !!sender?.sender_cap && !!sender?.sender_city
+    if (!openapiConfigured()) results.not_configured = true
+
+    const subject = purpose === 'convocation' ? `Convocazione assemblea condominiale: ${a.title}` : `Verbale assemblea condominiale: ${a.title}`
+    const html = `<p>Gentile condomino,</p><p>in allegato ${purpose === 'convocation' ? 'la convocazione' : 'il verbale'} dell'assemblea del ${condoName}.</p><p>Puoi consultarlo anche su Condoreco.</p>`
+
+    for (const r of recipients ?? []) {
+      try {
+        let ref: string | null = null, provider: string | null = null
+        if (r.channel === 'pec' && r.pec && canPec) {
+          ref = await sendPec({ sender: sender as Sender, password: password as string, to: r.pec, subject, html, pdfName: `${purpose}.pdf`, pdf })
+          provider = 'openapi_pec'; results.pec++
+        } else if (r.channel === 'raccomandata' && r.postal?.address && r.postal?.cap && r.postal?.city && canPost) {
+          ref = await sendRaccomandata({ sender: sender as Sender, to: { name: r.full_name, address: r.postal.address, cap: r.postal.cap, city: r.postal.city, province: r.postal.province || '' }, pdf })
+          provider = 'openapi_raccomandata'; results.raccomandata++
+        } else {
+          results.manual++
+          continue // resta 'pending': l'amministratore consegna a mano o completa i dati
+        }
+        await svc.from('condo_assembly_recipients').update({ status: 'sent', provider, provider_ref: ref, sent_by: user.id, sent_at: new Date().toISOString(), error: null }).eq('id', r.id)
+        await new Promise((res) => setTimeout(res, 1100)) // PEC massiva: max 1 richiesta al secondo
+      } catch (e) {
+        results.failed++
+        const msg = e instanceof Error ? e.message : String(e)
+        console.error('[assembly-send] recipient', r.id, msg.slice(0, 200))
+        await svc.from('condo_assembly_recipients').update({ status: 'failed', error: msg.slice(0, 300) }).eq('id', r.id)
+      }
+    }
+
+    // ---- avviso in app a tutti i membri ----
+    const { data: members } = await svc.from('condo_members').select('user_id').eq('building_id', a.building_id)
+    const link = `/edificio/${a.building_id}/condominio/assemblee?a=${a.id}`
+    const notifs = (members ?? []).filter((m) => m.user_id !== user.id).map((m) => ({
+      user_id: m.user_id, building_id: a.building_id, kind: 'assembly',
+      title: purpose === 'convocation' ? `Convocata l'assemblea: ${a.title}` : `Verbale disponibile: ${a.title}`,
+      body: purpose === 'convocation' ? `Prima convocazione ${fmtDateTime(a.first_call_at)}` : 'Leggi il verbale e il riassunto',
+      link,
+    }))
+    if (notifs.length) {
+      const { error: nErr } = await svc.from('notifications').insert(notifs)
+      if (nErr) console.error('[assembly-send] notifications', nErr.message)
+    }
+
+    return json({ ok: true, document_id: doc.id, ...results })
+  } catch (e) {
+    console.error('[assembly-send]', e instanceof Error ? e.message : String(e))
+    return json({ error: 'Errore inatteso' }, 500)
+  }
+})

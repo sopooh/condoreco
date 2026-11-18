@@ -222,7 +222,8 @@ export default function AdminCondoOverview({ building }) {
           sub={adm ? (Number(adm.due_total) > 0 ? `Incassato ${Math.round((Number(adm.paid_total) / Number(adm.due_total)) * 100)}% · ${adm.overdue_people} in arretrato` : 'Quote, pagamenti e situazione economica') : 'Quote, pagamenti e situazione economica'} />
         <Tile href={`${base}/archivio`} icon={FileText} title="Documenti" sub={docs.length ? `${docs.length} ${docs.length === 1 ? 'documento' : 'documenti'} in archivio` : 'Verbali, contratti e certificazioni'} />
         <Tile href={`${base}/bacheca`} icon={Megaphone} title="Bacheca e comunicazioni" sub={openTickets ? `${openTickets} ${openTickets === 1 ? 'segnalazione aperta' : 'segnalazioni aperte'}` : 'Avvisi, segnalazioni e chat'} />
-        <Tile href={`${base}/decisioni`} icon={Vote} title="Decisioni e assemblee" sub={[openPolls ? `${openPolls} in votazione` : null, adm?.polls_to_take ? `${adm.polls_to_take} da prendere in carico` : null].filter(Boolean).join(' · ') || 'Proposte, votazioni e pratiche'} />
+        <Tile href={`${base}/decisioni`} icon={Vote} title="Proposte e sondaggi" sub={[openPolls ? `${openPolls} in votazione` : null, adm?.polls_to_take ? `${adm.polls_to_take} da prendere in carico` : null].filter(Boolean).join(' · ') || 'Proposte, votazioni e pratiche'} />
+        <Tile href={`${base}/assemblee`} icon={Gavel} title="Assemblee" sub="Convocazioni, deleghe, voti e verbale con Condor" />
         <Tile href={`${base}/unita`} icon={Table2} title="Unità e millesimi" sub="Anagrafe, proprietari, inquilini e tabelle millesimali" />
         <Tile href={`${base}/fornitori-condominio`} icon={Truck} title="Fornitori e contratti" sub="Contratti, scadenze, DURC e polizze" />
       </div>

@@ -237,7 +237,7 @@ function UnitSheet({ unit, u, people, onClose }) {
 }
 
 function PersonSheet({ person, u, linked, onClose }) {
-  const [v, setV] = useState({ email: '', phone: '', since: '', until: '', user_id: '', ...person })
+  const [v, setV] = useState({ email: '', phone: '', since: '', until: '', user_id: '', pec: '', postal_address: '', postal_cap: '', postal_city: '', postal_province: '', ...person })
   const [err, setErr] = useState(null)
   const [busy, setBusy] = useState(false)
   const choices = u.members.filter((m) => !linked.has(m.user_id) || m.user_id === person.user_id)
@@ -274,6 +274,15 @@ function PersonSheet({ person, u, linked, onClose }) {
         <Field label="Dal"><input type="date" value={v.since || ''} onChange={(e) => setV({ ...v, since: e.target.value })} /></Field>
         <Field label="Al (se è subentrato qualcuno)"><input type="date" value={v.until || ''} onChange={(e) => setV({ ...v, until: e.target.value })} /></Field>
       </div>
+      <Field label="PEC (per convocazioni e verbali)"><input value={v.pec || ''} onChange={(e) => setV({ ...v, pec: e.target.value })} maxLength={200} placeholder="Se vuoto si usa la raccomandata" /></Field>
+      <Field label="Indirizzo postale, se diverso dall'edificio"><input value={v.postal_address || ''} onChange={(e) => setV({ ...v, postal_address: e.target.value })} maxLength={200} /></Field>
+      {v.postal_address && (
+        <div style={{ display: 'grid', gridTemplateColumns: '0.8fr 1.6fr 0.6fr', gap: 8 }}>
+          <Field label="CAP"><input value={v.postal_cap || ''} onChange={(e) => setV({ ...v, postal_cap: e.target.value.replace(/\D/g, '').slice(0, 5) })} inputMode="numeric" /></Field>
+          <Field label="Comune"><input value={v.postal_city || ''} onChange={(e) => setV({ ...v, postal_city: e.target.value })} maxLength={80} /></Field>
+          <Field label="Prov."><input value={v.postal_province || ''} onChange={(e) => setV({ ...v, postal_province: e.target.value.toUpperCase().slice(0, 2) })} maxLength={2} /></Field>
+        </div>
+      )}
       {err && <p className="acc-msg" style={{ color: '#B42318' }}>{err}</p>}
       <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', marginTop: 8 }}>
         {person.id ? <button type="button" className="acc-btn" style={{ color: '#B42318' }} onClick={async () => {

@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight, Building2, CalendarDays, Coins, Home, Check, ChevronDown, ChevronRight, FolderOpen, House, Lock, Megaphone,
-  MessageCircle, Phone, Plus, Upload, UserRound, Vote, Wrench,
+  Gavel, MessageCircle, Phone, Plus, Upload, UserRound, Vote, Wrench,
 } from 'lucide-react'
 import { useMyAccount } from '@/hooks/useAccounting'
 import { euro, isOverdue } from '@/lib/accounting'
@@ -252,6 +252,7 @@ export default function ResidentCondoOverview({ building }) {
       <div className="rco-tiles">
         <Tile href={`${base}/bacheca`} icon={Megaphone} title="Bacheca" sub={openTickets.length ? `${openTickets.length} ${openTickets.length === 1 ? 'segnalazione aperta' : 'segnalazioni aperte'}` : 'Avvisi e segnalazioni'} />
         <Tile href={`${base}/archivio`} icon={FolderOpen} title="Documenti e bilanci" sub={newDocs ? `${newDocs} ${newDocs === 1 ? 'nuovo documento' : 'nuovi documenti'}` : 'Verbali, spese e documenti condivisi'} />
+        <Tile href={`${base}/assemblee`} icon={Gavel} title="Assemblee" sub="Convocazioni, deleghe e verbali" />
         <Tile href={`${base}/decisioni`} icon={Vote} title="Proposte e decisioni" sub={openPolls.length ? `${openPolls.length} ${openPolls.length === 1 ? 'sondaggio aperto' : 'sondaggi aperti'}${toVote ? ` · ${toVote} da votare` : ''}` : 'Nessuna votazione in corso'} />
         <Tile onClick={() => setContactsOpen(true)} icon={UserRound} title="Contatti utili" sub="Amministratore e manutentori" />
       </div>

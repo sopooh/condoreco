@@ -14,7 +14,7 @@ export function useUnits(buildingId) {
     const s = createClient()
     const [u, p, t, v] = await Promise.all([
       s.from('condo_units').select('id, code, kind, floor, staircase, cadastral_ref, notes').eq('building_id', buildingId).order('code'),
-      s.from('condo_unit_people').select('id, unit_id, user_id, full_name, role, share, email, phone, since, until').eq('building_id', buildingId).order('full_name'),
+      s.from('condo_unit_people').select('id, unit_id, user_id, full_name, role, share, email, phone, since, until, pec, postal_address, postal_cap, postal_city, postal_province').eq('building_id', buildingId).order('full_name'),
       s.from('condo_millesimi_tables').select('id, code, name, kind, total, document_id, notes').eq('building_id', buildingId).order('code'),
       s.from('condo_unit_millesimi').select('table_id, unit_id, value').eq('building_id', buildingId),
     ])
@@ -68,6 +68,9 @@ export function useUnits(buildingId) {
       building_id: buildingId, unit_id: person.unit_id, user_id: person.user_id || null, full_name: person.full_name.trim(),
       role: person.role, share: Number(person.share) || 100, email: person.email?.trim() || null, phone: person.phone?.trim() || null,
       since: person.since || null, until: person.until || null,
+      pec: person.pec?.trim() || null, postal_address: person.postal_address?.trim() || null,
+      postal_cap: person.postal_cap?.trim() || null, postal_city: person.postal_city?.trim() || null,
+      postal_province: person.postal_province?.trim().toUpperCase() || null,
     }
     return person.id ? run('update person', s().from('condo_unit_people').update(row).eq('id', person.id))
       : run('insert person', s().from('condo_unit_people').insert(row))

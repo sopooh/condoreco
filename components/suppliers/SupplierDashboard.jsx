@@ -1,5 +1,6 @@
 'use client'
 
+import LoginGate from '@/components/auth/LoginGate'
 import { useCallback, useEffect, useState } from 'react'
 import { Wrench } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -50,11 +51,7 @@ export default function SupplierDashboard() {
   if (!ready || supplier === undefined) return <Wrap><p style={muted}>Caricamento...</p></Wrap>
   if (!userId) {
     return (
-      <Wrap>
-        <h1 style={h1}>Area Recofixer</h1>
-        <p style={muted}>Accedi per vedere gli interventi dei condomini che ti hanno scelto.</p>
-        <button type="button" style={primary} onClick={() => window.dispatchEvent(new CustomEvent('condoreco:open-auth', { detail: { next: '/fornitore' } }))}>Accedi</button>
-      </Wrap>
+      <LoginGate title="Area Recofixer" text="Registrati o accedi per vedere gli interventi dei condomini che ti hanno scelto." next="/fornitore" />
     )
   }
   if (demo) return <RecofixerWorkspace supplier={DEMO_SUPPLIER} items={DEMO_ITEMS} demo team={team} onEdit={() => {}} onChat={() => {}} onChanged={() => {}} />

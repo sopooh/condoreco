@@ -1,5 +1,7 @@
 'use client'
 
+import LoginGate from '@/components/auth/LoginGate'
+import { Building2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/components/providers/SessionProvider'
@@ -298,10 +300,12 @@ export default function AddBuildingFlow() {
 
   if (!session) {
     return (
-      <div style={{ maxWidth: 480, margin: '80px auto', textAlign: 'center', padding: '0 24px' }}>
-        <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>Accedi per aggiungere un condominio</div>
-        <p style={{ color: 'var(--text-3)' }}>Devi essere registrato per registrare un nuovo edificio.</p>
-      </div>
+      <LoginGate
+        title="Accedi per aggiungere un condominio"
+        text="Registrati o accedi per aggiungere un nuovo edificio su Condoreco."
+        next={typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/'}
+        icon={<Building2 size={28} strokeWidth={2} />}
+      />
     )
   }
 

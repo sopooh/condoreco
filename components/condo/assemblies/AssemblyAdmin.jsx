@@ -206,7 +206,7 @@ function ConvocationTab({ A }) {
     setBusy(false)
     if (r.error) { setErr(r.error); return }
     const d = r.data || {}
-    setOk(`Convocazione pubblicata. PEC inviate: ${d.pec || 0}. Raccomandate: ${d.raccomandata || 0}. Da consegnare a mano o completare: ${d.manual || 0}.${d.failed ? ` Non riuscite: ${d.failed}.` : ''}${d.not_configured ? ' Il servizio di invio non è ancora attivo: segna le consegne a mano.' : ''}`)
+    setOk(`Convocazione pubblicata. PEC inviate: ${d.pec || 0}. Raccomandate: ${d.raccomandata || 0}. Da consegnare a mano o completare: ${d.manual || 0}.${d.failed ? ` Non riuscite: ${d.failed}.` : ''}${d.not_configured ? ' Il servizio di invio non è ancora attivo: segna le consegne a mano.' : ''}${d.emailed?.sent ? ` Email di cortesia: ${d.emailed.sent}.` : ''}`)
   }
 
   return (
@@ -250,7 +250,7 @@ function ConvocationTab({ A }) {
           <button type="button" className="acc-btn" onClick={() => setSettings(true)}><Settings size={15} aria-hidden="true" />Mittente e PEC</button>
           {['draft', 'consent'].includes(a.status) && <button type="button" className="acc-btn" onClick={() => A.prepareRecipients('convocation')}>Prepara destinatari</button>}
         </div>
-        <p className="rc-muted">Vale solo se arriva per PEC, raccomandata, fax o a mano almeno 5 giorni prima della prima convocazione. La notifica in app è una copia in più. La PEC vale solo verso chi ha una PEC.</p>
+        <p className="rc-muted">Vale solo se arriva per PEC, raccomandata, fax o a mano almeno 5 giorni prima della prima convocazione. In più ogni condomino riceve una email di cortesia con il PDF e la notifica sul sito: non sostituiscono l&apos;invio ufficiale.</p>
         {daysBefore !== null && daysBefore < 6 && ['draft', 'consent'].includes(a.status) && <p style={{ color: '#B42318', fontWeight: 700 }}><AlertTriangle size={15} aria-hidden="true" style={{ verticalAlign: '-3px' }} /> Mancano {Math.max(daysBefore, 0)} giorni alla prima convocazione: una raccomandata impiega 4-7 giorni. Sposta la data.</p>}
         <RecipientsList A={A} list={convRecipients} />
         {['draft', 'consent'].includes(a.status) && (
@@ -626,7 +626,7 @@ function MinutesTab({ A }) {
             <button type="button" className="acc-btn is-primary" disabled={!!busy} onClick={async () => {
               if (!window.confirm('Inviare il verbale a tutti i condomini con le stesse modalità della convocazione?')) return
               const r = await run('send', () => A.invoke('assembly-send', { purpose: 'minutes' }))
-              if (!r.error) { await A.update({ status: 'minutes_final' }); const d = r.data || {}; setOk(`Verbale pubblicato. PEC: ${d.pec || 0}. Raccomandate: ${d.raccomandata || 0}. Da consegnare: ${d.manual || 0}.`) }
+              if (!r.error) { await A.update({ status: 'minutes_final' }); const d = r.data || {}; setOk(`Verbale pubblicato. PEC: ${d.pec || 0}. Raccomandate: ${d.raccomandata || 0}. Da consegnare: ${d.manual || 0}.${d.emailed?.sent ? ` Email di cortesia: ${d.emailed.sent}.` : ''}`) }
             }}><Send size={15} aria-hidden="true" />{busy === 'send' ? 'Invio…' : 'Invia il verbale'}</button>
           )}
         </div>

@@ -202,6 +202,11 @@ function TicketForm({ onClose, onSubmit, onDone }) {
           </div>
         </div>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrivi il problema (dove, da quando, cosa serve)" style={{ ...field, minHeight: 90, resize: 'vertical' }} />
+        {EMERGENCY_RE.test(`${title} ${description}`.toLowerCase()) && (
+          <p role="alert" style={{ fontSize: 13.5, lineHeight: 1.45, color: '#B42318', background: '#FEE4E2', borderRadius: 10, padding: '10px 12px', margin: 0, fontWeight: 600 }}>
+            Se c&apos;è pericolo per qualcuno chiama subito il 112. Per odore di gas chiama anche il pronto intervento gas (il numero è sulla bolletta). L&apos;amministratore riceve questa segnalazione come urgente.
+          </p>
+        )}
         <p style={{ fontSize: 12, color: 'var(--text-4)', margin: 0 }}>
           Visibile solo ai residenti verificati di questo condominio.
         </p>
@@ -234,3 +239,6 @@ const field = { width: '100%', border: '1px solid var(--border)', borderRadius: 
 const fieldLabel = { fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginBottom: 6 }
 
 function AlertIcon({ size = 20 } = {}) { return <TriangleAlert size={size} strokeWidth={2} aria-hidden="true" /> }
+
+// Stesse parole chiave delle emergenze usate dal database (ticket_rules_triage)
+const EMERGENCY_RE = /(odore di gas|puzza di gas|fuga di gas|perdita di gas|fumo|incendi|fiamm|allag|intrappolat|bloccat[oaie]? (in|nell)|crollo|crollat|cediment|ceduto|scintill|cortocircuit|fili scoperti|scossa)/

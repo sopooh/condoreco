@@ -84,5 +84,6 @@ export const config = {
     '/edificio/:id/condominio/unita',
     '/edificio/:id/condominio/assemblee',
     '/edificio/:id/condominio/fornitori-condominio',
+    '/edificio/:id/condominio/manutenzioni',
   ],
 }

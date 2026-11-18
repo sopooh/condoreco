@@ -215,7 +215,7 @@ export default function AdminCondoOverview({ building }) {
 
       <h2 className="aco-h2"><Layers size={22} aria-hidden="true" />Gestisci il condominio</h2>
       <div className="aco-grid">
-        <Tile href={`${base}/persone`} icon={Users} title="Persone e unità" sub={members == null ? 'Anagrafiche e accessi' : `${members} condomini iscritti${units ? ` su ${units} unità` : ''}`} />
+        <Tile href={`${base}/persone`} icon={Users} title="Persone" sub={members == null ? 'Anagrafiche e accessi' : `${members} condomini iscritti${units ? ` su ${units} unità` : ''}`} />
         <Tile href={`${base}/pratiche`} icon={Wrench} title="Interventi e preventivi"
           sub={[`${openInterventions} ${openInterventions === 1 ? 'intervento aperto' : 'interventi aperti'}`, adm?.quotes_received ? `${adm.quotes_received} ${adm.quotes_received === 1 ? 'preventivo ricevuto' : 'preventivi ricevuti'}` : null].filter(Boolean).join(' · ')} />
         <Tile href={`${base}/rendicontazione`} icon={Coins} title="Contabilità e bilancio"

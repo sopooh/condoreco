@@ -5,6 +5,7 @@ import { KeyRound, House, Info } from 'lucide-react'
 import { FloorPicker } from '@/components/condo/NeighbourNotice'
 import { parseMillesimi } from '@/hooks/useNeighbourNotices'
 import MillesimiEstimator from '@/components/condo/MillesimiEstimator'
+import { cleanName, legalNameError } from '@/lib/legalName'
 
 // Dati dell'unità del residente: proprietario o inquilino, millesimi
 // (obbligatori per i proprietari) e piano. Con withRegistry (iscrizione)
@@ -18,17 +19,22 @@ export default function UnitForm({ building, buildingId, initial, submitLabel = 
   const [floor, setFloor] = useState(initial?.floor ?? null)
   const [unitCode, setUnitCode] = useState(initial?.unitCode ?? '')
   const [pec, setPec] = useState(initial?.pec ?? '')
+  const [firstName, setFirstName] = useState(initial?.firstName ?? '')
+  const [lastName, setLastName] = useState(initial?.lastName ?? '')
+  const [touched, setTouched] = useState(false)
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState(null)
 
   const millValue = parseMillesimi(mill)
   const millInvalid = tenure === 'owner' && mill.trim() !== '' && millValue == null
   const pecInvalid = withRegistry && pec.trim() !== '' && !PEC_RE.test(pec.trim())
-  const canSave = (tenure === 'tenant' || (tenure === 'owner' && millValue != null)) && !pecInvalid
+  const firstErr = withRegistry ? legalNameError(firstName, 'Il nome') : null
+  const lastErr = withRegistry ? legalNameError(lastName, 'Il cognome') : null
+  const canSave = (tenure === 'tenant' || (tenure === 'owner' && millValue != null)) && !pecInvalid && !firstErr && !lastErr
 
   async function submit() {
     setSaving(true); setErr(null)
-    const extra = withRegistry ? { unitCode: unitCode.trim() || null, pec: pec.trim().toLowerCase() || null } : {}
+    const extra = withRegistry ? { unitCode: unitCode.trim() || null, pec: pec.trim().toLowerCase() || null, firstName: cleanName(firstName), lastName: cleanName(lastName) } : {}
     const error = await onSubmit({ tenure, millesimi: tenure === 'owner' ? millValue : null, floor, ...extra })
     setSaving(false)
     if (error) setErr(error)
@@ -36,6 +42,26 @@ export default function UnitForm({ building, buildingId, initial, submitLabel = 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      {withRegistry && (
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10 }}>
+            <label>
+              <div style={label}>Nome</div>
+              <input value={firstName} onChange={(e) => setFirstName(e.target.value)} onBlur={() => setTouched(true)} autoComplete="given-name" maxLength={60} placeholder="Mario"
+                style={{ ...field, borderColor: touched && firstErr ? '#B42318' : 'var(--border)' }} />
+            </label>
+            <label>
+              <div style={label}>Cognome</div>
+              <input value={lastName} onChange={(e) => setLastName(e.target.value)} onBlur={() => setTouched(true)} autoComplete="family-name" maxLength={60} placeholder="Rossi"
+                style={{ ...field, borderColor: touched && lastErr ? '#B42318' : 'var(--border)' }} />
+            </label>
+          </div>
+          {touched && (firstErr || lastErr)
+            ? <p style={errText}>{firstErr || lastErr}</p>
+            : <p style={hint}>Nome e cognome veri, come sul documento: servono per l&apos;anagrafe, le convocazioni e i verbali. Il tuo nome pubblico sulle recensioni non cambia.</p>}
+        </div>
+      )}
+
       <div>
         <div style={label}>In questa casa sei</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>

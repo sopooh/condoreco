@@ -11,7 +11,7 @@ export async function generateStaticParams() {
 }
 
 export const metadata = {
-  title: "Persone e unità",
+  title: "Persone",
 }
 
 export default async function Page({ params }) {

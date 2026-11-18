@@ -74,7 +74,7 @@ function Inner({ building }) {
     <div className="acc-wrap" style={{ maxWidth: 820 }}>
       <Link href={base} className="acc-back">‹ Torna al condominio</Link>
       <header className="acc-toolbar" style={{ marginBottom: 14 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: '1 1 260px', minWidth: 0 }}>
           <h1 className="acc-h1">Pratiche e preventivi</h1>
           <p className="rc-muted" style={{ margin: 0 }}>{isCondoAdmin ? 'Prendi in carico le decisioni approvate, chiedi i preventivi e affida i lavori.' : 'A che punto sono i lavori decisi dal condominio.'}</p>
         </div>

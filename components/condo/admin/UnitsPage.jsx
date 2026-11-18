@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
+import PeopleUnitsTabs from '@/components/condo/admin/PeopleUnitsTabs'
 import { AlertTriangle, CheckCircle2, Home, Plus, Search, Table2, Trash2, UserRound } from 'lucide-react'
 import { useUnits, UNIT_KINDS, PERSON_ROLES, TABLE_KINDS, labelOf } from '@/hooks/useUnits'
 import Sheet, { toNumber } from '@/components/condo/admin/Sheet'
@@ -50,8 +51,9 @@ export default function UnitsPage({ building }) {
   return (
     <div className="acc-wrap" style={{ maxWidth: 960 }}>
       <Link href={base} className="acc-back">‹ Torna al condominio</Link>
+      <PeopleUnitsTabs base={base} active="unita" />
       <header className="acc-toolbar" style={{ marginBottom: 14 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: '1 1 260px', minWidth: 0 }}>
           <h1 className="acc-h1">Unità e millesimi</h1>
           <p className="rc-muted" style={{ margin: 0 }}>
             {u.loading ? 'Caricamento…' : `${u.units.length} ${u.units.length === 1 ? 'unità' : 'unità'} · ${u.tables.length} ${u.tables.length === 1 ? 'tabella' : 'tabelle'} millesimali`}
@@ -390,6 +392,7 @@ function ResidentView({ base, u, peopleByUnit, valueOf }) {
   return (
     <div className="acc-wrap" style={{ maxWidth: 760 }}>
       <Link href={base} className="acc-back">‹ Torna al condominio</Link>
+      <PeopleUnitsTabs base={base} active="unita" unitsLabel="La mia unità" />
       <h1 className="acc-h1">La mia unità</h1>
       {u.loading ? <p className="rc-muted">Caricamento…</p> : mine.length === 0 ? (
         <div className="acc-card"><div className="acc-empty"><Home size={28} aria-hidden="true" /><strong>Unità non ancora collegata</strong><p>L&apos;amministratore deve collegarti alla tua unità nell&apos;anagrafe del condominio.</p></div></div>

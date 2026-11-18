@@ -6,6 +6,8 @@ import { useSession, useSessionReady } from '@/components/providers/SessionProvi
 import { useCondoRole } from '@/hooks/useCondoRole'
 import { getMyJoinRequest } from '@/lib/residenceVerification'
 import ResidenceVerificationPrompt from '@/components/condo/ResidenceVerificationPrompt'
+import LegalNameForm from '@/components/condo/LegalNameForm'
+import { createClient } from '@/lib/supabase/client'
 
 // Gate condiviso da tutte le pagine dell'area condominio (dashboard,
 // calendario, ...): una riga in condo_members è l'unica fonte di verità per
@@ -31,6 +33,22 @@ export default function CondoMemberGate({ building, children }) {
     return () => { cancelled = true }
   }, [userId, buildingId, loading, isMember, reloadKey])
   const requestStatus = request?.status
+
+  // Membri senza nome e cognome legali: li completano prima di entrare.
+  // true = ok, false = mancano, undefined = in lettura
+  const [hasLegalName, setHasLegalName] = useState(undefined)
+  const [nameKey, setNameKey] = useState(0)
+  useEffect(() => {
+    if (!userId || !buildingId || loading || !isMember) return
+    let cancelled = false
+    createClient().rpc('get_my_legal_name', { p_building: buildingId }).then(({ data, error }) => {
+      if (cancelled) return
+      if (error) { console.error('[CondoMemberGate] legal name read failed', error.message); setHasLegalName(true); return }
+      const row = Array.isArray(data) ? data[0] : data
+      setHasLegalName(!!(row?.first_name && row?.last_name))
+    })
+    return () => { cancelled = true }
+  }, [userId, buildingId, loading, isMember, nameKey])
 
   // pulizia delle chiavi della vecchia verifica simulata (localStorage)
   useEffect(() => {
@@ -79,6 +97,17 @@ export default function CondoMemberGate({ building, children }) {
 
   if (!isMember) {
     return <ResidenceVerificationPrompt condominiumId={buildingId} status={requestStatus} request={request} onChange={() => { setRequest(undefined); setReloadKey(k => k + 1) }} />
+  }
+
+  if (hasLegalName === undefined) {
+    return (
+      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-4)', fontSize: 14 }}>
+        Verifica accesso...
+      </div>
+    )
+  }
+  if (hasLegalName === false) {
+    return <LegalNameForm buildingId={buildingId} onDone={() => { setHasLegalName(undefined); setNameKey((k) => k + 1) }} />
   }
 
   return children

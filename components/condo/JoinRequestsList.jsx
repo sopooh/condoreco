@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Check, FileText, Sparkles, X } from 'lucide-react'
 import { DOCUMENT_LABELS, checkDocumentWithCondor, getDocumentUrl, listDecidedJoinRequests, listPendingJoinRequests, reviewJoinRequest } from '@/lib/residenceVerification'
+import { createClient } from '@/lib/supabase/client'
+import { PERSON_ROLES } from '@/hooks/useUnits'
 
 const VERDICTS = {
   coerente: { label: 'Coerente', color: '#067647', bg: '#ECFDF3' },
@@ -55,6 +57,8 @@ export default function JoinRequestsList({ buildingId = null, showBuilding = fal
   const [rejecting, setRejecting] = useState(null)
   const [reason, setReason] = useState('')
   const [checks, setChecks] = useState({})
+  const [approving, setApproving] = useState(null) // { id, unit, newCode, fullName, role }
+  const [units, setUnits] = useState({}) // building_id -> [{ id, code, floor }]
 
   const [tick, setTick] = useState(0)
   const load = useCallback(() => setTick(t => t + 1), [])
@@ -81,12 +85,37 @@ export default function JoinRequestsList({ buildingId = null, showBuilding = fal
     setChecks(c => ({ ...c, [id]: res }))
   }
 
+  // Approva: prima si sceglie a quale unita' dell'anagrafe collegare il condomino
+  async function startApprove(r) {
+    setRejecting(null)
+    const unit = r.matched_unit_id || (r.unit_code ? 'new' : '')
+    setApproving({
+      id: r.id, unit, newCode: r.unit_code || '',
+      fullName: r.ai_check?.holder_name || r.display_name || '',
+      role: r.tenure === 'tenant' ? 'tenant' : 'owner',
+    })
+    if (units[r.building_id]) return
+    const { data, error: uErr } = await createClient().from('condo_units')
+      .select('id, code, floor').eq('building_id', r.building_id).order('code')
+    if (uErr) console.error('[JoinRequestsList] units load failed', uErr.message)
+    setUnits((u) => ({ ...u, [r.building_id]: data ?? [] }))
+  }
+
   async function decide(id, approve) {
     setBusy(id); setError(null)
-    const res = await reviewJoinRequest(id, approve, approve ? null : reason)
+    let link = null
+    if (approve && approving?.id === id && approving.unit) {
+      link = approving.unit === 'new'
+        ? { newUnitCode: approving.newCode.trim() || null }
+        : { unitId: approving.unit }
+      link.fullName = approving.fullName.trim() || null
+      link.role = approving.role
+      if (approving.unit === 'new' && !link.newUnitCode) { setBusy(null); setError('Scrivi il codice della nuova unità.'); return }
+    }
+    const res = await reviewJoinRequest(id, approve, approve ? null : reason, link)
     setBusy(null)
     if (res.error) { setError(res.error); return }
-    setRejecting(null); setReason('')
+    setRejecting(null); setReason(''); setApproving(null)
     load()
   }
 
@@ -114,6 +143,8 @@ export default function JoinRequestsList({ buildingId = null, showBuilding = fal
                       r.tenure === 'tenant' ? 'Inquilino' : r.tenure === 'owner' ? 'Proprietario' : null,
                       r.floor ? `Piano ${r.floor}` : null,
                       r.millesimi != null ? `${Number(r.millesimi).toLocaleString('it-IT')}‰` : null,
+                      r.unit_code ? `Unità ${r.unit_code}` : null,
+                      r.pec ? 'PEC indicata' : null,
                       new Date(r.created_at).toLocaleDateString('it-IT')].filter(Boolean).join(' · ')}
                   </div>
                 </div>
@@ -128,10 +159,10 @@ export default function JoinRequestsList({ buildingId = null, showBuilding = fal
                       <Sparkles size={16} aria-hidden="true" />{r.ai_check ? 'Ricontrolla con Condor' : 'Controlla con Condor'}
                     </button>
                   )}
-                  <button type="button" className="acc-btn is-primary" disabled={busy === r.id} onClick={() => decide(r.id, true)}>
+                  <button type="button" className="acc-btn is-primary" disabled={busy === r.id} aria-expanded={approving?.id === r.id} onClick={() => (approving?.id === r.id ? setApproving(null) : startApprove(r))}>
                     <Check size={16} aria-hidden="true" />Approva
                   </button>
-                  <button type="button" className="acc-btn" disabled={busy === r.id} onClick={() => { setRejecting(rejecting === r.id ? null : r.id); setReason('') }}>
+                  <button type="button" className="acc-btn" disabled={busy === r.id} onClick={() => { setApproving(null); setRejecting(rejecting === r.id ? null : r.id); setReason('') }}>
                     <X size={16} aria-hidden="true" />Respingi
                   </button>
                 </div>
@@ -139,6 +170,9 @@ export default function JoinRequestsList({ buildingId = null, showBuilding = fal
               {checks[r.id]
                 ? <CondorReport check={checks[r.id]} />
                 : r.ai_check && <CondorReport check={{ report: r.ai_check, disclaimer: 'Controllo fatto da Condor quando il documento è stato caricato. La decisione finale spetta a te.' }} />}
+              {approving?.id === r.id && (
+                <ApprovePanel r={r} v={approving} set={setApproving} units={units[r.building_id]} busy={busy === r.id} onConfirm={() => decide(r.id, true)} />
+              )}
               {rejecting === r.id && (
                 <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <input id={`reason-${r.id}`} aria-label="Motivo del rifiuto" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300}
@@ -153,6 +187,57 @@ export default function JoinRequestsList({ buildingId = null, showBuilding = fal
       )}
       {!hideWhenEmpty && <JoinHistory buildingId={buildingId} showBuilding={showBuilding} tick={tick} />}
     </section>
+  )
+}
+
+const inputStyle = { width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)', font: 'inherit', boxSizing: 'border-box', background: 'var(--white)' }
+const lbl = { display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 4 }
+
+// Collegamento all'anagrafe al momento dell'approvazione
+function ApprovePanel({ r, v, set, units, busy, onConfirm }) {
+  const upd = (patch) => set({ ...v, ...patch })
+  return (
+    <div style={{ marginTop: 10, padding: 12, borderRadius: 10, background: 'var(--teal-lt, #EEF8F7)', display: 'grid', gap: 10 }}>
+      <p style={{ margin: 0, fontSize: 14 }}>
+        Collega {r.display_name || 'il condomino'} alla sua unità: entra subito nell&apos;anagrafe{r.pec ? ' con la PEC che ha indicato' : ''} e riceve convocazioni e verbali.
+      </p>
+      <label>
+        <span style={lbl}>Unità</span>
+        <select value={v.unit} onChange={(e) => upd({ unit: e.target.value })} style={inputStyle}>
+          <option value="">Non collegare ora</option>
+          {(units || []).map((u) => <option key={u.id} value={u.id}>{u.code}{u.floor ? ` · piano ${u.floor}` : ''}</option>)}
+          <option value="new">+ Nuova unità</option>
+        </select>
+        {units === undefined && <small className="rc-muted">Caricamento unità…</small>}
+      </label>
+      {v.unit === 'new' && (
+        <label>
+          <span style={lbl}>Codice della nuova unità</span>
+          <input value={v.newCode} onChange={(e) => upd({ newCode: e.target.value })} maxLength={30} placeholder="Es. Int. 5" style={inputStyle} />
+        </label>
+      )}
+      {v.unit && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+          <label>
+            <span style={lbl}>Nome nell&apos;anagrafe</span>
+            <input value={v.fullName} onChange={(e) => upd({ fullName: e.target.value })} maxLength={120} placeholder="Nome e cognome" style={inputStyle} />
+          </label>
+          <label>
+            <span style={lbl}>Titolo</span>
+            <select value={v.role} onChange={(e) => upd({ role: e.target.value })} style={inputStyle}>
+              {PERSON_ROLES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+            </select>
+          </label>
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button type="button" className="acc-btn is-primary" disabled={busy} onClick={onConfirm}>
+          <Check size={16} aria-hidden="true" />{v.unit ? 'Approva e collega' : 'Approva senza collegare'}
+        </button>
+        <button type="button" className="acc-btn" disabled={busy} onClick={() => set(null)}>Annulla</button>
+      </div>
+      {v.unit && <small className="rc-muted">Quote, telefono, indirizzo e millesimi si completano poi in Unità e millesimi.</small>}
+    </div>
   )
 }
 

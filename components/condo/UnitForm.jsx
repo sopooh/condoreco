@@ -7,21 +7,29 @@ import { parseMillesimi } from '@/hooks/useNeighbourNotices'
 import MillesimiEstimator from '@/components/condo/MillesimiEstimator'
 
 // Dati dell'unità del residente: proprietario o inquilino, millesimi
-// (obbligatori per i proprietari) e piano.
-export default function UnitForm({ building, buildingId, initial, submitLabel = 'Salva', onSubmit, onCancel }) {
+// (obbligatori per i proprietari) e piano. Con withRegistry (iscrizione)
+// chiede anche il codice dell'unita' e la PEC facoltativa, che servono a
+// collegare il condomino all'anagrafe quando l'amministratore lo approva.
+const PEC_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i
+
+export default function UnitForm({ building, buildingId, initial, submitLabel = 'Salva', onSubmit, onCancel, withRegistry = false }) {
   const [tenure, setTenure] = useState(initial?.tenure ?? null)
   const [mill, setMill] = useState(initial?.millesimi != null ? String(initial.millesimi).replace('.', ',') : '')
   const [floor, setFloor] = useState(initial?.floor ?? null)
+  const [unitCode, setUnitCode] = useState(initial?.unitCode ?? '')
+  const [pec, setPec] = useState(initial?.pec ?? '')
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState(null)
 
   const millValue = parseMillesimi(mill)
   const millInvalid = tenure === 'owner' && mill.trim() !== '' && millValue == null
-  const canSave = tenure === 'tenant' || (tenure === 'owner' && millValue != null)
+  const pecInvalid = withRegistry && pec.trim() !== '' && !PEC_RE.test(pec.trim())
+  const canSave = (tenure === 'tenant' || (tenure === 'owner' && millValue != null)) && !pecInvalid
 
   async function submit() {
     setSaving(true); setErr(null)
-    const error = await onSubmit({ tenure, millesimi: tenure === 'owner' ? millValue : null, floor })
+    const extra = withRegistry ? { unitCode: unitCode.trim() || null, pec: pec.trim().toLowerCase() || null } : {}
+    const error = await onSubmit({ tenure, millesimi: tenure === 'owner' ? millValue : null, floor, ...extra })
     setSaving(false)
     if (error) setErr(error)
   }
@@ -74,6 +82,25 @@ export default function UnitForm({ building, buildingId, initial, submitLabel = 
         <FloorPicker building={building} value={floor} onChange={setFloor} />
       </div>
 
+      {withRegistry && (
+        <label>
+          <div style={label}>Interno o numero dell&apos;unità <span style={{ fontWeight: 500, color: 'var(--text-4)' }}>(facoltativo)</span></div>
+          <input value={unitCode} onChange={(e) => setUnitCode(e.target.value)} maxLength={30} placeholder="Es. Int. 5" style={field} />
+          <p style={hint}>Lo trovi sul campanello o nel riparto spese. Aiuta l&apos;amministratore a collegarti alla tua unità.</p>
+        </label>
+      )}
+
+      {withRegistry && (
+        <label>
+          <div style={label}>La tua PEC <span style={{ fontWeight: 500, color: 'var(--text-4)' }}>(facoltativa)</span></div>
+          <input type="email" inputMode="email" autoComplete="email" value={pec} onChange={(e) => setPec(e.target.value)} maxLength={200} placeholder="nome@pec.it"
+            style={{ ...field, borderColor: pecInvalid ? '#B42318' : 'var(--border)' }} />
+          {pecInvalid
+            ? <p style={errText}>Indirizzo PEC non valido.</p>
+            : <p style={hint}>Se ce l&apos;hai, ricevi convocazioni e verbali per PEC gratis, senza raccomandata.</p>}
+        </label>
+      )}
+
       {err && <p style={errText}>{err}</p>}
       <div style={{ display: 'grid', gridTemplateColumns: onCancel ? '1fr 1.4fr' : '1fr', gap: 8 }}>
         {onCancel && <button type="button" onClick={onCancel} style={ghostBtn}>Annulla</button>}
@@ -89,4 +116,5 @@ const primaryBtn = { display: 'inline-flex', alignItems: 'center', justifyConten
 const ghostBtn = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: 52, minHeight: 0, padding: '0 14px', borderRadius: 14, border: '1.5px solid var(--border)', background: 'var(--white)', color: 'var(--text)', fontWeight: 700, fontSize: 15, cursor: 'pointer' }
 const field = { width: '100%', border: '1px solid var(--border)', borderRadius: 12, padding: '13px 14px', fontSize: 17, fontFamily: 'inherit', boxSizing: 'border-box', background: 'var(--white)' }
 const label = { fontSize: 14, fontWeight: 700, color: 'var(--text-2)', marginBottom: 8 }
+const hint = { fontSize: 12.5, color: 'var(--text-3)', margin: '6px 0 0', lineHeight: 1.4 }
 const errText = { fontSize: 13, color: '#B42318', margin: '6px 0 0' }

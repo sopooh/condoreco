@@ -71,7 +71,7 @@ export default function VerificaResidenzaPage({ params }) {
         path = up.path
         setUploaded({ file, path })
       }
-      const res = await precheckResidenceDocument({ buildingId: condominiumId, path, documentType, declarantName: declarant })
+      const res = await precheckResidenceDocument({ buildingId: condominiumId, path, documentType, declarantName: declarant || (unit?.firstName ? `${unit.firstName} ${unit.lastName}` : null) })
       if (cancelled) return
       // documento sbagliato: il file non serve, lo cancelliamo subito
       if (res.report?.verdict === 'non_coerente') { discardResidenceDocument(path); setUploaded(null) }

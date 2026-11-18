@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useCondoRole } from '@/hooks/useCondoRole'
 import { euro } from '@/lib/accounting'
 import JoinRequestsList from '@/components/condo/JoinRequestsList'
+import PeopleUnitsTabs from '@/components/condo/admin/PeopleUnitsTabs'
 
 // Persone e unità: l'amministratore vede anagrafica, piano, millesimi,
 // proprietario/inquilino e situazione pagamenti; i condomini vedono solo
@@ -45,15 +46,15 @@ export default function PeoplePage({ building }) {
   return (
     <div className="acc-wrap" style={{ maxWidth: 900 }}>
       <Link href={base} className="acc-back">‹ Torna al condominio</Link>
+      <PeopleUnitsTabs base={base} active="persone" unitsLabel={isCondoAdmin ? 'Unità e millesimi' : 'La mia unità'} />
       <header className="acc-toolbar" style={{ marginBottom: 14 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 className="acc-h1">Persone e unità</h1>
+        <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+          <h1 className="acc-h1">Persone</h1>
           <p className="rc-muted" style={{ margin: 0 }}>
             {rows ? `${rows.length} ${rows.length === 1 ? 'condomino iscritto' : 'condomini iscritti'}${units ? ` su ${units} unità` : ''}` : 'Caricamento…'}
             {isCondoAdmin && totMill > 0 ? ` · ${totMill.toLocaleString('it-IT')}‰ assegnati` : ''}
           </p>
         </div>
-        <Link href={`${base}/unita`} className="acc-btn">{isCondoAdmin ? 'Unità e millesimi' : 'La mia unità'}</Link>
         <button type="button" className="acc-btn is-primary" onClick={invite}><Share2 size={16} aria-hidden="true" />{copied ? 'Link copiato' : 'Invita condomini'}</button>
       </header>
 

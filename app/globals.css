@@ -2925,6 +2925,8 @@ input, select, textarea { font-family: inherit; }
 .acc-tabs { gap: 4px; padding: 0 0 10px; border: none; border-bottom: 1px solid var(--border); border-radius: 0; background: none; }
 .acc-tabs button { font-size: 15px; white-space: nowrap; }
 .acc-tabs button.is-on { background: var(--teal); color: #fff; }
+.acc-tabs a { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; height: 42px; padding: 0 14px; border-radius: 12px; color: var(--text-2); font-weight: 700; font-size: 15px; white-space: nowrap; text-decoration: none; }
+.acc-tabs a.is-on { background: var(--teal); color: #fff; }
 
 /* ── Chiedi ai residenti / Possibili nuovi vicini ── */
 .nq-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 20px; scroll-margin-top: 90px; }

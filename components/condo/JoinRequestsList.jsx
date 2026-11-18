@@ -5,6 +5,7 @@ import { Check, FileText, Sparkles, X } from 'lucide-react'
 import { DOCUMENT_LABELS, checkDocumentWithCondor, getDocumentUrl, listDecidedJoinRequests, listPendingJoinRequests, reviewJoinRequest } from '@/lib/residenceVerification'
 import { createClient } from '@/lib/supabase/client'
 import { PERSON_ROLES } from '@/hooks/useUnits'
+import { namesMatch } from '@/lib/legalName'
 
 const VERDICTS = {
   coerente: { label: 'Coerente', color: '#067647', bg: '#ECFDF3' },
@@ -91,7 +92,7 @@ export default function JoinRequestsList({ buildingId = null, showBuilding = fal
     const unit = r.matched_unit_id || (r.unit_code ? 'new' : '')
     setApproving({
       id: r.id, unit, newCode: r.unit_code || '',
-      fullName: r.ai_check?.holder_name || r.display_name || '',
+      fullName: (r.first_name ? `${r.first_name} ${r.last_name}` : '') || r.ai_check?.holder_name || r.display_name || '',
       role: r.tenure === 'tenant' ? 'tenant' : 'owner',
     })
     if (units[r.building_id]) return
@@ -138,6 +139,13 @@ export default function JoinRequestsList({ buildingId = null, showBuilding = fal
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ minWidth: 0 }}>
                   <strong>{r.display_name || 'Utente'}</strong>
+                  {r.first_name && r.nickname && r.nickname !== r.display_name && (
+                    <span className="rc-muted" style={{ fontSize: 13 }}> · su Condoreco «{r.nickname}»</span>
+                  )}
+                  {!r.first_name && <div style={{ fontSize: 13, color: '#B54708' }}>Richiesta senza nome e cognome legali: il nome mostrato è quello pubblico.</div>}
+                  {r.first_name && r.ai_check?.holder_name && namesMatch(`${r.first_name} ${r.last_name}`, r.ai_check.holder_name) === false && (
+                    <div style={{ fontSize: 13, color: '#B42318' }}>Il nome non corrisponde al documento ({r.ai_check.holder_name}).</div>
+                  )}
                   <div className="rc-muted" style={{ fontSize: 13 }}>
                     {[showBuilding ? r.building_address : null,
                       r.tenure === 'tenant' ? 'Inquilino' : r.tenure === 'owner' ? 'Proprietario' : null,

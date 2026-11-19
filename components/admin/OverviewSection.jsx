@@ -104,6 +104,7 @@ export default function OverviewSection({ onNavigate }) {
 
           <section className="adm-tools">
             {[
+              { id: 'traffico', icon: 'pulse', label: 'Traffico sito' },
               { id: 'recensioni', icon: 'star', label: 'Recensioni' },
               { id: 'foto', icon: 'camera', label: 'Foto' },
               { id: 'export', icon: 'download', label: 'Export' },

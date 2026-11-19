@@ -3702,3 +3702,24 @@ select.rv-input { background-image: linear-gradient(45deg, transparent 50%, var(
 .sp-price b.sp-score { font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1.05; }
 .sp-price b.sp-score span { font-size: 14px; font-weight: 700; letter-spacing: 0; color: var(--teal-mid); margin-left: 1px; }
 .sp-price b.sp-score.is-na { font-size: 22px; letter-spacing: 0; color: var(--text-4); }
+
+/* Admin: traffico sito (PostHog) */
+.trf-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.trf-grid .adm-card { margin: 0; }
+.trf-bars { display: flex; align-items: flex-end; gap: 4px; height: 180px; padding-top: 8px; overflow-x: auto; }
+.trf-bar-col { flex: 1 0 18px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; }
+.trf-bar { width: 100%; max-width: 36px; background: var(--teal); border-radius: 4px 4px 0 0; }
+.trf-bar-label { font-size: 10.5px; color: var(--text-3); white-space: nowrap; }
+.trf-hbars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.trf-hbars li { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.trf-hbar-name { width: 42%; flex-shrink: 0; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trf-hbar-track { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.trf-hbar-track span { display: block; height: 100%; background: var(--teal); border-radius: 4px; }
+.trf-hbar-n { width: 44px; text-align: right; font-weight: 700; color: var(--text-3); }
+.trf-replay { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-2); }
+.trf-replay:last-child { border-bottom: none; }
+.trf-replay-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+@media (max-width: 760px) {
+  .trf-grid { grid-template-columns: 1fr; }
+  .trf-replay .adm-act-time { display: none; }
+}

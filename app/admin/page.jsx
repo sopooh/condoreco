@@ -14,6 +14,7 @@ import BuildingsAdminTable from '@/components/admin/BuildingsAdminTable.jsx'
 import ReviewsModeration from '@/components/admin/ReviewsModeration.jsx'
 import ReportsSection from '@/components/admin/ReportsSection.jsx'
 import FundingAnalytics from '@/components/admin/FundingAnalytics.jsx'
+import TrafficAnalytics from '@/components/admin/TrafficAnalytics.jsx'
 import ExportData from '@/components/admin/ExportData.jsx'
 import AdminLogs from '@/components/admin/AdminLogs.jsx'
 import PhotoModeration from '@/components/admin/PhotoModeration.jsx'
@@ -27,6 +28,7 @@ const SECTIONS = [
   { id: 'utenti', label: 'Utenti', icon: 'users' },
   { id: 'segnalazioni', label: 'Segnalazioni', icon: 'flag' },
   { id: 'analytics', label: 'Statistiche', icon: 'chart' },
+  { id: 'traffico', label: 'Traffico sito', icon: 'pulse' },
   { id: 'recensioni', label: 'Recensioni', icon: 'star' },
   { id: 'foto', label: 'Foto', icon: 'camera' },
   { id: 'richieste', label: 'Richieste di accesso', icon: 'key' },
@@ -111,6 +113,7 @@ export default function AdminDashboard() {
       {section === 'foto' && <PhotoModeration />}
       {section === 'segnalazioni' && <ReportsSection adminId={adminId} />}
       {section === 'analytics' && <FundingAnalytics />}
+      {section === 'traffico' && <TrafficAnalytics />}
       {section === 'export' && <ExportData />}
       {section === 'log' && <AdminLogs />}
       {section === 'richieste' && (

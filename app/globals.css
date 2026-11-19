@@ -3696,3 +3696,9 @@ select.rv-input { background-image: linear-gradient(45deg, transparent 50%, var(
 @keyframes cl-in { from { opacity: 0; } to { opacity: 1; } }
 .dir-more { display: flex; justify-content: center; padding: 8px 0 24px; }
 .dir-more-btn { min-height: 0; height: 44px; padding: 0 22px; border-radius: 999px; border: 1.5px solid var(--border); background: #fff; color: var(--teal-dk); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+/* Barra in basso dei profili: allineata alla colonna della pagina anche su computer */
+.sp-bar { padding-left: max(18px, calc((100vw - 760px) / 2 + 18px)); padding-right: max(18px, calc((100vw - 760px) / 2 + 18px)); }
+.sp-bar > * { max-width: none; }
+.sp-price b.sp-score { font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1.05; }
+.sp-price b.sp-score span { font-size: 14px; font-weight: 700; letter-spacing: 0; color: var(--teal-mid); margin-left: 1px; }
+.sp-price b.sp-score.is-na { font-size: 22px; letter-spacing: 0; color: var(--text-4); }

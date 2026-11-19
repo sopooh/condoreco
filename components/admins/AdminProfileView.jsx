@@ -145,7 +145,9 @@ export default function AdminProfileView({ admin: a, reviews, buildingsCount, su
       <div id="palazzi" style={{ scrollMarginTop: 70 }}>{children}</div>
 
       <div className="sp-bar">
-        <div className="sp-price"><small>{reviewCount} {reviewCount === 1 ? 'recensione' : 'recensioni'}</small><b style={{ color: scoreColor(a.score) }}>★ {a.score != null ? a.score.toFixed(1) : 'N/D'}</b></div>
+        <div className="sp-price"><small>{reviewCount} {reviewCount === 1 ? 'recensione' : 'recensioni'}</small>{a.score != null
+          ? <b className="sp-score" style={{ color: scoreColor(a.score) }}>{a.score.toFixed(1)}<span>/5</span></b>
+          : <b className="sp-score is-na">N/D</b>}</div>
         <button type="button" className="sp-btn is-main is-wide" disabled={demo} onClick={() => setReviewOpen(true)}>
           <MessageSquarePlus size={18} aria-hidden="true" />{demo ? 'Profilo di prova' : 'Scrivi una recensione'}
         </button>

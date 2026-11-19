@@ -1,6 +1,5 @@
 import { createStaticClient } from '@/lib/supabase/static'
 import AdminsResultsView from '@/components/admins/AdminsResultsView'
-import { attachCoverPhotos } from '@/lib/photos'
 
 export const revalidate = 3600
 
@@ -19,6 +18,9 @@ const ADMIN_SORTS = {
   anzianita: (a, b) => (a.active_since || 9999) - (b.active_since || 9999) || byImportRank(a, b),
   nome: (a, b) => a.name.localeCompare(b.name, 'it'),
 }
+
+// Solo le colonne che servono a card, mappa e ordinamento.
+const LIST_COLS = 'id, name, studio_name, city, active_since, score, review_count, building_count, phone, email, verified, avg_monthly_fee, is_sample, import_rank, lat, lng'
 
 export const metadata = {
   title: 'Amministratori di condominio',
@@ -41,7 +43,7 @@ async function getAdminsData(searchParams) {
     return req
   }
 
-  let req = applyCommonFilters(supabase.from('admin_scores').select('*'))
+  let req = applyCommonFilters(supabase.from('admin_scores').select(LIST_COLS))
   // Filtro attivo solo se scostato dal default: altrimenti gte(...,0) su
   // Postgres escluderebbe gli amministratori con avg_monthly_fee null
   // (nessun edificio con quota valorizzata).
@@ -63,22 +65,6 @@ async function getAdminsData(searchParams) {
   const sortId = searchParams.tab === 'recensiti' ? 'recensioni' : searchParams.tab === 'attivi' ? 'condomini' : (ADMIN_SORTS[searchParams.sort] ? searchParams.sort : 'rilevanti')
   admins = [...admins].sort(ADMIN_SORTS[sortId])
 
-  const buildingsByAdmin = {}
-  if (admins.length > 0) {
-    const ids = admins.map((a) => a.id)
-    const { data: buildings } = await supabase
-      .from('building_scores')
-      .select('*')
-      .in('administrator_id', ids)
-    // Foto caricate dagli utenti in thumbnail al posto della mappa statica,
-    // stesso trattamento della lista Esplora.
-    const buildingsWithPhotos = await attachCoverPhotos(supabase, buildings || [])
-    buildingsWithPhotos.forEach((b) => {
-      if (!buildingsByAdmin[b.administrator_id]) buildingsByAdmin[b.administrator_id] = []
-      buildingsByAdmin[b.administrator_id].push(b)
-    })
-  }
-
   const cityCounts = new Map()
   ;(cityRows || []).forEach((a) => {
     if (!a.city) return
@@ -87,18 +73,17 @@ async function getAdminsData(searchParams) {
   const cities = Array.from(cityCounts.keys()).sort().map((name) => ({ name }))
   const feeCounts = (feeRows || []).map((a) => a.avg_monthly_fee).filter(Boolean)
 
-  return { admins, buildingsByAdmin, cities, feeCounts, city }
+  return { admins, cities, feeCounts, city }
 }
 
 export default async function AdminsPage({ searchParams }) {
   const resolvedParams = await searchParams
-  const { admins, buildingsByAdmin, cities, feeCounts, city } = await getAdminsData(resolvedParams)
+  const { admins, cities, feeCounts, city } = await getAdminsData(resolvedParams)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <AdminsResultsView
         admins={admins}
-        buildingsByAdmin={buildingsByAdmin}
         cities={cities}
         feeCounts={feeCounts}
         city={city}

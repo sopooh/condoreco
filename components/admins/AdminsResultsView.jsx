@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Building2, Map as MapIcon, List, SlidersHorizontal, X } from 'lucide-react'
 import AdminRow from '@/components/admins/AdminRow'
 import AdminFilterSidebar from '@/components/admins/AdminFilterSidebar'
@@ -34,6 +34,8 @@ const ADMIN_SORT_OPTIONS = [
   { id: 'nome', label: 'Nome (A-Z)' },
 ]
 
+const PAGE = 30
+
 export default function AdminsResultsView({ admins, cities, feeCounts, city }) {
   const isMobile = useIsMobile()
   const { searchParams, setParams } = useParamNav()
@@ -42,6 +44,24 @@ export default function AdminsResultsView({ admins, cities, feeCounts, city }) {
   const { saved, toggle } = useSaved('saved_admins', 'administrator_id', '/amministratori')
   const onlySaved = searchParams.get('salvati') === '1'
   const list = onlySaved ? admins.filter((a) => saved.has(a.id)) : admins
+
+  // Rendering progressivo: 30 card alla volta, le altre arrivano scorrendo.
+  // Con i filtri cambiati si riparte dalle prime 30.
+  const listKey = searchParams.toString()
+  const [page, setPage] = useState({ key: listKey, n: PAGE })
+  if (page.key !== listKey) setPage({ key: listKey, n: PAGE })
+  const shown = list.slice(0, page.n)
+  const sentinel = useRef(null)
+  const hasMore = shown.length < list.length
+  useEffect(() => {
+    const el = sentinel.current
+    if (!el || !hasMore) return
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) setPage((p) => ({ ...p, n: p.n + PAGE }))
+    }, { rootMargin: '600px 0px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [hasMore, page.n])
 
   // mappa a schermo intero su mobile: blocca lo scroll sotto
   useEffect(() => {
@@ -130,9 +150,16 @@ export default function AdminsResultsView({ admins, cities, feeCounts, city }) {
             }}>Solo salvati <X size={14} aria-hidden="true" /></button>
           )}
           <div className="dir-list">
-            {list.map((a) => (
+            {shown.map((a) => (
               <AdminRow key={a.id} admin={a} saved={saved.has(a.id)} onToggleSave={() => toggle(a.id)} />
             ))}
+            {hasMore && (
+              <div ref={sentinel} className="dir-more">
+                <button type="button" className="dir-more-btn" onClick={() => setPage((p) => ({ ...p, n: p.n + PAGE }))}>
+                  Mostra altri ({list.length - shown.length})
+                </button>
+              </div>
+            )}
             {list.length === 0 && (
               <div className="empty">
                 <div className="empty-title">{onlySaved ? 'Nessun amministratore salvato' : 'Nessun amministratore trovato'}</div>

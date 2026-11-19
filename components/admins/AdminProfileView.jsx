@@ -82,6 +82,7 @@ export default function AdminProfileView({ admin: a, reviews, buildingsCount, su
               {a.address && <span className="sp-chip"><MapPin size={17} aria-hidden="true" />{[a.address, a.city].filter(Boolean).join(', ')}</span>}
               {a.phone && !demo && <a className="sp-chip is-soft" href={`tel:${a.phone}`} style={{ textDecoration: 'none' }}><Phone size={16} aria-hidden="true" />{a.phone}</a>}
               {a.email && !demo && <a className="sp-chip is-soft" href={`mailto:${a.email}`} style={{ textDecoration: 'none' }}><Mail size={16} aria-hidden="true" />{a.email}</a>}
+              {a.google_place_id && !demo && <a className="sp-chip is-soft" href={`https://www.google.com/maps/place/?q=place_id:${a.google_place_id}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}><MapPin size={16} aria-hidden="true" />Vedi su Google Maps</a>}
             </div>
           </ProfileCard>
           <ProfileCard title="Su Condoreco">

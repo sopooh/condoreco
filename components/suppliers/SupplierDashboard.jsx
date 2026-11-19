@@ -13,10 +13,10 @@ import { useViewAs } from '@/hooks/useViewAs'
 import RecofixerWorkspace, { useTeam } from '@/components/suppliers/workspace/RecofixerWorkspace'
 
 // Anteprima "vedi come Recofixer" per l'admin del sito senza profilo fornitore
-const DEMO_SUPPLIER = { company_name: 'Idraulica Esempio srl', verified: true, categories: ['plumbing', 'heating'], zones: ['Milano'] }
+export const DEMO_SUPPLIER = { company_name: 'Idraulica Esempio srl', verified: true, categories: ['plumbing', 'heating'], zones: ['Milano'] }
 const demoDay = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10) }
 const demoAgo = (h) => new Date(Date.now() - h * 3600e3).toISOString()
-const DEMO_ITEMS = [
+export const DEMO_ITEMS = [
   { id: 'demo-1', title: 'Perdita colonna acqua scala B', status: 'requested', urgent: true, category: 'plumbing', building_address: 'Via Ripamonti, 120 · Milano', location: 'Scala B · 3° piano', requester: 'Giulia B.', requester_is_admin: true, ref_number: 1042, description: 'Perdita visibile nel vano scala, vicino al contatore del terzo piano.', thread_id: null, message_count: 3, created_at: demoAgo(5), updated_at: demoAgo(4) },
   { id: 'demo-2', title: 'Manutenzione caldaia centralizzata', status: 'scheduled', category: 'heating', building_address: 'Via Tortona, 8 · Milano', location: 'Locale caldaia', requester: 'Marco C.', ref_number: 1038, scheduled_date: demoDay(3), time_start: '09:00:00', time_end: '11:00:00', tech_id: 't1', tech_name: 'Marco Bianchi', thread_id: null, message_count: 2, created_at: demoAgo(60), updated_at: demoAgo(30) },
   { id: 'demo-3', title: 'Sostituzione valvola', status: 'requested', category: 'plumbing', building_address: 'Via Savona, 22 · Milano', requester: 'Elena F.', ref_number: 1040, proposed_date: demoDay(2), proposed_time_start: '14:00:00', quote_cents: 18000, thread_id: null, created_at: demoAgo(30), updated_at: demoAgo(20) },

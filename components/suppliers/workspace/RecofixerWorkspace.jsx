@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import {
-  AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, CalendarClock, CalendarDays, CheckCircle2, ChevronRight, CircleCheck, Clock3,
+  AlertTriangle, ArrowLeft, Briefcase, ArrowRight, BadgeCheck, CalendarClock, CalendarDays, CheckCircle2, ChevronRight, CircleCheck, Clock3,
   FileText, Filter, Image as ImageIcon, MapPin, MessageCircle, Navigation, Pencil,  Search, DoorStairwell as Stairs,
   UserRound, Users, Wrench, X,
 } from 'lucide-react'
@@ -11,6 +11,7 @@ import { maintenanceCategoryLabel, MAINTENANCE_CATEGORIES } from '@/lib/maintena
 import { useInterventionFiles, FILE_KINDS, euro } from '@/hooks/useInterventionFiles'
 import InterventionFiles from '@/components/suppliers/InterventionFiles'
 import TeamWorkspace from '@/components/team/TeamWorkspace'
+import WorkTab from '@/components/suppliers/workspace/WorkTab'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { track } from '@/lib/analytics'
 
@@ -19,6 +20,7 @@ import { track } from '@/lib/analytics'
 // pagina intera con la barra azioni in basso.
 
 const TABS = [
+  { id: 'lavora', label: 'Lavora', icon: Briefcase },
   { id: 'interventi', label: 'Interventi', icon: Wrench },
   { id: 'calendario', label: 'Calendario', icon: CalendarDays },
   { id: 'team', label: 'Team', icon: Users },
@@ -45,7 +47,7 @@ export function stageOf(i) {
   if (i.proposed_date) return 'waiting'
   return 'todo'
 }
-const STAGE = {
+export const STAGE = {
   todo: { label: 'Da programmare', bg: 'var(--teal-lt)', fg: 'var(--teal-dk)' },
   waiting: { label: 'In attesa di conferma', bg: '#FDF0D5', fg: '#9A5B00' },
   scheduled: { label: 'Programmato', bg: '#E6F4EA', fg: '#15803D' },
@@ -63,7 +65,7 @@ const nextAction = (i) => {
 
 export default function RecofixerWorkspace({ supplier, items, demo = false, team, onEdit, onChat, onChanged }) {
   const isMobile = useIsMobile()
-  const [tab, setTab] = useState('interventi')
+  const [tab, setTab] = useState('lavora')
   const [openId, setOpenId] = useState(null)
   const list = items || []
   const open = list.find((x) => x.id === openId) || null
@@ -112,6 +114,9 @@ export default function RecofixerWorkspace({ supplier, items, demo = false, team
         ))}
       </nav>
 
+      {tab === 'lavora' && (
+        <WorkTab list={list} loading={items === null} demo={demo} onManage={goIntervention} onChat={onChat} />
+      )}
       {tab === 'interventi' && (
         <InterventionsTab list={list} loading={items === null} open={open} setOpenId={setOpenId} isMobile={isMobile}
           team={team} onChat={onChat} onChanged={onChanged} demo={demo} />

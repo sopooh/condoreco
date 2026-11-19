@@ -6,7 +6,6 @@ import AdminRow from '@/components/admins/AdminRow'
 import AdminFilterSidebar from '@/components/admins/AdminFilterSidebar'
 import ResultsMap from '@/components/map/ResultsMap'
 import MapLegend from '@/components/map/MapLegend'
-import { DesktopMapPreview, MobileMapPreview } from '@/components/map/BuildingMapPreview'
 import PageHero from '@/components/directory/PageHero'
 import DirectorySearch from '@/components/directory/DirectorySearch'
 import CitySelect from '@/components/directory/CitySelect'
@@ -15,6 +14,9 @@ import SortSelect from '@/components/directory/SortSelect'
 import { useParamNav } from '@/components/directory/useParamNav'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useSaved } from '@/components/directory/useSaved'
+
+const NO_REVIEWS_COLOR = '#EA580C'
+const NO_REVIEWS_LEGEND = { color: NO_REVIEWS_COLOR, label: 'Senza recensioni' }
 
 export const ADMIN_TABS = [
   { id: '', label: 'Tutte' },
@@ -31,12 +33,11 @@ const ADMIN_SORT_OPTIONS = [
   { id: 'nome', label: 'Nome (A-Z)' },
 ]
 
-export default function AdminsResultsView({ admins, buildingsByAdmin, cities, feeCounts, city }) {
+export default function AdminsResultsView({ admins, cities, feeCounts, city }) {
   const isMobile = useIsMobile()
   const { searchParams, setParams } = useParamNav()
   const [showMap, setShowMap] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
-  const [selectedBuilding, setSelectedBuilding] = useState(null)
   const { saved, toggle } = useSaved('saved_admins', 'administrator_id', '/amministratori')
   const onlySaved = searchParams.get('salvati') === '1'
   const list = onlySaved ? admins.filter((a) => saved.has(a.id)) : admins
@@ -49,9 +50,20 @@ export default function AdminsResultsView({ admins, buildingsByAdmin, cities, fe
     }
   }, [isMobile, showMap])
 
-  const results = list.flatMap((a) => buildingsByAdmin[a.id] || []).map((b) => ({ ...b, href: `/edificio/${b.id}` }))
+  // Mappa: un pin per studio, nella posizione della sede. Con recensioni il
+  // colore segue il voto; senza recensioni pallino arancione. Click = scheda studio.
+  const results = list
+    .filter((a) => Number.isFinite(a.lat) && Number.isFinite(a.lng))
+    .map((a) => ({
+      id: a.id,
+      lat: a.lat,
+      lng: a.lng,
+      score: a.review_count > 0 ? a.score : null,
+      pinColor: a.review_count > 0 ? undefined : NO_REVIEWS_COLOR,
+      href: `/amministratore/${a.id}`,
+    }))
   const filtersActive = ['feeMin', 'feeMax', 'rec'].some((k) => searchParams.get(k))
-  const closeMap = () => { setShowMap(false); setSelectedBuilding(null) }
+  const closeMap = () => setShowMap(false)
 
   return (
     <>
@@ -90,15 +102,14 @@ export default function AdminsResultsView({ admins, buildingsByAdmin, cities, fe
       {isMobile && showMap && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', flexDirection: 'column', background: '#fff' }}>
           <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-            <ResultsMap results={results} height="100%" onResultSelect={setSelectedBuilding} containerStyle={{ borderRadius: 0, border: 'none' }} />
+            <ResultsMap results={results} height="100%" containerStyle={{ borderRadius: 0, border: 'none' }} />
             <button onClick={closeMap} style={{
               position: 'absolute', top: 12, left: 12, zIndex: 1000, minHeight: 0, background: 'var(--white)', border: '1px solid var(--border)',
               borderRadius: 20, padding: '8px 14px', fontWeight: 600, fontSize: 13, cursor: 'pointer', color: 'var(--teal-dk)',
               boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', gap: 6,
             }}><List size={16} aria-hidden="true" />Lista</button>
-            {selectedBuilding && <MobileMapPreview building={selectedBuilding} onClose={() => setSelectedBuilding(null)} />}
           </div>
-          <div style={{ padding: '8px 16px', background: 'var(--white)', borderTop: '1px solid var(--border)' }}><MapLegend /></div>
+          <div style={{ padding: '8px 16px', background: 'var(--white)', borderTop: '1px solid var(--border)' }}><MapLegend noReviews={NO_REVIEWS_LEGEND} /></div>
         </div>
       )}
 
@@ -132,10 +143,9 @@ export default function AdminsResultsView({ admins, buildingsByAdmin, cities, fe
         {!isMobile && showMap && (
           <div style={{ position: 'sticky', top: 80 }}>
             <div style={{ position: 'relative' }}>
-              <ResultsMap results={results} height={520} onResultSelect={setSelectedBuilding} />
-              {selectedBuilding && <DesktopMapPreview building={selectedBuilding} onClose={() => setSelectedBuilding(null)} />}
+              <ResultsMap results={results} height={520} />
             </div>
-            <div style={{ marginTop: 8, paddingLeft: 2 }}><MapLegend /></div>
+            <div style={{ marginTop: 8, paddingLeft: 2 }}><MapLegend noReviews={NO_REVIEWS_LEGEND} /></div>
           </div>
         )}
       </div>

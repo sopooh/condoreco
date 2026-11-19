@@ -38,7 +38,8 @@ function pinIcon(r) {
     return L.divIcon({ className: '', html, iconSize: [0, 0] })
   }
   const score = r.score == null ? null : Number(r.score)
-  const color = scoreHex(score)
+  // pinColor: colore forzato dalla pagina (es. arancione per amministratori senza recensioni)
+  const color = r.pinColor || scoreHex(score)
   const scoreText = score == null ? 'N/D' : score.toFixed(1)
   const fee = Number(r.monthly_fee)
   const feeText = Number.isFinite(fee) && fee > 0 ? `€${Math.round(fee)}/mese` : ''

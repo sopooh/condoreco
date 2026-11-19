@@ -52,17 +52,53 @@ async function getSearchData(searchParams) {
     return { data: data || [], fees: fees || [] }
   }
 
+  // Civici importati dal Comune (status 'imported', senza recensioni): entrano
+  // solo quando l'utente cerca una via/quartiere o arriva da un punto sulla mappa,
+  // e sempre dopo i palazzi recensiti. Con filtri su spese o servizi non hanno
+  // dati, quindi restano fuori.
+  const IMPORTED_LIMIT = 60
+  const dataFiltersActive = feeMin > 0 || feeMax < 3000 || amenities.length > 0
+  async function runImported(mode) {
+    if (dataFiltersActive) return []
+    const hasFocus = Number.isFinite(focusLat) && Number.isFinite(focusLng)
+    if (!query && !hasFocus) return []
+    let req = supabase.from('building_scores').select('*').eq('status', 'imported')
+    if (query) {
+      req = applyCommonFilters(req, mode)
+      if (parsed.civic && mode === 'street') req = req.ilike('street_number', `${ilikeSafe(parsed.civic)}%`)
+    } else {
+      if (city) req = req.eq('city', city)
+      const d = 0.004 // ~400 m attorno al punto
+      req = req.gte('lat', focusLat - d).lte('lat', focusLat + d).gte('lng', focusLng - d * 1.4).lte('lng', focusLng + d * 1.4)
+    }
+    const { data } = await req.order('address').order('street_number').limit(IMPORTED_LIMIT)
+    let rows = data || []
+    // Civico cercato non trovato con prefisso: mostra comunque i civici della via
+    if (!rows.length && query && parsed.civic && mode === 'street') {
+      const { data: street } = await applyCommonFilters(supabase.from('building_scores').select('*').eq('status', 'imported'), mode)
+        .order('street_number').limit(IMPORTED_LIMIT)
+      rows = street || []
+    }
+    return rows
+  }
+
   let mode = parsed.words.length ? 'street' : 'loose'
   let res = await run(mode)
-  if (!res.data.length && mode === 'street') { mode = 'loose'; res = await run(mode) }
+  let imported = await runImported(mode)
+  if (!res.data.length && !imported.length && mode === 'street') {
+    mode = 'loose'
+    res = await run(mode)
+    imported = await runImported(mode)
+  }
   const buildings = res.data
   const feeRows = res.fees
 
   // civico: prima quello cercato; se non c'è, si propongono gli altri civici della stessa via
   let civicMiss = null
-  if (parsed.civic && mode === 'street' && buildings.length) {
-    const exact = buildings.filter((b) => sameCivic(b.street_number, parsed.civic))
-    if (!exact.length) civicMiss = { civic: parsed.civic, street: buildings[0].address || parsed.street }
+  const allFound = [...buildings, ...imported]
+  if (parsed.civic && mode === 'street' && allFound.length) {
+    const exact = allFound.filter((b) => sameCivic(b.street_number, parsed.civic))
+    if (!exact.length) civicMiss = { civic: parsed.civic, street: allFound[0].address || parsed.street }
   }
 
   const { data: cityRows } = await supabase.from('building_scores').select('city').neq('status', 'imported')
@@ -73,7 +109,8 @@ async function getSearchData(searchParams) {
   // Foto caricate dagli utenti in thumbnail al posto della mappa statica
   // (priorità già gestita da getBuildingPreviewImage, manca solo il dato):
   // una per edificio, preferendo la cover e poi il quality_score migliore.
-  let sorted = await sortBuildings(supabase, buildings || [], sort)
+  // Recensiti ordinati come scelto, poi i civici importati (ordine per via e numero).
+  let sorted = [...await sortBuildings(supabase, buildings || [], sort), ...imported]
   if (parsed.civic && mode === 'street') {
     sorted = [...sorted.filter((b) => sameCivic(b.street_number, parsed.civic)), ...sorted.filter((b) => !sameCivic(b.street_number, parsed.civic))]
   }

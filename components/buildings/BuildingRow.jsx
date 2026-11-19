@@ -11,6 +11,9 @@ export default function BuildingRow({ building: b, showEnterCondo = false, highl
   const band = feeBand(b.monthly_fee)
   const perSqm = costPerSqm(b.monthly_fee, b.avg_sqm)
   const reviewWord = b.review_count === 1 ? 'recensione' : 'recensioni'
+  // Civico importato dal Comune, ancora senza recensioni
+  const isImported = b.status === 'imported'
+  const goReview = (e) => { e.stopPropagation(); router.push(`/edificio/${b.id}?recensione=1`) }
 
   return (
     <div
@@ -49,7 +52,19 @@ export default function BuildingRow({ building: b, showEnterCondo = false, highl
               <Chip label="Rating" value={b.score?.toFixed(1) ?? 'N/D'} valueColor={scoreColor(b.score)} />
               <Chip label="Spese" value={band ? band.range : 'N/D'} />
               {perSqm && <Chip label="Al mq" value={`${perSqm}€/mq`} />}
-              {!showEnterCondo && (
+              {!showEnterCondo && isImported && (
+                <button
+                  onClick={goReview}
+                  style={{
+                    background: 'var(--teal)', color: '#fff', border: 'none', borderRadius: 6,
+                    padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    whiteSpace: 'nowrap', alignSelf: 'flex-end',
+                  }}
+                >
+                  Scrivi la prima recensione
+                </button>
+              )}
+              {!showEnterCondo && !isImported && (
                 <button
                   onClick={e => { e.stopPropagation(); router.push(`/edificio/${b.id}`) }}
                   style={{
@@ -86,10 +101,14 @@ export default function BuildingRow({ building: b, showEnterCondo = false, highl
 
           {/* Badge + score */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-            <span style={b.status === 'verified' ? badgeVerified : badgePending}>
-              {b.status === 'verified' && <ShieldCheckIcon />}
-              {b.status === 'verified' ? 'Verificata' : 'Da verificare'}
-            </span>
+            {isImported ? (
+              <span style={badgeImported}>Non recensito</span>
+            ) : (
+              <span style={b.status === 'verified' ? badgeVerified : badgePending}>
+                {b.status === 'verified' && <ShieldCheckIcon />}
+                {b.status === 'verified' ? 'Verificata' : 'Da verificare'}
+              </span>
+            )}
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>{scoreLabel(b.score)}</div>
               <div style={{ fontSize: 11, color: 'var(--text-3)', whiteSpace: 'nowrap' }}>
@@ -121,6 +140,7 @@ function Chip({ label, value, valueColor }) {
 }
 
 const badgePending  = { display: 'flex', alignItems: 'center', gap: 4, background: '#FEF3E8', color: '#E8651A', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 100, whiteSpace: 'nowrap' }
+const badgeImported = { display: 'flex', alignItems: 'center', gap: 4, background: 'var(--bg)', color: 'var(--text-3)', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 100, whiteSpace: 'nowrap', border: '1px solid var(--border)' }
 const badgeVerified = { display: 'flex', alignItems: 'center', gap: 4, background: 'var(--teal-lt)', color: 'var(--teal-dk)', fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 100, whiteSpace: 'nowrap' }
 
 function LockIcon({ size = 16 } = {}) { return <Lock size={size} strokeWidth={2} aria-hidden="true" /> }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '@/components/ui/Button'
 import ReviewForm from '@/components/reviews/ReviewForm'
 import VivoQuiFlow from '@/components/buildings/VivoQuiFlow'
@@ -9,6 +9,14 @@ import { RESIDENT_TYPES, ISSUES, BUILDING_REVIEW_CATEGORIES } from '@/lib/review
 export default function BuildingActions({ building }) {
   const [formOpen, setFormOpen] = useState(false)
   const [vivoQuiOpen, setVivoQuiOpen] = useState(false)
+
+  // Da Esplora ("Scrivi la prima recensione") si arriva con ?recensione=1:
+  // apre subito il form. Letto da window perché la pagina è statica (ISR).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('recensione') !== '1') return
+    const t = setTimeout(() => setFormOpen(true), 0)
+    return () => clearTimeout(t)
+  }, [])
 
   return (
     <>

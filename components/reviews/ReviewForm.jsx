@@ -28,14 +28,14 @@ function AdminQuestion({ value, onChange }) {
       <input value={value.name} placeholder="Nome dello studio o dell'amministratore"
         onChange={(e) => onChange({ id: null, name: e.target.value })}
         onFocus={() => setFocus(true)} onBlur={() => setTimeout(() => setFocus(false), 150)}
-        style={{ width: '100%', background: 'var(--bg)', border: `1px solid ${value.id ? 'var(--teal)' : 'var(--border)'}`, borderRadius: 6, padding: '10px 12px', fontSize: 14 }} />
+        className={`rv-input${value.id ? ' is-picked' : ''}`} />
       {value.id && (
         <p style={{ fontSize: 12, color: 'var(--teal-dk)', margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: 5 }}>
           <Check size={13} strokeWidth={2.6} aria-hidden="true" /> Studio presente su Condoreco
         </p>
       )}
       {focus && matches.length > 0 && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 20, background: '#fff', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,.1)', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 20, background: '#fff', border: '1px solid var(--border)', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,.1)', overflow: 'hidden' }}>
           {matches.map((a) => (
             <button key={a.id} type="button" onMouseDown={(e) => e.preventDefault()}
               onClick={() => { onChange({ id: a.id, name: a.name }); setFocus(false) }}
@@ -50,28 +50,19 @@ function AdminQuestion({ value, onChange }) {
   )
 }
 
-function DotRating({ value, onChange, size = 28 }) {
+const SCORE_WORDS = ['', 'Pessimo', 'Scarso', 'Nella media', 'Buono', 'Ottimo']
+
+function DotRating({ value, onChange, small = false, label }) {
   return (
-    <div style={{ display: 'flex', gap: size > 20 ? 10 : 7, alignItems: 'center' }}>
+    <div className={`rv-rate${small ? ' is-sm' : ''}`} role="radiogroup" aria-label={label}>
       {[1, 2, 3, 4, 5].map((n) => (
-        <button key={n} type="button" onClick={() => onChange(n)}
-          style={{
-            width: size, height: size, minWidth: size, maxWidth: size,
-            aspectRatio: '1', borderRadius: '50%',
-            flexShrink: 0, flexGrow: 0,
-            border: `2px solid ${n <= value ? 'var(--teal)' : 'var(--border)'}`,
-            background: n <= value ? 'var(--teal)' : 'transparent',
-            cursor: 'pointer', padding: 0, transition: 'all 0.12s',
-            appearance: 'none', WebkitAppearance: 'none',
-            boxSizing: 'border-box', display: 'block',
-          }} />
+        <button key={n} type="button" role="radio" aria-checked={value === n}
+          aria-label={`${n} su 5`} onClick={() => onChange(n)}
+          className={`rv-dot${n <= value ? ' is-on' : ''}`}>{n}</button>
       ))}
     </div>
   )
 }
-
-const LABEL = { display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 10 }
-const GROUP = { marginBottom: 22 }
 
 function initialCats(categories) {
   return Object.fromEntries(categories.map((c) => [c.key, 0]))
@@ -194,145 +185,119 @@ export default function ReviewForm({
     <Modal open={open} onClose={onClose}
            title={existingReview ? 'Aggiorna la tua recensione' : 'Scrivi una recensione'}
            subtitle={subtitle}>
-      {existingReview && (
-        <p style={{ fontSize: 12, color: 'var(--amber-tx)', background: 'var(--amber-bg)', borderRadius: 6, padding: '8px 12px', marginBottom: 16 }}>
-          Salvando le modifiche la recensione tornerà in verifica.
-        </p>
-      )}
+      <div className="rv-form">
+        {existingReview && (
+          <p className="rv-note">Salvando le modifiche la recensione tornerà in verifica.</p>
+        )}
 
-      <div style={GROUP}>
-        <label style={LABEL}>Chi sei rispetto a {extras.issues ? 'questo edificio' : 'questo amministratore'}?</label>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
-          {residentTypes.map((rt) => (
-            <button key={rt.value} onClick={() => setType(rt.value)}
-              style={{
-                border: `1px solid ${type === rt.value ? 'var(--teal)' : 'var(--border)'}`,
-                borderRadius: 6, padding: '9px 12px', fontSize: 13, fontWeight: 600,
-                background: type === rt.value ? 'var(--teal-lt)' : '#fff',
-                color: type === rt.value ? 'var(--teal-dk)' : 'var(--text-2)',
-                textAlign: 'left', cursor: 'pointer',
-              }}>{rt.label}</button>
-          ))}
-        </div>
-      </div>
+        <section className="rv-section">
+          <h3 className="rv-label">Chi sei rispetto a {extras.issues ? 'questo edificio' : 'questo amministratore'}?</h3>
+          <div className="rv-chips">
+            {residentTypes.map((rt) => (
+              <button key={rt.value} type="button" onClick={() => setType(rt.value)}
+                className={`rv-chip${type === rt.value ? ' is-on' : ''}`}>{rt.label}</button>
+            ))}
+          </div>
+        </section>
 
-      <div style={GROUP}>
-        <label style={LABEL}>Valutazione generale</label>
-        <DotRating value={score} onChange={setScore} />
-      </div>
+        <section className="rv-section">
+          <div className="rv-label-row">
+            <h3 className="rv-label">Valutazione generale</h3>
+            <span className={`rv-score-word${score ? ' is-on' : ''}`}>{score ? SCORE_WORDS[score] : 'Tocca un voto'}</span>
+          </div>
+          <DotRating value={score} onChange={setScore} label="Valutazione generale" />
+        </section>
 
-      <div style={GROUP}>
-        <label style={LABEL}>Per categoria</label>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {categories.map((c) => (
-            <div key={c.key}>
-              <span style={{ display: 'block', fontSize: 12, color: 'var(--text-4)', fontWeight: 500, marginBottom: 5 }}>{c.label}</span>
-              <DotRating value={cats[c.key]} onChange={(v) => setCat(c.key, v)} size={18} />
-            </div>
-          ))}
-        </div>
-      </div>
+        <section className="rv-section">
+          <h3 className="rv-label">Per categoria</h3>
+          <p className="rv-hint">1 = pessimo, 5 = ottimo</p>
+          <div className="rv-cats">
+            {categories.map((c) => (
+              <div key={c.key} className="rv-cat">
+                <span className="rv-cat-label">{c.label}</span>
+                <DotRating small value={cats[c.key]} onChange={(v) => setCat(c.key, v)} label={c.label} />
+              </div>
+            ))}
+          </div>
+        </section>
 
-      {extras.issues && !existingReview && (
-        <div style={GROUP}>
-          <label style={LABEL}>Chi è il vostro amministratore?</label>
-          <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 10, marginTop: -6 }}>
-            Facoltativo. Ci aiuta a collegare il palazzo al suo studio.
-          </p>
-          <AdminQuestion value={adminAnswer} onChange={setAdminAnswer} />
-        </div>
-      )}
+        {extras.issues && !existingReview && (
+          <section className="rv-section">
+            <h3 className="rv-label">Chi è il vostro amministratore?</h3>
+            <p className="rv-hint">Facoltativo. Ci aiuta a collegare il palazzo al suo studio.</p>
+            <AdminQuestion value={adminAnswer} onChange={setAdminAnswer} />
+          </section>
+        )}
 
-      {extras.issues && (
-        <div style={GROUP}>
-          <label style={LABEL}>Problemi ricorrenti</label>
-          <select value={issue} onChange={(e) => setIssue(e.target.value)}
-            style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '10px 12px', fontSize: 14 }}>
-            {extras.issues.map((i) => <option key={i.value} value={i.value}>{i.label}</option>)}
-          </select>
-        </div>
-      )}
+        {extras.issues && (
+          <section className="rv-section">
+            <h3 className="rv-label">Problemi ricorrenti</h3>
+            <select className="rv-input" value={issue} onChange={(e) => setIssue(e.target.value)}>
+              {extras.issues.map((i) => <option key={i.value} value={i.value}>{i.label}</option>)}
+            </select>
+          </section>
+        )}
 
-      <div style={{ height: 1, background: 'var(--border)', margin: '20px 0' }} />
+        <section className="rv-section">
+          <h3 className="rv-label">La tua esperienza</h3>
+          <textarea className="rv-input rv-textarea" value={body} onChange={(e) => setBody(e.target.value)}
+            placeholder={extras.issues
+              ? "Com'è vivere qui? Amministratore, vicini, manutenzione, parti comuni..."
+              : "Com'è la gestione? Reperibilità, chiarezza delle comunicazioni, assemblee..."} />
+        </section>
 
-      <div style={GROUP}>
-        <label style={LABEL}>La tua esperienza</label>
-        <textarea value={body} onChange={(e) => setBody(e.target.value)}
-          placeholder={extras.issues
-            ? "Com'è vivere qui? Amministratore, vicini, manutenzione, parti comuni..."
-            : "Com'è la gestione? Reperibilità, chiarezza delle comunicazioni, assemblee..."}
-          style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: 12, fontSize: 14, minHeight: 90, resize: 'vertical', lineHeight: 1.6 }} />
-      </div>
+        {extras.residentSince && (
+          <section className="rv-section">
+            <h3 className="rv-label">Da quando sei residente?</h3>
+            <input className="rv-input" value={since} onChange={(e) => setSince(e.target.value)} placeholder="es. Dal 2019" />
+          </section>
+        )}
 
-      {extras.residentSince && (
-        <div style={GROUP}>
-          <label style={LABEL}>Da quando sei residente?</label>
-          <input value={since} onChange={(e) => setSince(e.target.value)} placeholder="es. Dal 2019"
-            style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '10px 12px', fontSize: 14 }} />
-        </div>
-      )}
-
-      {extras.amenities && (
-        <div style={GROUP}>
-          <label style={LABEL}>Quali servizi sono presenti nello stabile?</label>
-          <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 12, marginTop: -6 }}>
-            Seleziona solo quelli realmente disponibili per i condomini.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {AMENITY_GROUPS.map(group => (
-              <div key={group.label}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 7 }}>
-                  {group.label}
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+        {extras.amenities && (
+          <section className="rv-section">
+            <h3 className="rv-label">Quali servizi ci sono nello stabile?</h3>
+            <p className="rv-hint">Seleziona solo quelli realmente disponibili per i condomini.</p>
+            {AMENITY_GROUPS.map((group) => (
+              <div key={group.label} className="rv-amen-group">
+                <div className="rv-amen-title">{group.label}</div>
+                <div className="rv-chips">
                   {group.items.map(([id, l]) => {
                     const active = amenities.includes(id)
                     return (
                       <button key={id} type="button"
-                        onClick={() => setAmenities(a => a.includes(id) ? a.filter(x => x !== id) : [...a, id])}
-                        style={{
-                          padding: '7px 8px', borderRadius: 6, fontSize: 12, fontWeight: 600,
-                          border: `1px solid ${active ? 'var(--teal)' : 'var(--border)'}`,
-                          background: active ? 'var(--teal-lt)' : '#fff',
-                          color: active ? 'var(--teal-dk)' : 'var(--text-3)',
-                          cursor: 'pointer', textAlign: 'left',
-                        }}
-                      >{active && <Check size={14} strokeWidth={2.6} aria-hidden="true" style={{ verticalAlign: '-2px', marginRight: 4 }} />}{l}</button>
+                        onClick={() => setAmenities((a) => a.includes(id) ? a.filter((x) => x !== id) : [...a, id])}
+                        className={`rv-chip is-sm${active ? ' is-on' : ''}`}>
+                        {active && <Check size={14} strokeWidth={2.6} aria-hidden="true" />}{l}
+                      </button>
                     )
                   })}
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      )}
+          </section>
+        )}
 
-      {extras.photos && (
-        <div style={GROUP}>
-          <label style={LABEL}>Aggiungi foto (opzionale)</label>
-          <PhotoUploader files={photos} onChange={setPhotos} maxFiles={5} />
-        </div>
-      )}
+        {extras.photos && (
+          <section className="rv-section">
+            <h3 className="rv-label">Aggiungi foto <span className="rv-optional">(facoltativo)</span></h3>
+            <PhotoUploader files={photos} onChange={setPhotos} maxFiles={5} />
+          </section>
+        )}
 
-      {err && <p style={{ color: '#DC2626', fontSize: 13, marginBottom: 12 }}>{err}</p>}
-      <Button variant="primary" block onClick={submit} disabled={busy} style={{ padding: 13 }}>
-        {busy ? 'Salvataggio...' : existingReview ? 'Aggiorna recensione' : 'Pubblica recensione'}
-      </Button>
-      <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 12, fontSize: 12, lineHeight: 1.6, color: 'var(--text-3)' }}>
-        <input
-          type="checkbox"
-          checked={policyConfirmed}
-          onChange={(e) => setPolicyConfirmed(e.target.checked)}
-          style={{ marginTop: 2 }}
-        />
-        <span>
-          Confermo che la recensione si basa su un'esperienza reale, e scritta in buona fede, non contiene insulti,
-          accuse non provate, dati personali di terzi o contenuti diffamatori. Sono consapevole di essere personalmente responsabile di quanto pubblico.
-        </span>
-      </label>
-      <p style={{ fontSize: 12, color: 'var(--text-4)', lineHeight: 1.6, marginTop: 10 }}>
-        Nessun dato personale identificabile viene pubblicato. Le recensioni sono moderate prima della pubblicazione.
-      </p>
+        <label className="rv-consent">
+          <input type="checkbox" checked={policyConfirmed} onChange={(e) => setPolicyConfirmed(e.target.checked)} />
+          <span>
+            Confermo che la recensione si basa su un&apos;esperienza reale, è scritta in buona fede e non contiene insulti,
+            accuse non provate, dati personali di terzi o contenuti diffamatori. Sono consapevole di essere personalmente responsabile di quanto pubblico.
+          </span>
+        </label>
+
+        {err && <p className="rv-err">{err}</p>}
+        <Button variant="primary" block onClick={submit} disabled={busy} style={{ padding: 14, borderRadius: 999 }}>
+          {busy ? 'Salvataggio...' : existingReview ? 'Aggiorna recensione' : 'Pubblica recensione'}
+        </Button>
+        <p className="rv-foot">Nessun dato personale identificabile viene pubblicato. Le recensioni sono moderate prima della pubblicazione.</p>
+      </div>
     </Modal>
   )
 }

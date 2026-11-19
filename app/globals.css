@@ -3647,3 +3647,41 @@ a.ci-card.ci-row { border: 1px solid var(--border); }
 
 /* Esplora: i risultati restano sotto il menu suggerimenti della ricerca (anche su Safari) */
 .dir-results { position: relative; z-index: 1; }
+
+/* Form recensione (rv-) */
+.rv-section { margin-bottom: 26px; }
+.rv-label { margin: 0 0 12px; font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+.rv-label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.rv-score-word { font-size: 14px; font-weight: 600; color: var(--text-4); }
+.rv-score-word.is-on { color: var(--teal-dk); }
+.rv-hint { margin: -6px 0 12px; font-size: 13px; color: var(--text-4); line-height: 1.5; }
+.rv-optional { font-weight: 500; color: var(--text-4); font-size: 14px; }
+.rv-note { font-size: 13px; color: var(--amber-tx); background: var(--amber-bg); border-radius: 12px; padding: 10px 14px; margin: 0 0 20px; }
+.rv-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.rv-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 0; height: 42px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--border); background: #fff; color: var(--text-2); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.rv-chip.is-sm { height: 36px; padding: 0 13px; font-size: 13px; }
+.rv-chip.is-on { border-color: var(--teal); background: var(--teal-lt); color: var(--teal-dk); }
+.rv-rate { display: flex; gap: 10px; flex-wrap: nowrap; }
+.rv-dot { flex: none; box-sizing: border-box; width: 48px; height: 48px; min-width: 0; min-height: 0; padding: 0; border-radius: 50%; border: 1.5px solid var(--border); background: #fff; color: var(--text-3); font: inherit; font-size: 16px; font-weight: 700; line-height: 1; display: grid; place-items: center; cursor: pointer; -webkit-appearance: none; appearance: none; transition: background .12s, border-color .12s, color .12s; }
+.rv-dot.is-on { background: var(--teal); border-color: var(--teal); color: #fff; }
+.rv-rate.is-sm { gap: 6px; }
+.rv-rate.is-sm .rv-dot { width: 34px; height: 34px; font-size: 13px; }
+.rv-cats { display: flex; flex-direction: column; gap: 8px; }
+.rv-cat { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; padding: 10px 12px 10px 16px; border: 1px solid var(--border); border-radius: 16px; background: #fff; }
+.rv-cat-label { font-size: 14px; font-weight: 600; color: var(--text); }
+.rv-input { display: block; width: 100%; box-sizing: border-box; min-height: 48px; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 14px; background: #fff; color: var(--text); font: inherit; font-size: 16px; outline: none; -webkit-appearance: none; appearance: none; }
+.rv-input:focus { border-color: var(--teal); }
+.rv-input.is-picked { border-color: var(--teal); }
+select.rv-input { background-image: linear-gradient(45deg, transparent 50%, var(--text-3) 50%), linear-gradient(135deg, var(--text-3) 50%, transparent 50%); background-position: calc(100% - 20px) 21px, calc(100% - 15px) 21px; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 40px; }
+.rv-textarea { min-height: 120px; resize: vertical; line-height: 1.55; }
+.rv-amen-group { margin-bottom: 14px; }
+.rv-amen-title { font-size: 12px; font-weight: 700; color: var(--text-4); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; }
+.rv-consent { display: flex; align-items: flex-start; gap: 10px; padding: 14px; margin-bottom: 16px; border-radius: 14px; background: var(--bg); font-size: 12.5px; line-height: 1.55; color: var(--text-3); cursor: pointer; }
+.rv-consent input { flex: none; min-height: 0; width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--teal); }
+.rv-err { color: #DC2626; font-size: 13px; margin: 0 0 12px; }
+.rv-foot { font-size: 12px; color: var(--text-4); line-height: 1.6; margin: 12px 0 0; text-align: center; }
+@media (max-width: 420px) { .rv-rate:not(.is-sm) { gap: 8px; } .rv-rate:not(.is-sm) .rv-dot { width: 44px; height: 44px; } }
+
+/* Icone pulsanti profilo: non si rimpiccioliscono col testo lungo */
+.sp-btn svg { flex: none; width: 18px; height: 18px; }
+.sp-actions.is-admin { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); }

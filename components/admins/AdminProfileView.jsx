@@ -54,7 +54,7 @@ export default function AdminProfileView({ admin: a, reviews, buildingsCount, su
         </div>
       </header>
 
-      <div className="sp-actions">
+      <div className="sp-actions is-admin">
         <button type="button" className="sp-btn is-main" disabled={demo} onClick={() => setReviewOpen(true)}><MessageSquarePlus size={18} aria-hidden="true" />Recensisci</button>
         {a.phone && !demo
           ? <a className="sp-btn" href={`tel:${a.phone}`} style={{ textDecoration: 'none' }}><Phone size={18} aria-hidden="true" />Chiama</a>

@@ -3633,3 +3633,14 @@ a.ci-card.ci-row { border: 1px solid var(--border); }
 .wk-amount input { flex: 1; min-width: 0; border: none; outline: none; font: inherit; font-size: 20px; font-weight: 700; color: var(--text); background: none; }
 .sp-inbox-row { display: flex; align-items: center; gap: 12px; width: 100%; text-decoration: none; color: inherit; }
 .cadm-inbox li:has(.sp-inbox-row) { padding: 12px 16px; }
+
+/* Esplora con la mappa aperta (desktop): niente colonna filtri, lista e mappa
+   affiancate; le card si compattano quando la lista è stretta. */
+@media (min-width: 768px) { .dir-results.has-map { grid-template-columns: minmax(0, 1fr) minmax(360px, 46%); } }
+.dir-list { container-type: inline-size; }
+@container (max-width: 560px) {
+  .building-row { gap: 12px; padding: 12px; }
+  .building-row-preview { width: 112px; min-width: 112px; height: 132px; }
+  .building-row-top { flex-direction: column; gap: 6px; }
+  .building-row-actions { flex-wrap: wrap; }
+}

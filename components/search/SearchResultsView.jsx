@@ -42,7 +42,7 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
         <SearchBar initial={query} variant="dir" />
         <div className="dir-ctrls">
           <CitySelect cities={cities} allLabel="Tutte" />
-          {isMobile && (
+          {(isMobile || showMap) && (
             <button type="button" className={`dir-ctrl${filtersActive ? ' is-on' : ''}`} onClick={() => setShowFilters(true)}>
               <SlidersHorizontal size={20} strokeWidth={2} aria-hidden="true" />Filtri
             </button>
@@ -59,8 +59,8 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
         </div>
       </PageHero>
 
-      {isMobile && showFilters && (
-        <div className="dir-sheet-wrap" role="dialog" aria-modal="true" aria-label="Filtri">
+ {showFilters && (isMobile || showMap) && (
+        <div className={`dir-sheet-wrap${isMobile ? '' : ' is-desktop'}`} role="dialog" aria-modal="true" aria-label="Filtri">
           <div className="dir-sheet-backdrop" onClick={() => setShowFilters(false)} />
           <div className="dir-sheet" style={{ maxHeight: '85vh', overflowY: 'auto' }}>
             <div className="dir-sheet-head">
@@ -88,7 +88,8 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
       )}
 
       <div className={`dir-results${!isMobile && showMap ? ' has-map' : ''}`}>
-        {!isMobile && <FilterSidebar feeCounts={feeCounts} />}
+        {/* con la mappa aperta i filtri passano nel pulsante "Filtri", così lista e mappa hanno spazio */}
+        {!isMobile && !showMap && <FilterSidebar feeCounts={feeCounts} />}
 
         <div style={{ minWidth: 0 }}>
           <div className="dir-listhead">
@@ -130,7 +131,7 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
         {!isMobile && showMap && (
           <div style={{ position: 'sticky', top: 80 }}>
             <div style={{ position: 'relative' }}>
-              <ResultsMap results={results} height={520} focusLat={focusLat} focusLng={focusLng} onResultSelect={setSelectedBuilding} />
+              <ResultsMap results={results} height="min(680px, calc(100vh - 130px))" focusLat={focusLat} focusLng={focusLng} onResultSelect={setSelectedBuilding} />
               {selectedBuilding && <DesktopMapPreview building={selectedBuilding} onClose={() => setSelectedBuilding(null)} />}
             </div>
             <div style={{ marginTop: 8, paddingLeft: 2 }}><MapLegend /></div>

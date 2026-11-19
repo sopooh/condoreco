@@ -12,6 +12,43 @@ import { createClient } from '@/lib/supabase/client'
 import { useSession } from '@/components/providers/SessionProvider'
 import { useMyReview } from '@/hooks/useMyReview'
 import { track } from '@/lib/analytics'
+import { useAdmins } from '@/hooks/useAdmins'
+
+// "Chi è il vostro amministratore?": autocompletamento sugli studi già
+// presenti, oppure nome libero. Collega studio e palazzo (trigger DB).
+function AdminQuestion({ value, onChange }) {
+  const { admins } = useAdmins({})
+  const [focus, setFocus] = useState(false)
+  const q = value.name.trim().toLowerCase()
+  const matches = q.length >= 2 && !value.id
+    ? admins.filter((a) => !a.is_sample && `${a.name} ${a.studio_name || ''}`.toLowerCase().includes(q)).slice(0, 6)
+    : []
+  return (
+    <div style={{ position: 'relative' }}>
+      <input value={value.name} placeholder="Nome dello studio o dell'amministratore"
+        onChange={(e) => onChange({ id: null, name: e.target.value })}
+        onFocus={() => setFocus(true)} onBlur={() => setTimeout(() => setFocus(false), 150)}
+        style={{ width: '100%', background: 'var(--bg)', border: `1px solid ${value.id ? 'var(--teal)' : 'var(--border)'}`, borderRadius: 6, padding: '10px 12px', fontSize: 14 }} />
+      {value.id && (
+        <p style={{ fontSize: 12, color: 'var(--teal-dk)', margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Check size={13} strokeWidth={2.6} aria-hidden="true" /> Studio presente su Condoreco
+        </p>
+      )}
+      {focus && matches.length > 0 && (
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 20, background: '#fff', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,.1)', overflow: 'hidden' }}>
+          {matches.map((a) => (
+            <button key={a.id} type="button" onMouseDown={(e) => e.preventDefault()}
+              onClick={() => { onChange({ id: a.id, name: a.name }); setFocus(false) }}
+              style={{ display: 'block', width: '100%', textAlign: 'left', padding: '9px 12px', background: 'none', border: 'none', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
+              <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{a.name}</span>
+              {a.city && <span style={{ fontSize: 12, color: 'var(--text-4)' }}>{a.city}</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function DotRating({ value, onChange, size = 28 }) {
   return (
@@ -72,6 +109,7 @@ export default function ReviewForm({
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const [policyConfirmed, setPolicyConfirmed] = useState(false)
+  const [adminAnswer, setAdminAnswer] = useState({ id: null, name: '' })
 
   function setCat(k, v) { setCats((c) => ({ ...c, [k]: v })) }
 
@@ -127,6 +165,8 @@ export default function ReviewForm({
         }
         if (extras.residentSince) payload.resident_since = since
         if (extras.issues) payload.main_issue = issue
+        if (extras.issues && adminAnswer.id) payload.reported_administrator_id = adminAnswer.id
+        else if (extras.issues && adminAnswer.name.trim()) payload.reported_administrator_name = adminAnswer.name.trim().slice(0, 120)
 
         const { data, error } = await supabase.from(table).insert(payload).select('id').single()
         if (error) throw error
@@ -141,6 +181,7 @@ export default function ReviewForm({
         subject_type: extras.issues ? 'building' : 'administrator',
         score,
         photo_count: photos.length,
+        ...(extras.issues && !existingReview ? { admin_answer: adminAnswer.id ? 'existing' : adminAnswer.name.trim() ? 'free_text' : 'skipped' } : {}),
       })
       onClose()
       await fetchMyReview()
@@ -191,6 +232,16 @@ export default function ReviewForm({
           ))}
         </div>
       </div>
+
+      {extras.issues && !existingReview && (
+        <div style={GROUP}>
+          <label style={LABEL}>Chi è il vostro amministratore?</label>
+          <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 10, marginTop: -6 }}>
+            Facoltativo. Ci aiuta a collegare il palazzo al suo studio.
+          </p>
+          <AdminQuestion value={adminAnswer} onChange={setAdminAnswer} />
+        </div>
+      )}
 
       {extras.issues && (
         <div style={GROUP}>

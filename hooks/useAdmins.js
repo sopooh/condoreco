@@ -16,7 +16,7 @@ export function useAdmins({ city } = {}) {
     const supabase = createClient()
     async function load() {
       setLoading(true)
-      let req = supabase.from('admin_scores').select('id, name, city, building_count')
+      let req = supabase.from('admin_scores').select('id, name, studio_name, city, building_count, is_sample')
       if (city) req = req.eq('city', city)
       const { data } = await req
       if (active) {

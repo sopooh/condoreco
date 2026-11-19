@@ -6,7 +6,7 @@ export const revalidate = 3600
 
 export async function generateStaticParams() {
   const supabase = createStaticClient()
-  const { data } = await supabase.from('building_scores').select('id')
+  const { data } = await supabase.from('building_scores').select('id').neq('status', 'imported')
   return (data || []).map((b) => ({ id: b.id }))
 }
 

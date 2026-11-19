@@ -62,7 +62,8 @@ const getBuildingData = cache(async (id) => {
     supabase
       .from('building_scores')
       .select('id, city, neighborhood, score, score_noise, score_safety, score_quality, score_maintenance, score_costs, score_admin')
-      .eq('city', building.city),
+      .eq('city', building.city)
+      .neq('status', 'imported'),
     // Segnalazioni separate dalle recensioni (vedi sezione "Segnalazioni passate").
     supabase
       .from('building_reports')
@@ -94,7 +95,7 @@ const getBuildingData = cache(async (id) => {
 // è per questo fetchato client-side in ReviewForm (useMyReview), non qui.
 export async function generateStaticParams() {
   const supabase = createStaticClient()
-  const { data } = await supabase.from('building_scores').select('id')
+  const { data } = await supabase.from('building_scores').select('id').neq('status', 'imported')
   return (data || []).map((b) => ({ id: b.id }))
 }
 
@@ -116,6 +117,8 @@ export async function generateMetadata({ params }) {
   return {
     title,
     description,
+    // Civici importati dal Comune senza recensioni: raggiungibili ma non indicizzati.
+    ...(building.status === 'imported' ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
       title,
       description,

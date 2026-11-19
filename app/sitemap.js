@@ -22,7 +22,7 @@ export default async function sitemap() {
   const supabase = createStaticClient()
 
   const [{ data: buildings }, { data: admins }] = await Promise.all([
-    supabase.from('building_scores').select('id'),
+    supabase.from('building_scores').select('id').neq('status', 'imported'),
     supabase.from('admin_scores').select('id'),
   ])
 

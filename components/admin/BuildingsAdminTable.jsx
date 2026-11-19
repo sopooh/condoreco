@@ -12,6 +12,7 @@ function StatusBadge({ status }) {
     approved: { label: 'Approvato', bg: 'var(--green-bg)', color: 'var(--green-tx)' },
     hidden: { label: 'Nascosto', bg: 'var(--border-2)', color: 'var(--text-3)' },
     verified: { label: 'Verificato', bg: 'var(--teal-lt)', color: 'var(--teal-dk)' },
+    imported: { label: 'Non recensito', bg: 'var(--border-2)', color: 'var(--text-3)' },
   }
   const s = map[status] || map.pending
   return <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: s.bg, color: s.color }}>{s.label}</span>
@@ -102,6 +103,7 @@ export default function BuildingsAdminTable({ adminId }) {
           <option value="approved">Approvato</option>
           <option value="verified">Verificato</option>
           <option value="hidden">Nascosto</option>
+          <option value="imported">Non recensito (Comune)</option>
         </select>
       </div>
 

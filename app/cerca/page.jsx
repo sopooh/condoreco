@@ -41,13 +41,13 @@ async function getSearchData(searchParams) {
   }
 
   async function run(mode) {
-    let req = applyCommonFilters(supabase.from('building_scores').select('*'), mode)
+    let req = applyCommonFilters(supabase.from('building_scores').select('*').neq('status', 'imported'), mode)
     // Filtro attivo solo se scostato dal default: altrimenti gte(...,0) su
     // Postgres escluderebbe gli edifici con monthly_fee null (mai valorizzata).
     if (feeMin > 0) req = req.gte('monthly_fee', feeMin)
     if (feeMax < 3000) req = req.lte('monthly_fee', feeMax)
     // Baseline dell'istogramma: stessi filtri tranne il range fee
-    const feeReq = applyCommonFilters(supabase.from('building_scores').select('monthly_fee'), mode)
+    const feeReq = applyCommonFilters(supabase.from('building_scores').select('monthly_fee').neq('status', 'imported'), mode)
     const [{ data }, { data: fees }] = await Promise.all([req, feeReq])
     return { data: data || [], fees: fees || [] }
   }
@@ -65,7 +65,7 @@ async function getSearchData(searchParams) {
     if (!exact.length) civicMiss = { civic: parsed.civic, street: buildings[0].address || parsed.street }
   }
 
-  const { data: cityRows } = await supabase.from('building_scores').select('city')
+  const { data: cityRows } = await supabase.from('building_scores').select('city').neq('status', 'imported')
 
   const citySet = new Set()
   ;(cityRows || []).forEach((b) => { if (b.city) citySet.add(b.city) })

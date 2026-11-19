@@ -15,7 +15,7 @@ const TOP_BUILDINGS_LIMIT = 6
 
 async function getHomeData() {
   const supabase = createStaticClient()
-  const { data } = await supabase.from('building_scores').select('*').order('review_count', { ascending: false }).limit(TOP_BUILDINGS_LIMIT)
+  const { data } = await supabase.from('building_scores').select('*').neq('status', 'imported').order('review_count', { ascending: false }).limit(TOP_BUILDINGS_LIMIT)
   return { topBuildings: data || [] }
 }
 

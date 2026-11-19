@@ -31,7 +31,7 @@ export default async function SuppliersPage({ searchParams }) {
   const supabase = createStaticClient()
   const [{ data }, { data: geo }] = await Promise.all([
     supabase.rpc('public_suppliers'),
-    supabase.from('building_scores').select('city, lat, lng').not('lat', 'is', null),
+    supabase.from('building_scores').select('city, lat, lng').neq('status', 'imported').not('lat', 'is', null),
   ])
   const all = (data || []).map((s) => ({ ...s, categories: s.categories || [], zones: s.zones || [] }))
 

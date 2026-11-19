@@ -38,7 +38,7 @@ function useOptions(kind) {
     if (!kind) return
     const supabase = createClient()
     const q = kind === 'building'
-      ? supabase.from('building_scores').select('id, address, street_number, city, review_count').order('review_count', { ascending: false }).limit(300)
+      ? supabase.from('building_scores').select('id, address, street_number, city, review_count').neq('status', 'imported').order('review_count', { ascending: false }).limit(300)
       : supabase.from('admin_scores').select('id, name, studio_name, city, review_count').order('review_count', { ascending: false }).limit(300)
     q.then(({ data, error }) => {
       if (error) { console.error('[instagram] options', error); return }

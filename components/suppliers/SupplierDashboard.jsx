@@ -86,7 +86,8 @@ function SupplierChat({ item, onBack }) {
       title={`Intervento: ${item.title}`}
       subtitle={others.length ? `Con ${others.join(', ')}` : item.building_address}
       avatar={<span style={{ width: 38, height: 38, borderRadius: '50%', background: '#FDE9DC', color: '#C2410C', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Wrench size={17} aria-hidden="true" /></span>}
-      messages={messages} names={names} userId={userId} onSend={send} onBack={onBack}
+      messages={messages} names={names} userId={userId} asSupplier
+      onSend={(c, extra = {}) => send(c, { ...extra, meta: { ...(extra.meta || {}), as: 'supplier' } })} onBack={onBack}
     />
   )
 }

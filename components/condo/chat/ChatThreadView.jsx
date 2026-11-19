@@ -20,7 +20,7 @@ function dayLabel(iso) {
 
 // Vista di una conversazione: intestazione, bolle dei messaggi, campo di scrittura.
 // composer: { buildingId, threadId, isGroup, onAction }; ctx: dati per sondaggi, eventi, contatti
-export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, headerRight, pinned, messages, names, userId, onSend, onEdit, onDelete, onBack, onHide, banner, emptyText, composer = {}, ctx }) {
+export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, headerRight, pinned, messages, names, userId, onSend, onEdit, onDelete, onBack, onHide, banner, emptyText, composer = {}, ctx, asSupplier = false }) {
   const endRef = useRef(null)
   const [menu, setMenu] = useState(null) // { m, x, y, mine, canEdit, canHide }
   const [editing, setEditing] = useState(null)
@@ -80,11 +80,15 @@ export default function ChatThreadView({ title, subtitle, avatar, onOpenInfo, he
           <p style={{ fontSize: 14, color: 'var(--text-3)', textAlign: 'center', margin: '28px 16px' }}>{emptyText || 'Ancora nessun messaggio. Scrivi il primo.'}</p>
         )}
         {shown.map((m, idx) => {
-          const mine = m.created_by === userId
+          // stessa persona come residente e come Recofixer (prove con "Vedi come"):
+          // i messaggi inviati dall'altro ruolo si vedono come ricevuti
+          const mine = m.created_by === userId && (asSupplier ? m.meta?.as === 'supplier' : m.meta?.as !== 'supplier')
           const prev = shown[idx - 1]
           const showDay = !prev || new Date(prev.created_at).toDateString() !== new Date(m.created_at).toDateString()
           const showName = !mine && (!prev || prev.created_by !== m.created_by || showDay)
-          const who = names[m.created_by]?.display_name || 'Residente'
+          const who = m.meta?.as === 'supplier' && !asSupplier
+            ? `${names[m.created_by]?.display_name || 'Fornitore'} · Recofixer`
+            : names[m.created_by]?.display_name || 'Residente'
           return (
             <div key={m.id}>
               {showDay && (

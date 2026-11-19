@@ -1,0 +1,2 @@
+-- Messaggi dell'intervento inviati come Recofixer: meta.as = 'supplier' (vedi migrazione applicata
+-- thread_sender_role: intervention_note legge condoreco.as, impostato da supplier_propose_date e supplier_complete).

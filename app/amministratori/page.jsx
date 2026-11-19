@@ -7,12 +7,16 @@ export const revalidate = 3600
 // Rilevanza: media bayesiana del voto (chi ha poche recensioni pesa meno),
 // poi condomini gestiti e certificazione.
 const bayes = (a) => ((a.score || 0) * a.review_count + 3.5 * 5) / (a.review_count + 5)
+// Studi importati dal Registro Imprese: import_rank 1 (quasi certamente
+// amministratori), 2 (ditte individuali), 3 (da verificare). A parità di tutto
+// il resto vanno dopo gli studi inseriti da utenti o rivendicati (rank null).
+const byImportRank = (a, b) => (a.import_rank ?? 0) - (b.import_rank ?? 0)
 const ADMIN_SORTS = {
-  rilevanti: (a, b) => bayes(b) - bayes(a) || b.building_count - a.building_count || Number(b.verified) - Number(a.verified),
-  valutazione: (a, b) => (b.score ?? -1) - (a.score ?? -1) || b.review_count - a.review_count,
-  recensioni: (a, b) => b.review_count - a.review_count || (b.score ?? 0) - (a.score ?? 0),
-  condomini: (a, b) => b.building_count - a.building_count || b.review_count - a.review_count,
-  anzianita: (a, b) => (a.active_since || 9999) - (b.active_since || 9999),
+  rilevanti: (a, b) => bayes(b) - bayes(a) || b.building_count - a.building_count || Number(b.verified) - Number(a.verified) || byImportRank(a, b),
+  valutazione: (a, b) => (b.score ?? -1) - (a.score ?? -1) || b.review_count - a.review_count || byImportRank(a, b),
+  recensioni: (a, b) => b.review_count - a.review_count || (b.score ?? 0) - (a.score ?? 0) || byImportRank(a, b),
+  condomini: (a, b) => b.building_count - a.building_count || b.review_count - a.review_count || byImportRank(a, b),
+  anzianita: (a, b) => (a.active_since || 9999) - (b.active_since || 9999) || byImportRank(a, b),
   nome: (a, b) => a.name.localeCompare(b.name, 'it'),
 }
 

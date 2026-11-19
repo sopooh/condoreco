@@ -44,7 +44,8 @@ const getAdminData = cache(async (id) => {
 // per questo usa il client static, non quello cookie-aware di '@/lib/supabase/server'.
 export async function generateStaticParams() {
   const supabase = createStaticClient()
-  const { data } = await supabase.from('admin_scores').select('id')
+  // Gli studi importati dal Registro Imprese si generano on demand, non in build.
+  const { data } = await supabase.from('admin_scores').select('id').is('source', null)
   return (data || []).map((a) => ({ id: a.id }))
 }
 

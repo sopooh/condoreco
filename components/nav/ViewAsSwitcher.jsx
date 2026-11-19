@@ -16,7 +16,9 @@ function useSwitch() {
   const pick = (id) => {
     v.setViewAs(id)
     const leavingSupplier = pathname?.startsWith('/fornitore') && id !== 'recofixer'
-    if (id === 'recofixer' || leavingSupplier || pathname === '/admin') router.push(HOME[id])
+    // si resta sulla pagina corrente (es. profilo); si cambia pagina solo se
+    // quella attuale non esiste nella nuova vista
+    if (leavingSupplier || pathname === '/admin') router.push(HOME[id])
   }
   return { ...v, pick }
 }

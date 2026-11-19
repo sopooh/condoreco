@@ -18,7 +18,7 @@ const ACTIVE = (i) => i.status === 'requested' || i.status === 'scheduled'
 
 export default function WorkTab({ list, loading, demo, onManage, onChat }) {
   const [files, setFiles] = useState(null)
-  const [openId, setOpenId] = useState(null)
+  const [openId, setOpenId] = useState(() => (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('i') : null))
   const [paying, setPaying] = useState(null)
   const ids = list.map((i) => i.id).join(',')
 

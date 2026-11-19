@@ -205,7 +205,7 @@ export default function SearchBar({ initial = '', size = 'lg', maxWidth = 540, v
           position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
           background: 'var(--white)', border: '1px solid var(--border)',
           borderRadius: 10, boxShadow: '0 8px 28px rgba(0,0,0,0.12)',
-          zIndex: 500, overflow: 'hidden', textAlign: 'left',
+          zIndex: 500, overflow: 'hidden', textAlign: 'left', transform: 'translateZ(0)',
         }}>
           {archive.length > 0 && (
             <div style={{ borderBottom: results.length ? '1px solid var(--border)' : 'none', background: '#F4F9F9' }}>

@@ -16,6 +16,8 @@ import { useMyTeams } from '@/hooks/useTeams'
 import { useSession } from '@/components/providers/SessionProvider'
 import { useAdminOverview } from '@/hooks/useAdminArea'
 import { AdminBuildingRow, AdminInbox, AdminKpis } from '@/components/profile/AdminProfile'
+import { SupplierBuildingRow, SupplierInbox, SupplierKpis } from '@/components/profile/SupplierProfile'
+import { useSupplierWork } from '@/hooks/useSupplierWork'
 import { ViewAsPicker } from '@/components/nav/ViewAsSwitcher'
 import { useViewAs } from '@/hooks/useViewAs'
 import PrivacySection from '@/components/profile/PrivacySection'
@@ -61,6 +63,7 @@ export default function ProfileClient() {
   const view = admin.isAdmin ? (canSwitch ? 'admin' : (viewPick || 'admin')) : 'resident'
   const asSupplier = viewAs === 'recofixer'
   const clients = useSupplierBuildings(asSupplier)
+  const work = useSupplierWork(asSupplier)
   const myTeams = useMyTeams(!!session)
   const [pastClientsOpen, setPastClientsOpen] = useState(false)
 
@@ -247,8 +250,14 @@ export default function ProfileClient() {
             </div>
           </section>
           ) : asSupplier ? (
-          /* RECOFIXER: CONDOMINI CLIENTI */
-          <section>
+          /* RECOFIXER: DA FARE + CONDOMINI CLIENTI */
+          <section style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
+            <div>
+              <SectionTitle icon={<Inbox size={16} strokeWidth={2} aria-hidden="true" />}>Da fare</SectionTitle>
+              <SupplierKpis work={work} />
+              {work.loading ? <div style={{ ...card, padding: 20, fontSize: 14, color: 'var(--text-3)' }}>Caricamento...</div> : <SupplierInbox work={work} />}
+            </div>
+            <div>
             <div className="profile-section-head">
               <SectionTitle icon={<Wrench size={16} strokeWidth={2} aria-hidden="true" />}>Lavoro</SectionTitle>
               {!clients.loading && <span className="cadm-count">{clients.current.length}</span>}
@@ -259,7 +268,7 @@ export default function ProfileClient() {
               ) : (
                 <>
                   {clients.current.length > 0 ? (
-                    clients.current.map(b => <ProfileHomeRow key={b.id} building={b} />)
+                    clients.current.map(b => <SupplierBuildingRow key={b.id} b={b} work={work} />)
                   ) : (
                     <div style={{ padding: 20, fontSize: 14, color: 'var(--text-3)' }}>
                       Nessun condominio ti ha ancora aggiunto tra i suoi fornitori.
@@ -280,6 +289,7 @@ export default function ProfileClient() {
                   )}
                 </>
               )}
+            </div>
             </div>
           </section>
           ) : (

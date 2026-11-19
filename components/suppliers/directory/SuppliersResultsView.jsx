@@ -14,6 +14,7 @@ import { useSaved } from '@/components/directory/useSaved'
 import SupplierFilterSidebar, { SUPPLIER_SORTS } from '@/components/suppliers/directory/SupplierFilterSidebar'
 import SupplierRow from '@/components/suppliers/directory/SupplierRow'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { NavPendingOverlay } from '@/components/ui/CondorLoader'
 
 const TABS = [
   { id: '', label: 'Tutti' },
@@ -45,6 +46,7 @@ export default function SuppliersResultsView({ suppliers, cities, categoryCounts
 
   return (
     <>
+      <NavPendingOverlay />
       <PageHero icon={<Wrench size={isMobile ? 26 : 30} strokeWidth={1.8} aria-hidden="true" />} title="Fornitori"
         subtitle="I Recofixer che lavorano con i condomini: idraulici, elettricisti, ascensoristi, imprese e non solo.">
         <DirectorySearch placeholder="Cerca fornitore o servizio" />

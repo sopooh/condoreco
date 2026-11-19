@@ -14,6 +14,7 @@ import SortSelect from '@/components/directory/SortSelect'
 import { useParamNav } from '@/components/directory/useParamNav'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useSaved } from '@/components/directory/useSaved'
+import { NavPendingOverlay } from '@/components/ui/CondorLoader'
 
 const NO_REVIEWS_COLOR = '#EA580C'
 const NO_REVIEWS_LEGEND = { color: NO_REVIEWS_COLOR, label: 'Senza recensioni' }
@@ -67,6 +68,7 @@ export default function AdminsResultsView({ admins, cities, feeCounts, city }) {
 
   return (
     <>
+      <NavPendingOverlay />
       <PageHero icon={<Building2 size={isMobile ? 26 : 30} strokeWidth={1.8} aria-hidden="true" />} title="Amministratori"
         subtitle="Scopri reputazione, stabili gestiti e recensioni degli amministratori di condominio prima di averci a che fare.">
         <DirectorySearch placeholder="Cerca un amministratore..." />

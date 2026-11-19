@@ -13,6 +13,7 @@ import PageHero from '@/components/directory/PageHero'
 import CitySelect from '@/components/directory/CitySelect'
 import { useParamNav } from '@/components/directory/useParamNav'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { NavPendingOverlay } from '@/components/ui/CondorLoader'
 
 // Esplora: stessa testata di Amministratori e Fornitori (ricerca, città,
 // filtri, mappa). La mappa si apre col tasto Mappa: a schermo intero su
@@ -37,6 +38,7 @@ export default function SearchResultsView({ buildings, cities, feeCounts, query,
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <NavPendingOverlay />
       <PageHero icon={<Compass size={isMobile ? 26 : 30} strokeWidth={1.8} aria-hidden="true" />} title="Esplora"
         subtitle="Cerca il condominio per via, quartiere o città: valutazioni, spese e recensioni di chi ci vive.">
         <SearchBar initial={query} variant="dir" />
